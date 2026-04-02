@@ -72,6 +72,24 @@
             border-radius: 0.5rem;
         }
 
+        /* Styling untuk Print/Cetak PDF */
+        #pdf-print-area {
+            display: none;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #pdf-print-area,
+            #pdf-print-area * { visibility: visible; }
+            #pdf-print-area {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+        }
+        @page { size: A4; margin: 2.5cm; }
+
         /* Styling Modal */
         .modal-backdrop {
             transition: opacity 0.3s ease-in-out;
@@ -171,6 +189,84 @@
                     <div class="pt-6 border-t border-slate-200">
                         <button type="submit" class="btn w-full bg-green-500 text-white font-bold py-3.5 px-8 rounded-lg shadow-lg hover:bg-green-600">
                             Buat & Kirim Surat Izin via WhatsApp
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal untuk Generate PDF -->
+    <div id="pdf-form-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="pdf-modal-title" role="dialog" aria-modal="true">
+        <div id="pdf-modal-backdrop" class="absolute inset-0 bg-slate-900/60 modal-backdrop"></div>
+        <div class="modal-content bg-white w-full max-w-lg rounded-2xl shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <div class="p-6 sm:p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="pdf-modal-title" class="text-xl font-bold text-red-700">📄 Buat Surat Izin PDF</h3>
+                    <button id="close-pdf-modal-btn" class="text-slate-400 hover:text-slate-800 transition-colors" aria-label="Tutup formulir PDF">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <form id="pdf-form" class="space-y-5" novalidate>
+                    <input type="hidden" id="pdf-type" value="">
+
+                    <div>
+                        <label for="pdf-nama-wali" class="block text-sm font-medium text-slate-700 mb-1.5">Nama Wali Santri</label>
+                        <input type="text" id="pdf-nama-wali" required class="form-input w-full p-3 border border-slate-300 rounded-lg" placeholder="Contoh: Budi Santoso">
+                    </div>
+                    <div>
+                        <label for="pdf-alamat-wali" class="block text-sm font-medium text-slate-700 mb-1.5">Alamat Wali Santri</label>
+                        <input type="text" id="pdf-alamat-wali" required class="form-input w-full p-3 border border-slate-300 rounded-lg" placeholder="Contoh: Jl. Merdeka No. 10, Yogyakarta">
+                    </div>
+                    <div>
+                        <label for="pdf-nama-santri" class="block text-sm font-medium text-slate-700 mb-1.5">Nama Santri</label>
+                        <select id="pdf-nama-santri" required class="form-input w-full p-3 border border-slate-300 rounded-lg bg-white appearance-none">
+                            <option value="" disabled selected>Pilih Nama Santri</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="pdf-kelas-santri" class="block text-sm font-medium text-slate-700 mb-1.5">Kelas Santri</label>
+                        <input type="text" id="pdf-kelas-santri" readonly class="w-full p-3 border border-slate-300 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label for="pdf-keperluan" class="block text-sm font-medium text-slate-700 mb-1.5">Keperluan</label>
+                        <textarea id="pdf-keperluan" rows="3" required class="form-input w-full p-3 border border-slate-300 rounded-lg" placeholder="Contoh: menghadiri acara keluarga, kontrol kesehatan, dll."></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="pdf-tanggal-izin" class="block text-sm font-medium text-slate-700 mb-1.5">Tanggal Izin/Keluar</label>
+                            <input type="date" id="pdf-tanggal-izin" required class="form-input w-full p-3 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label for="pdf-tanggal-kembali" class="block text-sm font-medium text-slate-700 mb-1.5">Tanggal Kembali</label>
+                            <input type="date" id="pdf-tanggal-kembali" required class="form-input w-full p-3 border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Waktu Izin</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="pdf-jam-keluar" class="text-xs text-slate-500">Jam Keluar</label>
+                                <select id="pdf-jam-keluar" required class="form-input w-full p-3 border border-slate-300 rounded-lg bg-white appearance-none">
+                                    <option value="" disabled selected>Pilih</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="pdf-jam-kembali" class="text-xs text-slate-500">Jam Kembali</label>
+                                <select id="pdf-jam-kembali" required class="form-input w-full p-3 border border-slate-300 rounded-lg bg-white appearance-none">
+                                    <option value="" disabled selected>Pilih</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="pdf-tujuan" class="block text-sm font-medium text-slate-700 mb-1.5">Tempat Tujuan</label>
+                        <input type="text" id="pdf-tujuan" required class="form-input w-full p-3 border border-slate-300 rounded-lg" placeholder="Alamat atau lokasi yang dituju">
+                    </div>
+                    <div id="pdf-form-error" class="text-red-600 text-sm hidden font-medium"></div>
+                    <div class="pt-6 border-t border-slate-200">
+                        <button type="submit" class="btn w-full bg-red-600 text-white font-bold py-3.5 px-8 rounded-lg shadow-lg hover:bg-red-700">
+                            📄 Cetak / Download Surat PDF
                         </button>
                     </div>
                 </form>
@@ -281,7 +377,7 @@
                                     <h4 class="font-semibold text-green-700 mb-3">B. Izin Menginap 2-3 Hari</h4>
                                     <p class="mb-4 text-slate-600">Wali santri <strong>wajib mengisi surat permohonan</strong> dan mengirimkannya ke Pamong Asrama.</p>
                                     <div class="flex flex-wrap gap-4">
-                                        <a href="https://docs.google.com/document/d/1oQtCWzwcrBeHEeM6h3CKhEYX3dFNr5ZzzAGb3zoQFMc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm">📄 Unduh Format</a>
+                                        <button class="btn open-pdf-btn bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-pdf-type="menginap23">📄 Buat Surat PDF</button>
                                         <a href="https://wa.me/6282145575016" target="_blank" rel="noopener noreferrer" class="btn bg-green-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Kirim ke Pamong</a>
                                     </div>
                                 </div>
@@ -302,7 +398,7 @@
                                 <div class="step">
                                     <h4 class="font-semibold text-red-700 mb-3">Langkah 1: Siapkan Surat Permohonan</h4>
                                     <p class="mb-4 text-slate-600">Wali santri membuat <strong>surat permohonan resmi</strong> yang ditujukan kepada <strong>Direktur Madrasah</strong>.</p>
-                                    <a href="https://docs.google.com/document/d/1dbbqi0mpVuBX3VPmcHOoKsvx22uDy6Oo92PswLTYFDo/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm inline-block">📄 Unduh Format Surat</a>
+                                    <button class="btn open-pdf-btn bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-pdf-type="khusus">📄 Buat Surat PDF</button>
                                 </div>
                                 <div class="step">
                                     <h4 class="font-semibold text-red-700 mb-3">Langkah 2: Kirim Surat</h4>
@@ -336,6 +432,11 @@
         <footer class="text-center mt-16 md:mt-20 pt-8 md:pt-10 border-t border-slate-200/80">
             <p class="text-slate-500 text-sm">&copy; 2025 Didesain oleh fadiahaswat</p>
         </footer>
+    </div>
+
+    <!-- Area Surat untuk Cetak/PDF (tersembunyi, tampil hanya saat print) -->
+    <div id="pdf-print-area">
+        <div id="pdf-letter-content"></div>
     </div>
 
     <script>
@@ -626,6 +727,165 @@ Hormat kami,
             if (accordionContainer) {
                 accordionContainer.addEventListener('click', handleAccordionClick);
             }
+
+            // --- PDF MODAL ---
+
+            const pdfModal = document.getElementById('pdf-form-modal');
+            const pdfModalBackdrop = document.getElementById('pdf-modal-backdrop');
+            const closePdfModalBtn = document.getElementById('close-pdf-modal-btn');
+            const openPdfModalButtons = document.querySelectorAll('.open-pdf-btn');
+            const pdfForm = document.getElementById('pdf-form');
+            const pdfSantriDropdown = document.getElementById('pdf-nama-santri');
+            const pdfKelasField = document.getElementById('pdf-kelas-santri');
+            const pdfTypeInput = document.getElementById('pdf-type');
+            const pdfJamKeluarSelect = document.getElementById('pdf-jam-keluar');
+            const pdfJamKembaliSelect = document.getElementById('pdf-jam-kembali');
+
+            /**
+             * Mengisi dropdown santri pada formulir PDF.
+             */
+            function populatePdfSantriDropdown() {
+                santriData.forEach(santri => {
+                    const option = document.createElement('option');
+                    option.value = `${santri.name}|${santri.class}`;
+                    option.textContent = santri.name;
+                    pdfSantriDropdown.appendChild(option);
+                });
+            }
+
+            /**
+             * Membuka modal formulir PDF.
+             * @param {string} pdfType - Tipe surat ('menginap23' atau 'khusus').
+             */
+            function openPdfModal(pdfType) {
+                pdfTypeInput.value = pdfType;
+                pdfForm.reset();
+                pdfKelasField.value = '';
+                document.getElementById('pdf-form-error').classList.add('hidden');
+                populateTimeDropdowns(pdfJamKeluarSelect, 6, 21);
+                populateTimeDropdowns(pdfJamKembaliSelect, 6, 21);
+                pdfModal.classList.remove('hidden');
+                setTimeout(() => pdfModal.classList.add('is-open'), 10);
+                document.body.style.overflow = 'hidden';
+            }
+
+            /**
+             * Menutup modal formulir PDF.
+             */
+            function closePdfModal() {
+                pdfModal.classList.remove('is-open');
+                setTimeout(() => {
+                    pdfModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+
+            /**
+             * Memformat tanggal ke format Indonesia lengkap.
+             * @param {string} dateStr - Tanggal dalam format YYYY-MM-DD.
+             * @returns {string} Tanggal dalam format Bahasa Indonesia.
+             */
+            function formatTanggalId(dateStr) {
+                return new Date(dateStr + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            }
+
+            /**
+             * Menangani pengiriman formulir PDF dan membuka dialog cetak.
+             * @param {Event} event - Event submit.
+             */
+            function handlePdfFormSubmit(event) {
+                event.preventDefault();
+                if (!pdfForm.checkValidity()) {
+                    pdfForm.reportValidity();
+                    return;
+                }
+
+                const pdfType = pdfTypeInput.value;
+                const namaWali = document.getElementById('pdf-nama-wali').value.trim();
+                const alamatWali = document.getElementById('pdf-alamat-wali').value.trim();
+                const [namaSantri, kelas] = pdfSantriDropdown.value.split('|');
+                const keperluan = document.getElementById('pdf-keperluan').value.trim();
+                const tanggalIzin = document.getElementById('pdf-tanggal-izin').value;
+                const tanggalKembali = document.getElementById('pdf-tanggal-kembali').value;
+                const jamKeluar = pdfJamKeluarSelect.value;
+                const jamKembali = pdfJamKembaliSelect.value;
+                const tujuan = document.getElementById('pdf-tujuan').value.trim();
+
+                const hariTanggalIzin = formatTanggalId(tanggalIzin);
+                const hariTanggalKembali = formatTanggalId(tanggalKembali);
+                const tanggalSurat = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                let kepada, jabatanKepada, waktuText;
+
+                if (pdfType === 'menginap23') {
+                    kepada = pamongData.name;
+                    jabatanKepada = 'Pamong Asrama 1 Abu Bakar Ash-Shiddiq';
+                    waktuText = `Mulai ${hariTanggalIzin} pukul ${jamKeluar}, kembali pada ${hariTanggalKembali} pukul ${jamKembali}`;
+                } else { // khusus
+                    kepada = 'Direktur Madrasah';
+                    jabatanKepada = 'Madrasah Mu\'allimin Muhammadiyah Yogyakarta';
+                    waktuText = `${hariTanggalIzin} s.d. ${hariTanggalKembali}`;
+                }
+
+                const letterHTML = `
+                    <div style="font-family:'Times New Roman',Times,serif;font-size:12pt;line-height:1.8;color:#000;max-width:18cm;margin:0 auto;">
+                        <div style="text-align:center;margin-bottom:24pt;">
+                            <div style="font-size:14pt;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Surat Permohonan Izin Meninggalkan Asrama</div>
+                        </div>
+                        <div style="text-align:right;margin-bottom:16pt;">Yogyakarta, ${tanggalSurat}</div>
+                        <div style="margin-bottom:16pt;">
+                            <div>Kepada Yth.</div>
+                            <div><strong>${kepada}</strong></div>
+                            <div>${jabatanKepada}</div>
+                            <div>Di Tempat</div>
+                        </div>
+                        <div style="margin-bottom:12pt;"><em>Assalamu'alaikum warahmatullahi wabarakatuh,</em></div>
+                        <div style="margin-bottom:12pt;text-align:justify;">Dengan hormat, saya selaku wali santri dari putra kami mengajukan permohonan izin meninggalkan asrama dengan rincian sebagai berikut:</div>
+                        <table style="margin-bottom:12pt;margin-left:20pt;border-collapse:collapse;">
+                            <tr><td style="padding:3pt 8pt 3pt 0;min-width:130pt;">Nama Santri</td><td style="padding:3pt 8pt 3pt 0;">:</td><td style="padding:3pt 0;">${namaSantri}</td></tr>
+                            <tr><td style="padding:3pt 8pt 3pt 0;">Kelas</td><td style="padding:3pt 8pt 3pt 0;">:</td><td style="padding:3pt 0;">${kelas}</td></tr>
+                            <tr><td style="padding:3pt 8pt 3pt 0;">Nama Wali</td><td style="padding:3pt 8pt 3pt 0;">:</td><td style="padding:3pt 0;">${namaWali}</td></tr>
+                            <tr><td style="padding:3pt 8pt 3pt 0;">Alamat Wali</td><td style="padding:3pt 8pt 3pt 0;">:</td><td style="padding:3pt 0;">${alamatWali}</td></tr>
+                            <tr><td style="padding:3pt 8pt 3pt 0;">Waktu</td><td style="padding:3pt 8pt 3pt 0;">:</td><td style="padding:3pt 0;">${waktuText}</td></tr>
+                            <tr><td style="padding:3pt 8pt 3pt 0;">Keperluan</td><td style="padding:3pt 8pt 3pt 0;">:</td><td style="padding:3pt 0;">${keperluan}</td></tr>
+                            <tr><td style="padding:3pt 8pt 3pt 0;">Tempat Tujuan</td><td style="padding:3pt 8pt 3pt 0;">:</td><td style="padding:3pt 0;">${tujuan}</td></tr>
+                        </table>
+                        <div style="margin-bottom:12pt;text-align:justify;">Kami memastikan bahwa putra kami akan dijemput dan dalam pengawasan kami selama meninggalkan asrama, serta akan kembali sesuai waktu yang telah ditentukan.</div>
+                        <div style="margin-bottom:24pt;text-align:justify;">Demikian surat ini kami sampaikan. Besar harapan kami agar Bapak/Ibu berkenan memberikan izin. Atas perhatian dan kebijaksanaannya, kami ucapkan terima kasih.</div>
+                        <div style="margin-bottom:8pt;"><em>Wassalamu'alaikum warahmatullahi wabarakatuh.</em></div>
+                        <div style="margin-top:24pt;display:flex;justify-content:flex-end;">
+                            <div style="text-align:center;min-width:180pt;">
+                                <div>Hormat kami,</div>
+                                <div style="margin-top:55pt;">${namaWali}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('pdf-letter-content').innerHTML = letterHTML;
+                closePdfModal();
+                // Tunggu modal selesai menutup sebelum membuka dialog cetak
+                setTimeout(() => { window.print(); }, 350);
+            }
+
+            // Inisialisasi dropdown santri untuk form PDF
+            populatePdfSantriDropdown();
+
+            // Dropdown santri PDF -> isi kelas otomatis
+            pdfSantriDropdown.addEventListener('change', function () {
+                pdfKelasField.value = this.value ? this.value.split('|')[1] : '';
+            });
+
+            // Tombol buka modal PDF
+            openPdfModalButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    openPdfModal(button.getAttribute('data-pdf-type'));
+                });
+            });
+
+            closePdfModalBtn.addEventListener('click', closePdfModal);
+            pdfModalBackdrop.addEventListener('click', closePdfModal);
+            pdfForm.addEventListener('submit', handlePdfFormSubmit);
 
             // --- ANIMATION OBSERVER ---
             const observer = new IntersectionObserver((entries) => {
