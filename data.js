@@ -1,12 +1,14 @@
 /**
- * Data Santri dan Kontak Pengurus - Izin Sedayu v2.1
+ * Data Santri dan Kontak Pengurus - Izin Sedayu v2.1.1 (Secure)
  *
  * KEAMANAN:
  * - Konfigurasi API diload secara dinamis
- * - Email whitelist sekarang divalidasi di server-side
- * - Untuk update konfigurasi, edit di Google Apps Script atau via config.json
+ * - Email whitelist divalidasi di server-side
+ * - CSRF token protection
+ * - Rate limiting awareness
+ * - Idempotency keys untuk requests
  *
- * VERSI: v2.1 - Improved Security
+ * VERSI: v2.1.1 - Security Hardened
  */
 
 // ============================================

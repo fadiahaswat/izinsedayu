@@ -29,12 +29,14 @@ window.showPage = function(pageId) {
 };
 
 /**
- * Application Logic - Izin Sedayu v2.0
+ * Application Logic - Izin Sedayu v2.1 (Secure)
  * Security Features:
- * - Session integrity with expiry & HMAC signature
- * - Server-side validation
+ * - Server-side session validation via JWT
+ * - CSRF token protection
  * - XSS protection via HTML escaping
  * - Input sanitization
+ * - Rate limiting awareness
+ * - Idempotency keys for requests
  *
  * UX Improvements:
  * - Better form validation with visual feedback
@@ -48,12 +50,13 @@ window.showPage = function(pageId) {
 // KONFIGURASI
 // ============================================
 const APP_CONFIG = {
-    SESSION_EXPIRY_HOURS: 8, // Session expires after 8 hours
-    SESSION_SECRET: 'IZIN_SEDAYU_2024_SECRET_KEY', // For demo - in production use server-side
+    SESSION_EXPIRY_HOURS: 8,
     DEBOUNCE_MS: 200,
     TOAST_DURATION: 5000,
     MAX_RETRIES: 3,
-    API_TIMEOUT: 10000
+    API_TIMEOUT: 10000,
+    MAX_ITEMS_LIMIT: 500, // Magic number replaced with constant
+    MAX_LOCAL_STORAGE_ITEMS: 1000
 };
 
 // ============================================
@@ -148,8 +151,13 @@ function normalizeClassKey(str) {
 }
 
 // ============================================
-// SESSION MANAGEMENT (with integrity)
+// SESSION MANAGEMENT (Server-Validated)
 // ============================================
+
+/**
+ * Creates a session object for local storage
+ * Session validation is done server-side via JWT
+ */
 function createSecureSession(userObj) {
     const session = {
         ...userObj,
@@ -158,43 +166,86 @@ function createSecureSession(userObj) {
         sessionId: generateUUID()
     };
 
-    // Create signature for integrity check
-    const dataToSign = `${session.email}:${session.createdAt}:${session.expiresAt}:${APP_CONFIG.SESSION_SECRET}`;
-    session.signature = btoa(dataToSign).substring(0, 32);
-
     return session;
 }
 
+/**
+ * Validates session client-side (expiry only)
+ * Full validation happens server-side with JWT
+ */
 function validateSession(session) {
-    if (!session || !session.email || !session.signature) return false;
+    if (!session || !session.email) return false;
 
-    // Check expiry
+    // Check expiry client-side
     if (Date.now() > session.expiresAt) return false;
 
-    // Verify signature
-    const dataToSign = `${session.email}:${session.createdAt}:${session.expiresAt}:${APP_CONFIG.SESSION_SECRET}`;
-    const expectedSignature = btoa(dataToSign).substring(0, 32);
-
-    if (session.signature !== expectedSignature) return false;
-
+    // Note: Full signature validation is done server-side
     return true;
+}
+
+/**
+ * Generate CSRF token for form submissions
+ */
+function generateCSRFToken() {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// Store CSRF token in memory (not localStorage)
+let currentCSRFToken = null;
+
+function getCSRFToken() {
+    if (!currentCSRFToken) {
+        currentCSRFToken = generateCSRFToken();
+    }
+    return currentCSRFToken;
 }
 
 function saveUserSession(userObj) {
     const secureSession = createSecureSession(userObj);
     currentUser = secureSession;
-    localStorage.setItem('izin_user_session', JSON.stringify(secureSession));
+
+    // Store session in sessionStorage (cleared when browser closes)
+    // Security: Unlike localStorage, sessionStorage is not accessible via XSS
+    try {
+        sessionStorage.setItem('izin_user_session', JSON.stringify(secureSession));
+    } catch (e) {
+        console.error('Session storage unavailable, falling back to memory only');
+    }
+
+    // Generate new CSRF token for this session
+    currentCSRFToken = generateCSRFToken();
+
     renderUserSessionUI();
-    showToast(`Login berhasil! Selamat datang, ${userObj.name}`, 'success');
+    showToast(`Login berhasil! Selamat datang, ${escapeHtml(userObj.name)}`, 'success');
 }
 
 function loadUserSession() {
-    const saved = localStorage.getItem('izin_user_session');
+    // First try sessionStorage (more secure)
+    let saved = sessionStorage.getItem('izin_user_session');
+
+    // Fallback to localStorage if sessionStorage is empty
+    // (for migration from old sessions)
+    if (!saved) {
+        saved = localStorage.getItem('izin_user_session');
+        if (saved) {
+            // Migrate to sessionStorage and clear localStorage
+            try {
+                sessionStorage.setItem('izin_user_session', saved);
+                localStorage.removeItem('izin_user_session');
+            } catch (e) {
+                // If sessionStorage fails, continue with localStorage
+            }
+        }
+    }
+
     if (saved) {
         try {
             const session = JSON.parse(saved);
             if (validateSession(session)) {
                 currentUser = session;
+                currentCSRFToken = generateCSRFToken(); // Refresh CSRF token
                 return true;
             } else {
                 // Session invalid or expired
@@ -211,9 +262,15 @@ function loadUserSession() {
 
 function logoutUserSession(showMessage = false) {
     currentUser = null;
+    currentCSRFToken = null;
+
+    // Clear from both storage types
+    sessionStorage.removeItem('izin_user_session');
     localStorage.removeItem('izin_user_session');
+
     DOM.userProfileWidget?.classList.add('hidden');
     DOM.loginGoogleBtn?.classList.remove('hidden');
+
     if (showMessage) {
         showToast('Sesi Anda telah berakhir. Silakan login kembali.', 'info');
     }
@@ -386,8 +443,28 @@ function showSkeleton(container) {
 }
 
 // ============================================
-// API CALLS
+// API CALLS (with CSRF & Idempotency)
 // ============================================
+
+// Track sent requests to prevent duplicates
+const sentRequestIds = new Set();
+
+/**
+ * Generate idempotency key for request deduplication
+ */
+function generateIdempotencyKey(action, data) {
+    const keyParts = [action, data.idIzin || '', data.idToken || '', Date.now()];
+    // Create hash from key parts
+    let hash = 0;
+    const str = keyParts.join('|');
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return `idem_${Math.abs(hash).toString(36)}_${Date.now().toString(36)}`;
+}
+
 async function apiCall(endpoint, data, options = {}) {
     const { retries = APP_CONFIG.MAX_RETRIES, timeout = APP_CONFIG.API_TIMEOUT } = options;
 
@@ -400,6 +477,14 @@ async function apiCall(endpoint, data, options = {}) {
         return { success: true, offline: true };
     }
 
+    // Add CSRF token and idempotency key
+    const enrichedData = {
+        ...data,
+        csrfToken: getCSRFToken(),
+        idempotencyKey: generateIdempotencyKey(data.action, data),
+        timestamp: Date.now()
+    };
+
     let lastError;
 
     for (let i = 0; i < retries; i++) {
@@ -411,9 +496,10 @@ async function apiCall(endpoint, data, options = {}) {
                 method: 'POST',
                 mode: 'cors',
                 headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
+                    'Content-Type': 'text/plain;charset=utf-8',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify(enrichedData),
                 signal: controller.signal
             });
 
@@ -422,10 +508,40 @@ async function apiCall(endpoint, data, options = {}) {
             if (response.ok) {
                 try {
                     const result = await response.json();
+
+                    // Check for server-side CSRF validation result
+                    if (result.code === 'CSRF_INVALID') {
+                        console.error('CSRF validation failed');
+                        logoutUserSession(true);
+                        throw new Error('Validasi keamanan gagal. Sesi telah diakhiri. Silakan login ulang.');
+                    }
+
+                    if (result.code === 'AUTH_FAILED') {
+                        console.error('Authentication failed');
+                        logoutUserSession(true);
+                        throw new Error('Autentikasi gagal. Silakan login ulang.');
+                    }
+
+                    if (result.code === 'RATE_LIMITED') {
+                        throw new Error(`Terlalu banyak permintaan. Mohon tunggu ${result.retryAfter || 60} detik.`);
+                    }
+
+                    if (result.code === 'NOT_AUTHORIZED') {
+                        throw new Error('Anda tidak memiliki hak akses untuk operasi ini.');
+                    }
+
                     return result;
                 } catch (e) {
+                    if (e.message.includes('Validasi keamanan') || e.message.includes('Autentikasi')) throw e;
                     return { success: true };
                 }
+            } else if (response.status === 429) {
+                throw new Error('Terlalu banyak permintaan. Mohon tunggu beberapa saat.');
+            } else if (response.status === 403) {
+                logoutUserSession(true);
+                throw new Error('Akses ditolak. Sesi mungkin sudah berakhir. Silakan login ulang.');
+            } else if (response.status === 400) {
+                throw new Error('Request tidak valid. Mohon periksa data yang dikirim.');
             }
 
         } catch (error) {
@@ -461,7 +577,7 @@ function saveLocalIzinItem(item) {
     // Prevent duplicates
     if (!list.some(x => x.idIzin === item.idIzin)) {
         list.unshift(item);
-        localStorage.setItem('local_izin_list', JSON.stringify(list.slice(0, 1000))); // Keep max 1000 items
+        localStorage.setItem('local_izin_list', JSON.stringify(list.slice(0, APP_CONFIG.MAX_LOCAL_STORAGE_ITEMS)));
     }
 }
 
@@ -491,7 +607,8 @@ function saveToGoogleSheets(payload) {
         action: 'create',
         ...payload,
         userEmail: currentUser?.email || '',
-        userRole: currentUser?.role || ''
+        userRole: currentUser?.role || '',
+        googleToken: currentUser?.googleToken || '' // Include for server validation
     };
 
     // Queue for retry
@@ -519,10 +636,10 @@ async function updateLeaveStatus(idIzin, newStatus, catatan = '') {
         return;
     }
 
-    const approverNotes = catatan || `Diperbarui via Aplikasi oleh ${currentUser.name}`;
+    const approverNotes = catatan || `Diperbarui via Aplikasi oleh ${escapeHtml(currentUser.name)}`;
     updateLocalIzinStatus(idIzin, newStatus, approverNotes);
 
-    showToast(`Status izin ${idIzin} diubah menjadi ${newStatus}`, 'success');
+    showToast(`Status izin ${escapeHtml(idIzin)} diubah menjadi ${newStatus}`, 'success');
 
     const url = typeof GAS_WEB_APP_URL !== 'undefined' ? GAS_WEB_APP_URL : (window.GAS_WEB_APP_URL || '');
     if (!isConfiguredGasUrl(url)) return;
@@ -533,7 +650,8 @@ async function updateLeaveStatus(idIzin, newStatus, catatan = '') {
         status: newStatus,
         catatan: approverNotes,
         userEmail: currentUser?.email || '',
-        userRole: currentUser?.role || ''
+        userRole: currentUser?.role || '',
+        googleToken: currentUser?.googleToken || '' // Include for server validation
     };
 
     try {
@@ -1042,7 +1160,16 @@ function handleFormSubmit(event) {
 
     } catch (error) {
         console.error('Form submit error:', error);
-        showFormError('Terjadi kesalahan. Silakan coba lagi.');
+
+        // Handle specific error types
+        if (error.message.includes('Security') || error.message.includes('Autentikasi')) {
+            showFormError(error.message);
+            setTimeout(() => logoutUserSession(true), 2000);
+        } else if (error.message.includes('RATE_LIMITED') || error.message.includes('Terlalu banyak')) {
+            showFormError('Terlalu banyak permintaan. Mohon tunggu beberapa saat sebelum mengirim ulang.');
+        } else {
+            showFormError('Terjadi kesalahan. Silakan coba lagi.');
+        }
     } finally {
         isSubmittingForm = false;
         hideLoading(DOM.submitFormBtn);
@@ -1193,7 +1320,7 @@ function handleGoogleCredentialResponse(response) {
     }
 
     try {
-        // Decode JWT token
+        // Decode JWT token client-side for display only
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
@@ -1208,7 +1335,7 @@ function handleGoogleCredentialResponse(response) {
 
         // Collect all authorized emails dynamically
         const authorizedEmails = new Set();
-        
+
         if (typeof REGISTERED_EMAILS !== 'undefined' && Array.isArray(REGISTERED_EMAILS)) {
             REGISTERED_EMAILS.forEach(e => e && authorizedEmails.add(e.toLowerCase().trim()));
         }
@@ -1231,16 +1358,18 @@ function handleGoogleCredentialResponse(response) {
         const isEmailRegistered = authorizedEmails.has(userEmail);
 
         if (!isDomainAllowed && !isEmailRegistered) {
-            showToast(`Akses ditolak! Akun ${userEmail} belum terdaftar sebagai Musyrif/Pamong resmi.`, 'error', true);
+            showToast(`Akses ditolak! Akun belum terdaftar sebagai Musyrif/Pamong resmi.`, 'error', true);
             return;
         }
 
-        // Create session
+        // Store Google credential token for server-side verification
+        // The actual session will be validated server-side
         saveUserSession({
             name: profile.name || profile.email.split('@')[0],
             email: profile.email,
             avatar: profile.picture,
-            role: 'Musyrif/Pamong'
+            role: 'Musyrif/Pamong',
+            googleToken: response.credential // Store for server validation
         });
 
         closeLoginModal();

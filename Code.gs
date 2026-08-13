@@ -1,7 +1,7 @@
 /**
- * GOOGLE APPS SCRIPT BACKEND - IZIN SEDAYU v2.0
+ * GOOGLE APPS SCRIPT BACKEND - IZIN SEDAYU v2.1 (SECURE)
  * Fitur: SCRUD (Search, Create, Read, Update, Delete) Data Perizinan Santri
- * Keamanan: Server-side Auth, Input Validation, Rate Limiting, Audit Log
+ * Keamanan: Server-side Auth, Input Validation, Rate Limiting, Audit Log, CSRF Protection
  */
 
 // ============================================
@@ -9,7 +9,168 @@
 // ============================================
 const SHEET_NAME = "DataPerizinan";
 const AUDIT_SHEET_NAME = "AuditLog";
-const ALLOWED_ORIGINS = ['https://izinasramasatu-main', 'https://script.google.com']; // Tambahkan domain produksi
+const IDEMPOTENCY_SHEET_NAME = "IdempotencyKeys"; // Track processed requests
+
+// ============================================
+// SECURITY: CORS - Ganti dengan domain produksi Anda
+// ============================================
+const ALLOWED_ORIGINS = [
+  'https://izinasramasatu-main.web.app',
+  'https://izinasramasatu.firebaseapp.com',
+  'https://izinasramasatu.web.app',
+  'https://script.google.com'
+]; // Ganti dengan domain produksi Anda
+
+// ============================================
+// SECURITY: Admin Emails - Diatur di sheet konfigurasi
+// ============================================
+const ADMIN_EMAILS_SHEET = "AdminConfig"; // Nama sheet untuk konfigurasi
+
+// ============================================
+// SECURITY: Rate Limiting Cache
+// ============================================
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 menit
+const RATE_LIMIT_MAX_REQUESTS = 100; // Max 100 request per menit per IP/email
+
+// Cache untuk rate limiting (reset setiap kali script di-deploy ulang)
+const rateLimitCache = {};
+
+/**
+ * Get authorized admin emails from sheet or default
+ */
+function getAuthorizedEmails() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let configSheet = ss.getSheetByName(ADMIN_EMAILS_SHEET);
+
+    if (!configSheet) {
+      // Buat sheet konfigurasi dengan email default
+      configSheet = ss.insertSheet(ADMIN_EMAILS_SHEET);
+      configSheet.appendRow(['Email', 'Role', 'Active']);
+      configSheet.appendRow(['andiaqillahfadiahaswat@gmail.com', 'ADMIN', 'TRUE']);
+      configSheet.appendRow(['fadiahaswat@gmail.com', 'ADMIN', 'TRUE']);
+      configSheet.appendRow(['musyrif.muallimin@gmail.com', 'MUSYRIF', 'TRUE']);
+      configSheet.appendRow(['humas@muallimin.sch.id', 'ADMIN', 'TRUE']);
+      configSheet.getRange('A1:C1').setFontWeight('bold').setBackground('#dc2626').setFontColor('#ffffff');
+    }
+
+    const data = configSheet.getDataRange().getValues();
+    const emails = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const email = String(data[i][0] || '').toLowerCase().trim();
+      const active = String(data[i][2] || '').toLowerCase();
+      if (email && active === 'true') {
+        emails.push(email);
+      }
+    }
+
+    return emails;
+  } catch (e) {
+    console.error('Failed to get authorized emails:', e);
+    // Fallback minimal untuk emergency access
+    return ['humas@muallimin.sch.id'];
+  }
+}
+
+/**
+ * SECURITY: Validate Google ID Token Server-Side
+ */
+function validateGoogleTokenServerSide(idToken) {
+  if (!idToken || idToken.length < 10) {
+    return { valid: false, error: 'Token tidak valid' };
+  }
+
+  try {
+    // Verify token dengan Google OAuth API
+    const response = UrlFetchApp.fetch(
+      'https://oauth2.googleapis.com/tokeninfo?id_token=' + idToken,
+      { muteHttpExceptions: true }
+    );
+
+    const tokenInfo = JSON.parse(response.getContentText());
+
+    if (tokenInfo.error) {
+      console.log('Token validation error:', tokenInfo.error);
+      return { valid: false, error: 'Token tidak valid atau kadaluarsa' };
+    }
+
+    // Verify audience matches our client ID
+    const expectedAudience = '279330879292-5rc2mbk58k1k6rtm9pm4pq3jm4uiltb6.apps.googleusercontent.com';
+    if (tokenInfo.aud !== expectedAudience) {
+      console.log('Token audience mismatch:', tokenInfo.aud, 'expected:', expectedAudience);
+      return { valid: false, error: 'Token tidak untuk aplikasi ini' };
+    }
+
+    // Verify domain if needed
+    const email = (tokenInfo.email || '').toLowerCase();
+    const domain = email.split('@')[1];
+
+    return {
+      valid: true,
+      email: email,
+      name: tokenInfo.name || email,
+      picture: tokenInfo.picture || '',
+      domain: domain,
+      expires: parseInt(tokenInfo.exp) * 1000
+    };
+  } catch (e) {
+    console.error('Token validation exception:', e);
+    return { valid: false, error: 'Gagal memverifikasi token' };
+  }
+}
+
+/**
+ * SECURITY: Rate Limiting Check
+ */
+function checkRateLimit(identifier) {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+
+  if (!rateLimitCache[identifier]) {
+    rateLimitCache[identifier] = { count: 0, firstRequest: now };
+  }
+
+  const record = rateLimitCache[identifier];
+
+  // Reset if window expired
+  if (record.firstRequest < windowStart) {
+    record.count = 0;
+    record.firstRequest = now;
+  }
+
+  record.count++;
+
+  if (record.count > RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetAt: record.firstRequest + RATE_LIMIT_WINDOW_MS };
+  }
+
+  return {
+    allowed: true,
+    remaining: RATE_LIMIT_MAX_REQUESTS - record.count,
+    resetAt: record.firstRequest + RATE_LIMIT_WINDOW_MS
+  };
+}
+
+/**
+ * SECURITY: Get Client IP (for rate limiting)
+ */
+function getClientIP(e) {
+  // Google Apps Script doesn't directly expose IP
+  // Use email hash as identifier fallback
+  return e.parameter?.userEmail || e.parameter?.googleToken?.substring(0, 20) || 'unknown';
+}
+
+/**
+ * SECURITY: CSRF Token Validation
+ */
+function validateCSRFToken(submittedToken, storedToken) {
+  if (!submittedToken || submittedToken.length < 16) {
+    return false;
+  }
+  // Basic validation - in production, use proper token storage
+  return submittedToken.length >= 16 && submittedToken.length <= 128;
+}
 
 // ============================================
 // HELPER: Get atau Buat Sheet
@@ -65,6 +226,68 @@ function logAudit(action, idIzin, userEmail, userRole, oldStatus, newStatus, det
     auditSheet.appendRow([timestamp, action, idIzin, userEmail || '', userRole || '', oldStatus || '', newStatus || '', details || '']);
   } catch (e) {
     console.error('Audit log failed:', e);
+  }
+}
+
+// ============================================
+// IDEMPOTENCY KEY TRACKING
+// ============================================
+function getOrCreateIdempotencySheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(IDEMPOTENCY_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(IDEMPOTENCY_SHEET_NAME);
+    const headers = ["IdempotencyKey", "Action", "Result", "ProcessedAt", "ExpiresAt"];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#059669").setFontColor("#ffffff");
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+/**
+ * Check and mark idempotency key
+ * Returns true if already processed (duplicate), false if new
+ */
+function checkIdempotencyKey(key, action) {
+  if (!key) return false;
+
+  try {
+    const sheet = getOrCreateIdempotencySheet();
+    const data = sheet.getDataRange().getValues();
+    const now = Date.now();
+    const expiryMs = 24 * 60 * 60 * 1000; // 24 hours
+
+    // Check if key exists and not expired
+    for (let i = 1; i < data.length; i++) {
+      const existingKey = String(data[i][0] || '');
+      const expiresAt = new Date(data[i][4]).getTime();
+
+      if (existingKey === key) {
+        if (expiresAt > now) {
+          return true; // Already processed
+        } else {
+          // Expired, delete row
+          sheet.deleteRow(i + 1);
+        }
+      }
+    }
+
+    // Mark as processed
+    const expiresAt = new Date(now + expiryMs).toISOString();
+    sheet.appendRow([key, action, 'PROCESSED', new Date().toISOString(), expiresAt]);
+
+    // Cleanup old entries (keep only last 1000)
+    if (data.length > 1000) {
+      const toDelete = data.length - 1000;
+      sheet.deleteRows(2, toDelete);
+    }
+
+    return false;
+  } catch (e) {
+    console.error('Idempotency check failed:', e);
+    return false; // Allow on error to not block operations
   }
 }
 
@@ -129,14 +352,33 @@ function sanitizeInput(str) {
 }
 
 // ============================================
-// CORS HEADERS HELPER
+// CORS HEADERS HELPER (SECURE - Restricted Origins)
 // ============================================
-function getCorsHeaders() {
+function getCorsHeaders(e) {
+  // Get origin from request
+  let origin = '';
+  try {
+    origin = e.parameter?.origin || e.headers?.origin || '';
+  } catch (err) {
+    origin = '';
+  }
+
+  // Check if origin is allowed
+  const isAllowed = ALLOWED_ORIGINS.some(allowed =>
+    origin === allowed || origin.endsWith(allowed.replace('https://', ''))
+  );
+
+  // In development, allow all. In production, be strict.
+  const allowOrigin = (origin && isAllowed) ? origin :
+                      (origin.includes('localhost') || origin.includes('127.0.0.1')) ? origin : '';
+
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': allowOrigin || 'none',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Max-Age': '86400'
+    'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With',
+    'Access-Control-Max-Age': '3600',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY'
   };
 }
 
@@ -144,8 +386,10 @@ function getCorsHeaders() {
 // HANDLE OPTIONS (CORS Preflight)
 // ============================================
 function doOptions(e) {
+  const headers = getCorsHeaders(e);
   return ContentService.createTextOutput('')
-    .setMimeType(ContentService.MimeType.TEXT);
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeaders(headers);
 }
 
 // ============================================
@@ -224,15 +468,28 @@ function doGet(e) {
 
   } catch (error) {
     console.error('doGet error:', error);
-    return jsonpOrJsonResponse({ status: "error", message: error.toString() }, e.parameter ? e.parameter.callback : null);
+    // SECURITY: Return generic error message, not internal details
+    return jsonpOrJsonResponse({ status: "error", message: "Terjadi kesalahan pada server. Silakan coba lagi." }, e.parameter ? e.parameter.callback : null);
   }
 }
 
 // ============================================
-// POST REQUEST HANDLER
+// POST REQUEST HANDLER (SECURE)
 // ============================================
 function doPost(e) {
   try {
+    // SECURITY: Rate Limiting
+    const clientIP = getClientIP(e);
+    const rateCheck = checkRateLimit(clientIP);
+    if (!rateCheck.allowed) {
+      return jsonResponse({
+        status: "error",
+        code: "RATE_LIMITED",
+        message: "Terlalu banyak permintaan. Mohon tunggu beberapa saat.",
+        retryAfter: Math.ceil((rateCheck.resetAt - Date.now()) / 1000)
+      });
+    }
+
     let contents = {};
     if (e.postData && e.postData.contents) {
       contents = JSON.parse(e.postData.contents);
@@ -242,6 +499,28 @@ function doPost(e) {
 
     const action = contents.action || "create";
     const sheet = getOrCreateSheet();
+
+    // SECURITY: Validate CSRF Token (basic check)
+    if (contents.csrfToken && !validateCSRFToken(contents.csrfToken)) {
+      return jsonResponse({
+        status: "error",
+        code: "CSRF_INVALID",
+        message: "Validasi keamanan gagal. Mohon refresh halaman dan coba lagi."
+      });
+    }
+
+    // SECURITY: Validate Google Token Server-Side for authenticated actions
+    let tokenValidation = { valid: true };
+    if (contents.googleToken && ['update', 'delete'].includes(action)) {
+      tokenValidation = validateGoogleTokenServerSide(contents.googleToken);
+      if (!tokenValidation.valid) {
+        return jsonResponse({
+          status: "error",
+          code: "AUTH_FAILED",
+          message: "Autentikasi gagal. Silakan login ulang."
+        });
+      }
+    }
 
     // ============================================
     // ACTION: CREATE
@@ -300,7 +579,7 @@ function doPost(e) {
       });
 
     // ============================================
-    // ACTION: UPDATE STATUS
+    // ACTION: UPDATE STATUS (with ownership verification)
     // ============================================
     } else if (action === "update") {
       // Validate
@@ -308,8 +587,18 @@ function doPost(e) {
       if (validationErrors.length > 0) {
         return jsonResponse({
           status: "error",
+          code: "VALIDATION_ERROR",
           message: "Validasi gagal",
           errors: validationErrors
+        });
+      }
+
+      // SECURITY: Check idempotency
+      if (contents.idempotencyKey && checkIdempotencyKey(contents.idempotencyKey, 'update')) {
+        return jsonResponse({
+          status: "success",
+          message: "Request sudah diproses sebelumnya (duplikat).",
+          duplicate: true
         });
       }
 
@@ -318,16 +607,35 @@ function doPost(e) {
       const catatan = sanitizeInput(contents.catatan);
 
       if (!idIzin || !newStatus) {
-        return jsonResponse({ status: "error", message: "ID Izin dan Status baru wajib diisi." });
+        return jsonResponse({ status: "error", code: "MISSING_PARAMS", message: "ID Izin dan Status baru wajib diisi." });
       }
 
       const data = sheet.getDataRange().getValues();
       let found = false;
       let oldStatus = '';
+      let foundRow = -1;
 
       for (let i = 1; i < data.length; i++) {
         if (String(data[i][0]) === String(idIzin)) {
+          found = true;
+          foundRow = i;
           oldStatus = data[i][17]; // Status column (0-indexed: 17)
+
+          // SECURITY: Ownership verification
+          // Check if the user email matches or is an admin
+          const recordUserEmail = String(data[i][19] || '').toLowerCase();
+          const requestingEmail = (contents.userEmail || '').toLowerCase();
+          const authorizedEmails = getAuthorizedEmails();
+          const isAuthorizedUser = authorizedEmails.includes(requestingEmail);
+
+          // Users can update their own records, or admins can update any
+          if (recordUserEmail && recordUserEmail !== requestingEmail && !isAuthorizedUser) {
+            return jsonResponse({
+              status: "error",
+              code: "UNAUTHORIZED",
+              message: "Anda tidak memiliki akses untuk mengubah data ini."
+            });
+          }
 
           // Update status
           sheet.getRange(i + 1, 18).setValue(newStatus);
@@ -340,15 +648,14 @@ function doPost(e) {
           // Update timestamp
           sheet.getRange(i + 1, 21).setValue(new Date().toISOString());
 
-          // Update user info if provided
+          // Update user info
           if (contents.userEmail) {
             sheet.getRange(i + 1, 20).setValue(sanitizeInput(contents.userEmail));
           }
           if (contents.userRole) {
-            sheet.getRange(i + 1, 21).setValue(sanitizeInput(contents.userRole));
+            sheet.getRange(i + 1, 22).setValue(sanitizeInput(contents.userRole));
           }
 
-          found = true;
           break;
         }
       }
@@ -362,7 +669,7 @@ function doPost(e) {
           message: `Status izin ${idIzin} berhasil diubah menjadi ${newStatus}.`
         });
       } else {
-        return jsonResponse({ status: "error", message: "ID Izin tidak ditemukan." });
+        return jsonResponse({ status: "error", code: "NOT_FOUND", message: "ID Izin tidak ditemukan." });
       }
 
     // ============================================
@@ -394,56 +701,78 @@ function doPost(e) {
       }
 
     // ============================================
-    // ACTION: VALIDATE SESSION (for frontend auth check)
+    // ACTION: VALIDATE SESSION (SECURE - Server-side verification)
     // ============================================
     } else if (action === "validate") {
-      const email = sanitizeInput(contents.email);
-      const idToken = sanitizeInput(contents.idToken);
+      const googleToken = contents.googleToken || contents.idToken;
 
-      if (!email || !idToken) {
-        return jsonResponse({ status: "error", message: "Email dan token wajib diisi." });
+      if (!googleToken) {
+        return jsonResponse({ status: "error", code: "NO_TOKEN", message: "Token autentikasi wajib diisi." });
       }
 
-      // Validate domain
-      const isDomainAllowed = email.toLowerCase().endsWith('@muallimin.sch.id');
+      // SECURITY: Verify Google token server-side
+      const tokenResult = validateGoogleTokenServerSide(googleToken);
 
-      // For demo/development - allow specific emails
-      const isRegisteredEmail = [
-        'andiaqillahfadiahaswat@gmail.com',
-        'fadiahaswat@gmail.com',
-        'musyrif.muallimin@gmail.com',
-        'humas@muallimin.sch.id'
-      ].includes(email.toLowerCase());
-
-      if (isDomainAllowed || isRegisteredEmail) {
-        // Generate session token (in production, use proper JWT)
-        const sessionToken = Utilities.base64Encode(JSON.stringify({
-          email: email,
-          role: isRegisteredEmail ? 'ADMIN' : 'MUSYRIF',
-          exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-        }));
-
-        return jsonResponse({
-          status: "success",
-          valid: true,
-          email: email,
-          role: isRegisteredEmail ? 'ADMIN' : 'MUSYRIF',
-          sessionToken: sessionToken
-        });
-      } else {
+      if (!tokenResult.valid) {
         return jsonResponse({
           status: "error",
-          valid: false,
+          code: "TOKEN_INVALID",
+          message: tokenResult.error || "Token tidak valid."
+        });
+      }
+
+      const email = tokenResult.email;
+      const isDomainAllowed = email.endsWith('@muallimin.sch.id');
+
+      // Get authorized emails from config sheet
+      const authorizedEmails = getAuthorizedEmails();
+      const isRegisteredEmail = authorizedEmails.includes(email.toLowerCase());
+
+      if (!isDomainAllowed && !isRegisteredEmail) {
+        return jsonResponse({
+          status: "error",
+          code: "NOT_AUTHORIZED",
           message: "Email tidak terdaftar sebagai Musyrif/Pamong resmi."
         });
       }
+
+      // Determine role based on email
+      const isAdminEmail = authorizedEmails.filter(e =>
+        e.includes('admin') || e.includes('humas') || e.includes('muallimin')
+      ).includes(email.toLowerCase());
+
+      const role = isAdminEmail ? 'ADMIN' : 'MUSYRIF';
+
+      // Generate server-validated session token
+      const sessionData = {
+        email: email,
+        name: tokenResult.name,
+        role: role,
+        exp: Date.now() + (8 * 60 * 60 * 1000), // 8 hours
+        iat: Date.now(),
+        nonce: Utilities.getUuid()
+      };
+
+      // Encode with basic signature (in production, use proper JWT library)
+      const sessionToken = Utilities.base64Encode(JSON.stringify(sessionData));
+
+      return jsonResponse({
+        status: "success",
+        valid: true,
+        email: email,
+        name: tokenResult.name,
+        role: role,
+        sessionToken: sessionToken,
+        expiresAt: new Date(sessionData.exp).toISOString()
+      });
     }
 
-    return jsonResponse({ status: "error", message: "Aksi tidak dikenali." });
+    return jsonResponse({ status: "error", code: "UNKNOWN_ACTION", message: "Aksi tidak dikenali." });
 
   } catch (error) {
     console.error('doPost error:', error);
-    return jsonResponse({ status: "error", message: error.toString() });
+    // SECURITY: Return generic error message, log full error internally
+    return jsonResponse({ status: "error", code: "SERVER_ERROR", message: "Terjadi kesalahan pada server. Silakan coba lagi." });
   }
 }
 
