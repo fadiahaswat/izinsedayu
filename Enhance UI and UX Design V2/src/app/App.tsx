@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { toast, Toaster } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
+import logoBlue from "../assets/logo-muallimin-blue.png";
+import logoWhite from "../assets/logo-muallimin-white.png";
 import { santriData, musyrifData, koordinatorMusyrif, pamongList, pamongData, GOOGLE_CLIENT_ID, REGISTERED_EMAILS } from "../data";
 import {
   Building2, Plus, BarChart2, LogOut, Search, X, Check,
@@ -296,13 +298,7 @@ function NavBar({ setPage, currentUser, onLogout }: {
     <nav className="sticky top-0 z-40 bg-white/92 backdrop-blur-lg border-b border-border" style={{boxShadow:"0 1px 0 0 rgba(15,23,42,0.06)"}}>
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
         <button onClick={()=>setPage("home")} className="flex items-center gap-2.5 btn-press">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-sm">
-            <Building2 className="w-4 h-4 text-white"/>
-          </div>
-          <div className="hidden sm:block">
-            <span className="font-extrabold text-sm text-foreground tracking-tight block leading-none">Izin Sedayu</span>
-            <span className="text-[10px] text-muted-foreground">Mu'allimin Yogyakarta</span>
-          </div>
+          <img src={logoBlue} alt="Logo Mu'allimin" className="w-10 h-10 object-contain"/>
         </button>
 
         <div className="flex items-center gap-2">
@@ -459,9 +455,12 @@ function PageHome({ setPage, setInitialJenis }: {
 
         <div className="relative z-10 p-6 sm:p-8 space-y-5">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-blue-300 uppercase mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"/>
-              Sistem Perizinan Resmi
+            <div className="flex items-start justify-between mb-3">
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-blue-300 uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"/>
+                Sistem Perizinan Resmi
+              </div>
+              <img src={logoWhite} alt="Logo Mu'allimin" className="w-10 h-10 object-contain opacity-90 flex-shrink-0"/>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
               Izin Keluar &amp; Pulang<br/>
