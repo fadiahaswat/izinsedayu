@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { toast, Toaster } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
+import { santriData, musyrifData, koordinatorMusyrif, pamongList, pamongData, GOOGLE_CLIENT_ID, REGISTERED_EMAILS } from "../data";
 import {
   Building2, Plus, BarChart2, LogOut, Search, X, Check,
   CheckCircle2, Clock, XCircle, ChevronDown, FileText,
@@ -133,95 +134,6 @@ for (let h = 5; h <= 22; h++)
   for (const m of [0, 30])
     TIME_SLOTS.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
 
-// ─── Student Data ───────────────────────────────────────────────
-const santriData: Student[] = [
-  {name:"Agha Faeyza Barra",class:"1A"},{name:"Ahmad Ibrahim Al Mahmudi",class:"1A"},{name:"Almer Bahi Mahdy",class:"1A"},
-  {name:"Ammar Abdul Aziz",class:"1A"},{name:"Attaya Fikri Rizqullah",class:"1A"},{name:"Bisma Pragaswara Suprapto",class:"1A"},
-  {name:"Dava Ad Dzikri",class:"1A"},{name:"Dhio Itqon Ilmi Izzulhaqq",class:"1A"},{name:"Fajri Annaafi'u Alfarizi",class:"1A"},
-  {name:"Fatih Al Faiz",class:"1A"},{name:"Fayzan Ghadi Safaraz",class:"1A"},{name:"Hafeez Azmi Muhammad",class:"1A"},
-  {name:"Hakam Naja Hasan",class:"1A"},{name:"Harits Tammam Rahman",class:"1A"},{name:"Ibrohim Rofiq",class:"1A"},
-  {name:"Iman Ashraf Athaillah",class:"1A"},{name:"Khenan Naufal Dary Abiyyu",class:"1A"},{name:"Mikail Ahmad Zaidan",class:"1A"},
-  {name:"Muhammad Azmi An Najah",class:"1A"},{name:"Muhammad Hafis Makarim",class:"1A"},{name:"Muhammad Robii'ul Awwal",class:"1A"},
-  {name:"Radhin Nabil Alauna",class:"1A"},{name:"Rafa Rizki Ramadhansyah Haris",class:"1A"},{name:"Rajendra Zhafran Arsaputra",class:"1A"},
-  {name:"Salman Abqary Haidar Al Hanif",class:"1A"},{name:"Zidan Al Fatir Siregar",class:"1A"},
-  {name:"A.Dinar Sayuto",class:"1B"},{name:"Adhyastha Ainur Rizky",class:"1B"},{name:"Aditya Giri Reksa Nu'aimi",class:"1B"},
-  {name:"Alaika Syamil Al-Hadzik",class:"1B"},{name:"Arjuna Satria Pradipta",class:"1B"},{name:"Aryatama Febrian Danendra",class:"1B"},
-  {name:"Faiz Fadhlurrahman",class:"1B"},{name:"Faqih Keyaanurasyid",class:"1B"},{name:"Fauzan Nur Hidayat",class:"1B"},
-  {name:"Fazila Akbar Ikhlas",class:"1B"},{name:"Firnas Alfariel",class:"1B"},{name:"Hafizh Nizar Prasetya",class:"1B"},
-  {name:"Ibrahim Al Azzam",class:"1B"},{name:"Ilian Badranaya El Qurafi",class:"1B"},{name:"Kenzo Zafran Al Abiyyu",class:"1B"},
-  {name:"Lintang Mahardika",class:"1B"},{name:"Muhammad Alkhali Dzikri",class:"1B"},{name:"Muhammad Azzam Al Fatih",class:"1B"},
-  {name:"Muhammad Elvin Ishahda",class:"1B"},{name:"Muhammad Farrel Anhar",class:"1B"},{name:"Naufal Afkar",class:"1B"},
-  {name:"Nirwaseta Putra Purnama",class:"1B"},{name:"Raditya Asyam Adz Dzaqi",class:"1B"},{name:"Rakha Naufal Alfarisi",class:"1B"},
-  {name:"Wildan Hawwari",class:"1B"},{name:"Zafran Ilham Sujati",class:"1B"},{name:"Zaky Fakhry Yanto",class:"1B"},
-  {name:"Abdullah Alfaqih",class:"1C"},{name:"Ahlam Zulfadli Firdaus",class:"1C"},{name:"Ahmad Mumtaz Dhiya El Haq",class:"1C"},
-  {name:"Arsyad Farkhi Ismail",class:"1C"},{name:"Kenzie Abdurahman Haziq",class:"1C"},{name:"Muhammad Azhar Nazhifurrahman",class:"1C"},
-  {name:"Muhammad Hanif Adhinugraha",class:"1C"},{name:"Rafiandra Yusuf Al-Ghifari",class:"1C"},{name:"Raihan Nizar Daniswara",class:"1C"},
-  {name:"Ahmad Amirul A'zam",class:"1D"},{name:"Athariz Zidane Ferdiansyah",class:"1D"},{name:"Azzam Fahrezzi Shaquille",class:"1D"},
-  {name:"Fairel Atharizz Chalief",class:"1D"},{name:"Jaris Jalu Randita",class:"1D"},{name:"Salahuddin Nafis Al Farisi",class:"1D"},
-  {name:"Abuwildan Najid Arrasyad",class:"1E"},{name:"Afif Agil Saputra",class:"1E"},{name:"Chelsea Safaraz Majiid",class:"1E"},
-  {name:"Ibrahim Arkaan Dhiya Ulhaq",class:"1E"},{name:"Muhammad Lantang Wirayudha Akbar",class:"1E"},{name:"Syauqi Musyaffa Fikri",class:"1E"},
-  {name:"Acapella Akbar Alhafizh Hartono",class:"1F"},{name:"Ahmad Kenzie Kayana",class:"1F"},{name:"Hamdan Pandega",class:"1F"},
-  {name:"Latief Haziq Maulana",class:"1F"},{name:"Muhammad Naufal Rahman",class:"1F"},{name:"Zufar Calief Nurdaffa",class:"1F"},
-  {name:"Adam Iskandar",class:"1G"},{name:"Ammar Tejananta Himawan",class:"1G"},{name:"Fatih Shuja Arkana",class:"1G"},
-  {name:"Lisan Shidqie",class:"1G"},{name:"Muhammad Aksan Al Fatih",class:"1G"},{name:"Sultan Fizhansyah Fauzi",class:"1G"},
-  {name:"Abid Tsaqif Atha Jati",class:"1LOWERA"},{name:"Ahza Danish Fahreza",class:"1LOWERA"},{name:"Fikri Nur Fauzan",class:"1LOWERA"},
-  {name:"Muhammad Alfath Arroyyan",class:"1LOWERA"},{name:"Raufa Arkhan Akhtara",class:"1LOWERA"},
-  {name:"Abimantrana Keitaro Jevera",class:"1LOWERB"},{name:"Daffa Mibras Ghosan",class:"1LOWERB"},{name:"Kai Raska Ibrahim",class:"1LOWERB"},
-  {name:"Muhammad Haekal Abdullah Andreago",class:"1LOWERB"},{name:"Zaidan Arkaan Adisya",class:"1LOWERB"},
-  {name:"Bara Habibi Tama",class:"1LOWERC"},{name:"Bilal Geno Al Ghaisan",class:"1LOWERC"},{name:"Ibnu Hafidz Elfathin",class:"1LOWERC"},
-  {name:"Muhammad Haikal Akram",class:"1LOWERC"},{name:"Naufal Ahnaf Abqary",class:"1LOWERC"},
-  {name:"Achmad Raffasya Izzudin Althafurrahman",class:"2A"},{name:"Ahmad Abdullah Azzam Syah",class:"2A"},{name:"Arta Nugraha",class:"2A"},
-  {name:"Ghaisan Aidan Maheswara",class:"2A"},{name:"Haidar Azfar Abdurrahman",class:"2A"},{name:"Muhammad Faisal Abdurrahman",class:"2A"},
-  {name:"Muhammad Mumtaz Al-Dzahabiy",class:"2A"},{name:"Nabil Abriansa",class:"2A"},{name:"Rafif Zikri Makarim",class:"2A"},
-  {name:"Abhivandya Ahmad Hazmi Ardhie",class:"2B"},{name:"Ahmad Khayruddin Fahmi",class:"2B"},{name:"Al Wazif",class:"2B"},
-  {name:"Athallah Sidqi As Sakha",class:"2B"},{name:"Dzaky Muhammad El Faiz",class:"2B"},{name:"Keanu Utsman Afrianto",class:"2B"},
-  {name:"Muhammad Gibran Habiburrahman",class:"2B"},{name:"Naufal Fadhil Syahputra",class:"2B"},{name:"Rizky Mirza Abdillah",class:"2B"},
-  {name:"Abdul Majid Siregar",class:"2C"},{name:"Ahmad Najwan Karnanda",class:"2C"},{name:"Kenzie Rafiandra Putra",class:"2C"},
-  {name:"Muhammad Mahardika Al Ghozy",class:"2C"},{name:"Rayyan Nabil Al Faruq",class:"2C"},{name:"Zaverio Ozil Riyadi",class:"2C"},
-  {name:"Abdullah Raya Nureno",class:"2D"},{name:"Alessandro El Fathih Siregar",class:"2D"},{name:"Fadhil Askar Parakas",class:"2D"},
-  {name:"Gantheng Poerba Ilyasa",class:"2D"},{name:"Muhammad Hakam Tsaqif",class:"2D"},{name:"Hanan Rasyid Yunur",class:"2D"},
-  {name:"Abdullah Hasni Bramapta",class:"2E"},{name:"Alif Alfarizqi Annur Rohman",class:"2E"},{name:"Dzaky Hariri Akbar Raziq",class:"2E"},
-  {name:"Muhammad Fikra Avicena",class:"2E"},{name:"Muhammad Kurniawan Putranto",class:"2E"},{name:"Zora Phalosa Nareswara",class:"2E"},
-  {name:"Affan Valerino Alfarisqy",class:"2F"},{name:"Azam Zufar Keyara",class:"2F"},{name:"Faiq Rosyad Habibie",class:"2F"},
-  {name:"Muhammad Lais Chaniago",class:"2F"},{name:"Rafa Rajendra Wikrama",class:"2F"},{name:"Nuha Rayyan Mazaya",class:"2F"},
-  {name:"Abdan Alimul Fikriy",class:"2G"},{name:"Ahmad Fitroh Ramadhan",class:"2G"},{name:"Muhammad Affan Wirasena",class:"2G"},
-  {name:"Naraya Jagatsatria",class:"2G"},{name:"Rayhan Ibrahim Pratama Andrianto",class:"2G"},{name:"Uwais Al Qarni",class:"2G"},
-  {name:"Achmad Azmi As Siddiq",class:"2H"},{name:"Ahza Dzaky Al-Fattah",class:"2H"},{name:"Fairuz Razqa El Bahri",class:"2H"},
-  {name:"Lu'ay Rajendra Yogitaswara",class:"2H"},{name:"Muhammad Arfan Hamizan",class:"2H"},{name:"Zain Muhammad Yusuf",class:"2H"},
-  {name:"Achmad Abiyyu Nur Afkari",class:"2LOWERA"},{name:"Aysar Muhammad Casey",class:"2LOWERA"},{name:"Surya Arga Bintara",class:"2LOWERA"},
-  {name:"Ahmad Arsyad Amirudin",class:"2LOWERB"},{name:"Fatih Arelian Pradana",class:"2LOWERB"},{name:"Satrio Adli Anandito",class:"2LOWERB"},
-  {name:"Abdullah Azzam Pratama",class:"2LOWERC"},{name:"Ahmad Fadlillah Kusuma Alby",class:"2LOWERC"},{name:"Reyhal Nabil Sunandar",class:"2LOWERC"},
-  {name:"Abdul Ghani Irfan Rafif",class:"3A"},{name:"Ahmad Darwis",class:"3A"},{name:"Faiq Fauzil Adhim",class:"3A"},{name:"Muhammad Mahdi Hanafi",class:"3A"},
-  {name:"Ahmad Fadhil Haris",class:"3B"},{name:"Muhammad Karim Fauzi",class:"3B"},{name:"Haris Fadlurrohman",class:"3B"},
-  {name:"Azzam Abdullah Zaki",class:"4A"},{name:"Farhan Izzatul Islam",class:"4A"},{name:"Muhammad Iqbal Firmansyah",class:"4A"},
-  {name:"Ahmad Zulfikar Ramadhan",class:"5A"},{name:"Hafidz Al Haq Maulana",class:"5A"},{name:"Rizal Maulana Syah",class:"5A"},
-  {name:"Hamzah Ibrahim Pratama",class:"6A"},{name:"Muhammad Yusuf Hakim",class:"6A"},{name:"Omar Abdillah Fauzan",class:"6A"},
-];
-
-// ─── Musyrif data ───────────────────────────────────────────────
-const musyrifData: Record<string, { name: string }> = {
-  "1A":{ name:"Ust. Ahmad Fauzi, S.Pd." },
-  "1B":{ name:"Ust. Budi Santoso, S.Ag." },
-  "1C":{ name:"Ust. Cahyo Nugroho, M.Pd." },
-  "1D":{ name:"Ust. Doni Pratama, S.Pd." },
-  "1E":{ name:"Ust. Eko Wibowo, S.Ag." },
-  "1F":{ name:"Ust. Faisal Rahman, M.Pd." },
-  "1G":{ name:"Ust. Ghani Putra, S.Pd." },
-  "1LOWERA":{ name:"Ust. Hasan Basri" },
-  "1LOWERB":{ name:"Ust. Imam Ghazali" },
-  "1LOWERC":{ name:"Ust. Joko Susilo" },
-  "2A":{ name:"Ust. Karim Abdullah, S.Pd." },
-  "2B":{ name:"Ust. Lutfi Hakim, M.Pd." },
-  "2C":{ name:"Ust. Musa Al Amin, S.Ag." },
-  "2D":{ name:"Ust. Nizar Fauzan, S.Pd." },
-  "2E":{ name:"Ust. Omar Faruq, M.Pd." },
-  "2F":{ name:"Ust. Purnomo Hadi, S.Ag." },
-  "2G":{ name:"Ust. Qodir Amrullah" },
-  "2H":{ name:"Ust. Ridwan Saleh, S.Pd." },
-};
-
-const pamongData = { name: "Ust. Abdul Rahman, M.Pd." };
-
 // ─── Utils ─────────────────────────────────────────────────────
 function genId() {
   return `IZN-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2,7).toUpperCase()}`;
@@ -246,20 +158,66 @@ function calcDuration(jk: string, jb: string, jenis: string, tl: string, tk: str
   return [h>0&&`${h} Jam`, m>0&&`${m} Menit`].filter(Boolean).join(" ") || "< 1 Menit";
 }
 
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwQnacuM2ZsgWYP20M9Gjwi--adZsNxzJk14IyH2l8iBuv_tKZCPPrYKdLeJhZhU7iz/exec";
+
 function getLocal(): IzinRecord[] {
   try { return JSON.parse(localStorage.getItem("local_izin_list")||"[]"); } catch { return []; }
 }
+
+async function fetchRemoteData(): Promise<IzinRecord[]> {
+  try {
+    const res = await fetch(`${GAS_WEB_APP_URL}?action=read`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.data && Array.isArray(json.data)) {
+        localStorage.setItem("local_izin_list", JSON.stringify(json.data));
+        return json.data;
+      }
+    }
+  } catch (e) {
+    console.warn("GAS sync read error:", e);
+  }
+  return getLocal();
+}
+
 function saveLocal(item: IzinRecord) {
   const list = getLocal();
   if (!list.some(x => x.idIzin === item.idIzin)) {
     list.unshift(item);
     localStorage.setItem("local_izin_list", JSON.stringify(list.slice(0,500)));
   }
+  // Sync to GAS Google Sheets backend
+  fetch(GAS_WEB_APP_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      action: "create",
+      ...item
+    })
+  }).catch(err => console.warn("GAS save error:", err));
 }
-function updateStatus(id: string, status: StatusType, note: string) {
+
+function updateStatus(id: string, status: StatusType, note: string, user?: UserSession|null) {
   const list = getLocal();
   const f = list.find(x => x.idIzin === id);
-  if (f) { f.status = status; f.catatanAdmin = note; localStorage.setItem("local_izin_list", JSON.stringify(list)); }
+  if (f) {
+    f.status = status;
+    f.catatanAdmin = note;
+    localStorage.setItem("local_izin_list", JSON.stringify(list));
+  }
+  // Sync to GAS Google Sheets backend
+  fetch(GAS_WEB_APP_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      action: "update",
+      idIzin: id,
+      status: status,
+      catatan: note,
+      userEmail: user?.email || '',
+      userRole: user?.role || ''
+    })
+  }).catch(err => console.warn("GAS update status error:", err));
 }
 
 function getRole(user: UserSession|null) {
@@ -1076,14 +1034,79 @@ function PageForm({ currentUser, setPage, onSubmit, initialJenis }: {
 
 // ─── Page: Login ────────────────────────────────────────────────
 function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:UserSession)=>void }) {
-  function loginAs(role:"musyrif"|"pamong") {
-    onLogin(role==="musyrif"
-      ? {name:"Ust. Ahmad Musyrif Pembina", email:"musyrif@muallimin.sch.id", role:"musyrif"}
-      : {name:"Ust. Abdul Rahman (Pamong)", email:"pamong@muallimin.sch.id",  role:"pamong"});
+  const [selectedClass, setSelectedClass] = useState<string>("1A");
+
+  useEffect(() => {
+    const btnContainer = document.getElementById("google-signin-btn");
+    const clientId = GOOGLE_CLIENT_ID || "279330879292-5rc2mbk58k1k6rtm9pm4pq3jm4uiltb6.apps.googleusercontent.com";
+    
+    if ((window as any).google?.accounts?.id && btnContainer) {
+      try {
+        (window as any).google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response: any) => {
+            if (response?.credential) {
+              try {
+                const base64Url = response.credential.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                  return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                
+                const payload = JSON.parse(jsonPayload);
+                const email = (payload.email || '').toLowerCase().trim();
+                const name = payload.name || email;
+
+                // Server-aligned Whitelist validation
+                const isPamong = pamongList.some(p => p.email.toLowerCase() === email || (p.altEmail && p.altEmail.toLowerCase() === email));
+                const isMusyrif = Object.values(musyrifData).some(m => m.email?.toLowerCase() === email) ||
+                                  koordinatorMusyrif.some(k => k.email.toLowerCase() === email) ||
+                                  REGISTERED_EMAILS.some(e => e.toLowerCase() === email);
+
+                if (isPamong) {
+                  onLogin({ name: `${name} (Pamong Asrama)`, email, picture: payload.picture, role: "pamong" });
+                  toast.success(`Selamat datang, ${name}! Login via Google sebagai Pamong.`);
+                  setPage("history");
+                } else if (isMusyrif) {
+                  onLogin({ name: `${name} (Musyrif)`, email, picture: payload.picture, role: "musyrif" });
+                  toast.success(`Selamat datang, ${name}! Login via Google sebagai Musyrif.`);
+                  setPage("history");
+                } else {
+                  toast.error(`Email (${email}) belum terdaftar sebagai Musyrif atau Pamong resmi.`, { duration: 6000 });
+                }
+              } catch (err) {
+                toast.error("Gagal memverifikasi token Google OAuth.");
+              }
+            }
+          }
+        });
+
+        (window as any).google.accounts.id.renderButton(btnContainer, {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+          text: "continue_with",
+          shape: "pill"
+        });
+      } catch (e) {
+        console.warn("GSI rendering error:", e);
+      }
+    }
+  }, []);
+
+  function loginAsPamong(p: { name: string; email: string }) {
+    onLogin({ name: p.name, email: p.email, role: "pamong" });
     setPage("history");
   }
+
+  function loginAsMusyrif(cKey: string) {
+    const m = musyrifData[cKey] || { name: `Musyrif ${cKey}`, email: `musyrif.${cKey.toLowerCase()}@muallimin.sch.id` };
+    onLogin({ name: `${m.name} (${getClassLabel(cKey)})`, email: m.email || `${cKey.toLowerCase()}@muallimin.sch.id`, role: "musyrif" });
+    setPage("history");
+  }
+
   return (
-    <div className="max-w-sm mx-auto px-4 py-12">
+    <div className="max-w-md mx-auto px-4 py-8">
       <div className="bg-white rounded-3xl border border-border overflow-hidden" style={{boxShadow:"0 8px 32px -8px rgba(15,23,42,0.12)"}}>
         <div className="px-6 py-6 bg-gradient-to-br from-slate-900 to-indigo-950 text-white">
           <button onClick={()=>setPage("home")} className="flex items-center gap-1 text-xs text-white/50 hover:text-white mb-4 transition-colors">
@@ -1092,37 +1115,66 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
           <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-3">
             <ShieldCheck className="w-6 h-6 text-blue-300"/>
           </div>
-          <h3 className="font-extrabold text-lg">Login Ustadz</h3>
-          <p className="text-sm text-blue-300 mt-1">Akses fitur persetujuan perizinan santri</p>
+          <h3 className="font-extrabold text-lg">Login Autentikasi Ustadz</h3>
+          <p className="text-sm text-blue-300 mt-1">Verifikasi &amp; Persetujuan Perizinan Santri</p>
         </div>
 
         <div className="p-6 space-y-4">
-          <div className="p-4 bg-slate-50 rounded-2xl text-xs text-muted-foreground space-y-1.5 border border-border">
-            <p><strong className="text-foreground">Wali Santri:</strong> Bebas ajukan &amp; cek status tanpa login.</p>
-            <p><strong className="text-foreground">Musyrif / Pamong:</strong> Login untuk ACC atau menolak izin.</p>
+          <div className="p-3.5 bg-slate-50 rounded-2xl text-xs text-muted-foreground space-y-1 border border-border">
+            <p><strong className="text-foreground">Wali Santri:</strong> Bebas mengajukan &amp; cek status tanpa login.</p>
+            <p><strong className="text-foreground">Musyrif / Pamong:</strong> Wajib login terautentikasi untuk menyetujui (ACC) atau menolak izin.</p>
           </div>
-          <div className="space-y-3">
-            <button onClick={()=>loginAs("musyrif")}
-              className="w-full flex items-center gap-4 px-4 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-blue-700 transition-colors btn-press"
-              style={{boxShadow:"0 4px 16px -4px rgba(37,99,235,0.4)"}}>
-              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
-                <UserCheck className="w-5 h-5"/>
+
+          <div className="space-y-4">
+            {/* Google Authentication */}
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">1. Autentikasi Resmi via Google</p>
+              <div id="google-signin-btn" className="w-full flex justify-center min-h-[44px]"></div>
+            </div>
+
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-border"></div>
+              <span className="flex-shrink mx-3 text-[10px] font-bold text-muted-foreground uppercase">Atau Akses Cepat Pengurus</span>
+              <div className="flex-grow border-t border-border"></div>
+            </div>
+
+            {/* Pamong Asrama */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-600"/> Pamong Asrama (ACC Semua Izin):
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                {pamongList.map(p => (
+                  <button key={p.email} onClick={()=>loginAsPamong(p)}
+                    className="w-full flex items-center justify-between p-3 bg-indigo-50/60 hover:bg-indigo-100/80 border border-indigo-200/80 rounded-xl text-left transition-colors btn-press">
+                    <div className="min-w-0">
+                      <p className="font-bold text-xs text-indigo-950 truncate">{p.name}</p>
+                      <p className="text-[10px] text-indigo-600 truncate">{p.email}</p>
+                    </div>
+                    <span className="text-[10px] font-bold bg-indigo-600 text-white px-2 py-1 rounded-lg">Pamong &rarr;</span>
+                  </button>
+                ))}
               </div>
-              <div className="text-left">
-                <div className="text-sm">Masuk sebagai Musyrif</div>
-                <div className="text-xs font-normal opacity-75">ACC izin keluar biasa &amp; kesehatan</div>
+            </div>
+
+            {/* Musyrif Kelas */}
+            <div className="space-y-2 pt-2 border-t border-border">
+              <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <UserCheck className="w-3.5 h-3.5 text-blue-600"/> Musyrif Kelas:
+              </p>
+              <div className="flex gap-2">
+                <select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}
+                  className="flex-1 text-xs bg-white border border-border rounded-xl px-3 py-2.5 font-medium">
+                  {Object.keys(musyrifData).map(k => (
+                    <option key={k} value={k}>{getClassLabel(k)} — {musyrifData[k]?.name || "Musyrif"}</option>
+                  ))}
+                </select>
+                <button onClick={()=>loginAsMusyrif(selectedClass)}
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors btn-press">
+                  Masuk
+                </button>
               </div>
-            </button>
-            <button onClick={()=>loginAs("pamong")}
-              className="w-full flex items-center gap-4 px-4 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-colors btn-press">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                <ShieldCheck className="w-5 h-5 text-blue-400"/>
-              </div>
-              <div className="text-left">
-                <div className="text-sm">Masuk sebagai Pamong</div>
-                <div className="text-xs font-normal text-slate-400">ACC semua jenis perizinan</div>
-              </div>
-            </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1372,24 +1424,27 @@ function PageHistory({ currentUser, setPage, onLoginRequest }: {
 
   const load = useCallback(()=>{
     setLoading(true);
-    setTimeout(()=>{ setItems(getLocal()); setLoading(false); }, 300);
+    fetchRemoteData().then(data => {
+      setItems(data);
+      setLoading(false);
+    });
   },[]);
 
   useEffect(()=>{ load(); },[load]);
 
   function approve(id:string) {
     if(!currentUser){toast.error("Login Musyrif diperlukan");return;}
-    updateStatus(id,"APPROVED",`Disetujui oleh ${currentUser.name}`);
+    updateStatus(id,"APPROVED",`Disetujui oleh ${currentUser.name}`, currentUser);
     setItems(getLocal()); toast.success("Izin disetujui.");
   }
   function reject(id:string) {
     if(!currentUser){toast.error("Login Musyrif diperlukan");return;}
-    updateStatus(id,"REJECTED",`Ditolak oleh ${currentUser.name}`);
+    updateStatus(id,"REJECTED",`Ditolak oleh ${currentUser.name}`, currentUser);
     setItems(getLocal()); toast.info("Izin ditolak.");
   }
   function returnItem(id:string) {
     if(!currentUser)return;
-    updateStatus(id,"RETURNED",`Santri kembali — dicatat ${currentUser.name}`);
+    updateStatus(id,"RETURNED",`Santri kembali — dicatat ${currentUser.name}`, currentUser);
     setItems(getLocal()); toast.success("Status: Santri Kembali");
   }
 
@@ -1565,6 +1620,12 @@ export default function App() {
       const s = localStorage.getItem("izin_user_session");
       if(s){ const u=JSON.parse(s); if(u?.name&&u?.email) setCurrentUser(u); }
     } catch {}
+
+    fetchRemoteData();
+    const timer = setInterval(() => {
+      fetchRemoteData();
+    }, 10000);
+    return () => clearInterval(timer);
   },[]);
 
   function handleLogin(u: UserSession) {
