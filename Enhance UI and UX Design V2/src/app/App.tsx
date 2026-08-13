@@ -298,7 +298,7 @@ function NavBar({ setPage, currentUser, onLogout }: {
     <nav className="sticky top-0 z-40 bg-white/92 backdrop-blur-lg border-b border-border" style={{boxShadow:"0 1px 0 0 rgba(15,23,42,0.06)"}}>
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
         <button onClick={()=>setPage("home")} className="flex items-center gap-2.5 btn-press">
-          <img src={logoBlue} alt="Logo Mu'allimin" className="w-10 h-10 object-contain"/>
+          <img src={logoBlue} alt="Logo Mu'allimin" className="h-8 w-auto object-contain"/>
         </button>
 
         <div className="flex items-center gap-2">
@@ -377,7 +377,7 @@ function StepProgress({ step }: { step: number }) {
   return (
     <div className="px-5 pt-5 pb-4">
       {/* Bar */}
-      <div className="relative h-1.5 bg-slate-100 rounded-full mb-4">
+      <div className="relative h-2 bg-slate-100 rounded-full mb-6">
         <div className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full transition-all duration-500"
           style={{ width:`${pct}%` }}/>
         {STEP_LABELS.map((_,i) => {
@@ -387,22 +387,22 @@ function StepProgress({ step }: { step: number }) {
             <div key={s}
               className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-300"
               style={{ left:`${(i/(STEP_LABELS.length-1))*100}%` }}>
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-[9px] font-bold transition-all duration-300
-                ${done  ? "bg-blue-600 border-blue-600 text-white"
-                : active ? "bg-white border-blue-600 text-blue-600 shadow-md shadow-blue-100"
+              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-300
+                ${done  ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200"
+                : active ? "bg-white border-blue-600 text-blue-600 shadow-lg shadow-blue-100 scale-110"
                 : "bg-white border-slate-200 text-slate-400"}`}>
-                {done ? <Check className="w-3 h-3"/> : s}
+                {done ? <Check className="w-3.5 h-3.5"/> : s}
               </div>
             </div>
           );
         })}
       </div>
       {/* Labels */}
-      <div className="flex justify-between">
+      <div className="flex justify-between mt-1">
         {STEP_LABELS.map((label,i) => {
           const s = i+1, active = s===step, done = s<step;
           return (
-            <span key={s} className={`text-[10px] font-semibold transition-colors
+            <span key={s} className={`text-[11px] font-semibold transition-colors
               ${active ? "text-primary" : done ? "text-blue-400" : "text-slate-300"}`}
               style={{ width:`${100/STEP_LABELS.length}%`, textAlign:i===0?"left":i===STEP_LABELS.length-1?"right":"center" }}>
               {label}
@@ -460,7 +460,7 @@ function PageHome({ setPage, setInitialJenis }: {
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"/>
                 Sistem Perizinan Resmi
               </div>
-              <img src={logoWhite} alt="Logo Mu'allimin" className="w-10 h-10 object-contain opacity-90 flex-shrink-0"/>
+              <img src={logoWhite} alt="Logo Mu'allimin" className="h-8 w-auto object-contain opacity-90 flex-shrink-0"/>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
               Izin Keluar &amp; Pulang<br/>
