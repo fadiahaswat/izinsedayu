@@ -230,14 +230,30 @@ function getRole(user: UserSession|null) {
   return "orangtua";
 }
 
+// ─── Kewenangan sesuai SOP Resmi Asrama ────────────────────────
+// Musyrif : Keluar Biasa & Kesehatan saja (APPROVED langsung)
+// Pamong  : Keluar Biasa, Kesehatan, Pulang/Menginap, & Sakit (semua APPROVED)
+// Wadir   : sama seperti Pamong
+// Wali    : semua PENDING menunggu Musyrif/Pamong
+// Catatan : Sakit → WAJIB koordinasi Poskestren terlebih dahulu
 function calcApproval(jenis: JenisIzinKey, role: string) {
-  if (role==="pamong") return { status:"APPROVED" as StatusType, text:"Disetujui langsung oleh Pamong Asrama" };
-  if (role==="musyrif") {
-    if (jenis==="keluar-biasa"||jenis==="kesehatan")
-      return { status:"APPROVED" as StatusType, text:"Disetujui langsung oleh Musyrif Kelas" };
-    return { status:"PENDING" as StatusType, text:"Izin pulang/menginap harus disetujui Pamong Asrama" };
+  if (role==="pamong") {
+    if (jenis==="sakit")
+      return { status:"APPROVED" as StatusType, text:"Disetujui Pamong — pastikan sudah koordinasi dengan Poskestren / Dokter" };
+    return { status:"APPROVED" as StatusType, text:"Disetujui langsung oleh Pamong Asrama" };
   }
-  return { status:"PENDING" as StatusType, text:"Menunggu verifikasi Ustadz Musyrif / Pamong" };
+  if (role==="musyrif") {
+    if (jenis==="keluar-biasa")
+      return { status:"APPROVED" as StatusType, text:"Disetujui Musyrif Kelas — wajib informasikan ke grup PKM" };
+    if (jenis==="kesehatan")
+      return { status:"APPROVED" as StatusType, text:"Disetujui Musyrif Kelas — catat nama penjemput jika ada" };
+    if (jenis==="menginap")
+      return { status:"PENDING" as StatusType, text:"Musyrif tidak berwenang — izin pulang/menginap harus disetujui Pamong atau Wadir" };
+    if (jenis==="sakit")
+      return { status:"PENDING" as StatusType, text:"Musyrif tidak berwenang memulangkan — koordinasikan dengan Poskestren / Pamong terlebih dahulu" };
+  }
+  // Wali / tidak login
+  return { status:"PENDING" as StatusType, text:"Menunggu verifikasi Musyrif Kelas atau Pamong Asrama" };
 }
 
 function fmtDate(s: string) {
@@ -877,36 +893,63 @@ function PageForm({ currentUser, setPage, onSubmit, initialJenis }: {
                 <button onClick={()=>nav(2,"back")} className={`text-xs underline ${jenisInfo.color} opacity-60 hover:opacity-100`}>Ganti</button>
               </div>
 
+              {/* Peringatan SOP: sakit wajib Poskestren */}
+              {jenis === "sakit" && (
+                <div className="flex items-start gap-3 px-4 py-3 rounded-2xl bg-amber-50 border border-amber-200">
+                  <span className="text-amber-500 mt-0.5 flex-shrink-0">⚠️</span>
+                  <div>
+                    <p className="text-xs font-bold text-amber-800">Wajib Koordinasi Poskestren</p>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      Sesuai SOP, pemulangan karena sakit <strong>harus dikoordinasikan dengan Poskestren / Dokter</strong> terlebih dahulu. Musyrif & Pamong tidak diperbolehkan memulangkan tanpa persetujuan Poskestren.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Peringatan SOP: menginap hanya Pamong/Wadir */}
+              {jenis === "menginap" && (
+                <div className="flex items-start gap-3 px-4 py-3 rounded-2xl bg-blue-50 border border-blue-200">
+                  <span className="text-blue-500 mt-0.5 flex-shrink-0">ℹ️</span>
+                  <div>
+                    <p className="text-xs font-bold text-blue-800">Perlu Persetujuan Pamong / Wadir</p>
+                    <p className="text-xs text-blue-700 mt-0.5">
+                      Sesuai SOP, izin pulang/menginap <strong>hanya dapat diberikan oleh Pamong atau Wadir</strong>. Musyrif tidak berwenang memberikan izin jenis ini.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Quick fill */}
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground">Isi cepat:</p>
                 <div className="flex flex-wrap gap-2">
                   {(jenis === "keluar-biasa"
                     ? [
-                        {label:"Beli Keperluan",  kep:"Membeli kebutuhan santri (alat tulis, pakaian, dll)", tuj:"Toko / Minimarket Sekitar Sedayu"},
-                        {label:"Acara Keluarga",  kep:"Menghadiri acara keluarga penting",                   tuj:"Rumah Orang Tua / Wali"},
-                        {label:"Cukur Rambut",    kep:"Potong rambut di luar asrama",                        tuj:"Barbershop Sekitar Sedayu"},
-                        {label:"Keperluan Bank",  kep:"Keperluan perbankan / transfer uang",                 tuj:"ATM / Bank Terdekat"},
+                        // SOP: keluar biasa hanya untuk keperluan urgent/penting/darurat
+                        {label:"Acara Keluarga",   kep:"Menghadiri acara keluarga penting (pernikahan, lelayu, dsb)", tuj:"Rumah Orang Tua / Wali"},
+                        {label:"Keluarga Sakit",   kep:"Keluarga inti sakit / kondisi keluarga mendesak",             tuj:"Rumah Orang Tua / RS"},
+                        {label:"Keperluan Madrasah",kep:"Keperluan madrasah mendesak yang harus dilaksanakan saat ini",tuj:"Lokasi Keperluan Madrasah"},
+                        {label:"Kondisi Darurat",  kep:"Keadaan darurat yang mengharuskan keluar segera",             tuj:"Sesuai Keperluan Darurat"},
                       ]
                     : jenis === "menginap"
                     ? [
-                        {label:"Libur Semester",  kep:"Pulang liburan semester ke rumah orang tua",          tuj:"Rumah Orang Tua"},
-                        {label:"Acara Keluarga",  kep:"Menghadiri acara penting keluarga",                   tuj:"Rumah Orang Tua / Wali"},
-                        {label:"Keperluan Medis", kep:"Pemeriksaan / pengobatan lanjutan di luar kota",      tuj:"Rumah Sakit / Klinik"},
-                        {label:"Kondisi Darurat", kep:"Keperluan keluarga mendesak / darurat",               tuj:"Rumah Orang Tua"},
+                        {label:"Libur Semester",   kep:"Pulang liburan semester ke rumah orang tua",           tuj:"Rumah Orang Tua"},
+                        {label:"Acara Keluarga",   kep:"Menghadiri acara penting keluarga",                    tuj:"Rumah Orang Tua / Wali"},
+                        {label:"Keperluan Medis",  kep:"Pemeriksaan / pengobatan lanjutan yang tidak bisa selesai hari yang sama", tuj:"Rumah Sakit / Klinik"},
+                        {label:"Kondisi Darurat",  kep:"Keperluan keluarga mendesak / darurat",                tuj:"Rumah Orang Tua"},
                       ]
                     : jenis === "kesehatan"
                     ? [
-                        {label:"Kontrol Rutin",   kep:"Kontrol kesehatan rutin / cek up",                    tuj:"Klinik / Puskesmas Terdekat"},
-                        {label:"Gigi & Mulut",    kep:"Pemeriksaan dan perawatan gigi",                      tuj:"Dokter Gigi / Klinik"},
-                        {label:"Mata",            kep:"Pemeriksaan mata dan kacamata",                       tuj:"Optik / Dokter Mata"},
-                        {label:"Rawat Jalan RS",  kep:"Pemeriksaan dan pengobatan di rumah sakit",           tuj:"RS PKU / RSUD Terdekat"},
+                        {label:"Kontrol Rutin",    kep:"Kontrol kesehatan rutin / cek up (kembali hari yang sama)", tuj:"Klinik / Puskesmas Terdekat"},
+                        {label:"Gigi & Mulut",     kep:"Pemeriksaan dan perawatan gigi",                       tuj:"Dokter Gigi / Klinik"},
+                        {label:"Mata",             kep:"Pemeriksaan mata dan kacamata",                        tuj:"Optik / Dokter Mata"},
+                        {label:"Rawat Jalan RS",   kep:"Pemeriksaan dan pengobatan di rumah sakit (kembali hari yang sama)", tuj:"RS PKU / RSUD Terdekat"},
                       ]
-                    : /* sakit */[
-                        {label:"Dirawat RS",      kep:"Dirawat inap di rumah sakit",                         tuj:"RS PKU / RSUD Terdekat"},
-                        {label:"Rawat Rumah",     kep:"Perawatan mandiri di rumah atas anjuran dokter",      tuj:"Rumah Orang Tua"},
-                        {label:"Operasi",         kep:"Menjalani operasi / tindakan medis",                  tuj:"Rumah Sakit"},
-                        {label:"Observasi",       kep:"Observasi kondisi kesehatan pasca sakit",              tuj:"Rumah Orang Tua / Wali"},
+                    : /* sakit — wajib koordinasi Poskestren */[
+                        {label:"Rawat Rumah",      kep:"Perawatan di rumah atas rekomendasi Dokter Poskestren",  tuj:"Rumah Orang Tua"},
+                        {label:"Rawat Inap RS",    kep:"Dirawat inap di rumah sakit atas rekomendasi Poskestren",tuj:"RS PKU / RSUD Terdekat"},
+                        {label:"Operasi",          kep:"Menjalani operasi / tindakan medis (sudah koordinasi Poskestren)", tuj:"Rumah Sakit"},
+                        {label:"Observasi",        kep:"Observasi kondisi kesehatan pasca sakit",               tuj:"Rumah Orang Tua / Wali"},
                       ]
                   ).map(c=>(
                     <button key={c.label} type="button"
