@@ -881,12 +881,34 @@ function PageForm({ currentUser, setPage, onSubmit, initialJenis }: {
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground">Isi cepat:</p>
                 <div className="flex flex-wrap gap-2">
-                  {[
-                    {label:"Acara Keluarga", kep:"Menghadiri acara keluarga penting",      tuj:"Rumah Orang Tua / Wali"},
-                    {label:"Kontrol RS",     kep:"Pemeriksaan kesehatan / kontrol medis",   tuj:"Klinik / Rumah Sakit"},
-                    {label:"Keluar Biasa",   kep:"Izin keluar khusus di luar jadwal rutin", tuj:"Area Sekitar Sedayu"},
-                    {label:"Beli Keperluan", kep:"Membeli kebutuhan santri",                tuj:"Toko / Minimarket"},
-                  ].map(c=>(
+                  {(jenis === "keluar-biasa"
+                    ? [
+                        {label:"Beli Keperluan",  kep:"Membeli kebutuhan santri (alat tulis, pakaian, dll)", tuj:"Toko / Minimarket Sekitar Sedayu"},
+                        {label:"Acara Keluarga",  kep:"Menghadiri acara keluarga penting",                   tuj:"Rumah Orang Tua / Wali"},
+                        {label:"Cukur Rambut",    kep:"Potong rambut di luar asrama",                        tuj:"Barbershop Sekitar Sedayu"},
+                        {label:"Keperluan Bank",  kep:"Keperluan perbankan / transfer uang",                 tuj:"ATM / Bank Terdekat"},
+                      ]
+                    : jenis === "menginap"
+                    ? [
+                        {label:"Libur Semester",  kep:"Pulang liburan semester ke rumah orang tua",          tuj:"Rumah Orang Tua"},
+                        {label:"Acara Keluarga",  kep:"Menghadiri acara penting keluarga",                   tuj:"Rumah Orang Tua / Wali"},
+                        {label:"Keperluan Medis", kep:"Pemeriksaan / pengobatan lanjutan di luar kota",      tuj:"Rumah Sakit / Klinik"},
+                        {label:"Kondisi Darurat", kep:"Keperluan keluarga mendesak / darurat",               tuj:"Rumah Orang Tua"},
+                      ]
+                    : jenis === "kesehatan"
+                    ? [
+                        {label:"Kontrol Rutin",   kep:"Kontrol kesehatan rutin / cek up",                    tuj:"Klinik / Puskesmas Terdekat"},
+                        {label:"Gigi & Mulut",    kep:"Pemeriksaan dan perawatan gigi",                      tuj:"Dokter Gigi / Klinik"},
+                        {label:"Mata",            kep:"Pemeriksaan mata dan kacamata",                       tuj:"Optik / Dokter Mata"},
+                        {label:"Rawat Jalan RS",  kep:"Pemeriksaan dan pengobatan di rumah sakit",           tuj:"RS PKU / RSUD Terdekat"},
+                      ]
+                    : /* sakit */[
+                        {label:"Dirawat RS",      kep:"Dirawat inap di rumah sakit",                         tuj:"RS PKU / RSUD Terdekat"},
+                        {label:"Rawat Rumah",     kep:"Perawatan mandiri di rumah atas anjuran dokter",      tuj:"Rumah Orang Tua"},
+                        {label:"Operasi",         kep:"Menjalani operasi / tindakan medis",                  tuj:"Rumah Sakit"},
+                        {label:"Observasi",       kep:"Observasi kondisi kesehatan pasca sakit",              tuj:"Rumah Orang Tua / Wali"},
+                      ]
+                  ).map(c=>(
                     <button key={c.label} type="button"
                       onClick={()=>{setKeperluan(c.kep);setTujuan(c.tuj);}}
                       className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-border bg-white hover:bg-primary/8 hover:border-primary/30 hover:text-primary transition-all btn-press">
@@ -897,8 +919,10 @@ function PageForm({ currentUser, setPage, onSubmit, initialJenis }: {
               </div>
 
               <div className="grid sm:grid-cols-2 gap-3">
-                <div><Label required>Detail Keperluan</Label><Input value={keperluan} onChange={e=>setKeperluan(e.target.value)} placeholder="Misal: beli obat, acara pernikahan..."/></div>
-                <div><Label required>Tempat Tujuan</Label><Input value={tujuan} onChange={e=>setTujuan(e.target.value)} placeholder="Misal: RS PKU, Rumah Orang Tua..."/></div>
+                <div><Label required>Detail Keperluan</Label><Input value={keperluan} onChange={e=>setKeperluan(e.target.value)}
+                  placeholder={jenis==="keluar-biasa"?"Misal: beli alat tulis, cukur rambut...":jenis==="menginap"?"Misal: acara keluarga, libur semester...":jenis==="kesehatan"?"Misal: kontrol gigi, periksa mata...":"Misal: dirawat RS, rawat rumah..."}/></div>
+                <div><Label required>Tempat Tujuan</Label><Input value={tujuan} onChange={e=>setTujuan(e.target.value)}
+                  placeholder={jenis==="keluar-biasa"?"Misal: Minimarket, Toko Alat Tulis...":jenis==="menginap"?"Misal: Rumah Orang Tua, Yogyakarta...":jenis==="kesehatan"?"Misal: RS PKU, Klinik Pratama...":"Misal: RS PKU, Rumah Orang Tua..."}/></div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
