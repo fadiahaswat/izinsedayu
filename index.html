@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
 <head>
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panduan Perizinan Santri - Asrama 1 Abu Bakar Ash-Shiddiq</title>
+    <title>Panduan & Perizinan Sedayu - Madrasah Mu'allimin Muhammadiyah Yogyakarta</title>
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS (Production Standalone) -->
+    <link rel="stylesheet" href="css/tailwind.min.css">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,668 +15,613 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Custom Styles -->
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc; /* Latar belakang yang lebih lembut */
-            color: #1e293b; /* Warna teks default slate-800 */
-        }
+    <link rel="stylesheet" href="css/style.css?v=20260813_v19">
 
-        /* Animasi saat scroll */
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(25px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-        .animate-on-scroll.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    <!-- Google Identity Services (GSI) Client Library for Sign-In with Google -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-        /* Styling Akordeon */
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding-top 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding-bottom 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            padding-top: 0;
-            padding-bottom: 0;
-        }
-        .accordion-button[aria-expanded="true"] + .accordion-content {
-            max-height: 2500px; /* Nilai besar untuk menampung konten apa pun */
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
-        }
-        .accordion-button .icon {
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .accordion-button[aria-expanded="true"] .icon {
-            transform: rotate(135deg);
-        }
-
-        /* Styling Tombol Interaktif */
-        .btn {
-            transition: all 0.2s ease-in-out;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .btn:active {
-            transform: translateY(0) scale(0.98);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Fokus yang terlihat untuk aksesibilitas */
-        :focus-visible {
-            outline: 3px solid #60a5fa; /* blue-400 */
-            outline-offset: 2px;
-            border-radius: 0.5rem;
-        }
-
-        /* Styling Modal */
-        .modal-backdrop {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .modal-content {
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-in-out;
-            transform: translateY(20px) scale(0.98);
-            opacity: 0;
-        }
-        #form-modal.is-open .modal-content {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-        
-        /* Styling Input Form */
-        .form-input {
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .form-input:focus {
-            border-color: #3b82f6; /* blue-500 */
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-        }
-    </style>
+    <!-- QRCode.js Library for proper QR code generation -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-500 selection:text-white">
 
-    <!-- Modal untuk Formulir Online -->
-    <div id="form-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div id="modal-backdrop" class="absolute inset-0 bg-slate-900/60 modal-backdrop"></div>
-        <div class="modal-content bg-white w-full max-w-lg rounded-2xl shadow-xl relative max-h-[90vh] overflow-y-auto">
-            <div class="p-6 sm:p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 id="modal-title" class="text-xl font-bold text-blue-700">Formulir Izin Online</h3>
-                    <button id="close-modal-btn" class="text-slate-400 hover:text-slate-800 transition-colors" aria-label="Tutup formulir">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+    <!-- Top Sticky Navbar (Ultra Compact) -->
+    <nav class="sticky top-0 z-40 glass-nav shadow-2xs border-b border-slate-200/80">
+        <div class="container mx-auto max-w-4xl px-3 py-1.5 flex items-center justify-between gap-2">
+            <div id="brand-home-btn" onclick="window.showPage('page-home')" class="flex items-center gap-1.5 min-w-0 cursor-pointer hover:opacity-90 transition-opacity">
+                <div class="w-6 h-6 rounded-md bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0v-5a2 2 0 012-2h2a2 2 0 012 2v5m-6 0h6M9 7h1m-1 4h1m4-4h1m-1 4h1"/>
+                    </svg>
+                </div>
+                <div class="truncate">
+                    <span class="font-extrabold text-xs tracking-tight text-slate-900 block leading-tight truncate">Izin Sedayu</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <!-- User Profile Widget (Logged-in) -->
+                <div id="user-profile-widget" class="hidden flex items-center gap-1 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded text-[11px]">
+                    <span id="user-avatar" class="w-3.5 h-3.5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-[8px]">U</span>
+                    <span id="user-name" class="font-bold text-blue-900 truncate max-w-[80px]">Ustadz</span>
+                    <button id="logout-btn" title="Keluar" class="text-rose-500 hover:text-rose-700 font-bold p-0.5">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     </button>
                 </div>
-                <form id="izin-form" class="space-y-5" novalidate>
-                    <input type="hidden" id="recipient-type" value="">
-                    
-                    <div>
-                        <label for="nama-wali" class="block text-sm font-medium text-slate-700 mb-1.5">Nama Wali Santri</label>
-                        <input type="text" id="nama-wali" required class="form-input w-full p-3 border border-slate-300 rounded-lg" placeholder="Contoh: Budi Santoso">
-                    </div>
-                    <div>
-                        <label for="alamat-wali" class="block text-sm font-medium text-slate-700 mb-1.5">Alamat Wali Santri</label>
-                        <input type="text" id="alamat-wali" required class="form-input w-full p-3 border border-slate-300 rounded-lg" placeholder="Contoh: Jl. Merdeka No. 10, Yogyakarta">
-                    </div>
-                    <div>
-                        <label for="nama-santri" class="block text-sm font-medium text-slate-700 mb-1.5">Nama Santri</label>
-                        <select id="nama-santri" required class="form-input w-full p-3 border border-slate-300 rounded-lg bg-white appearance-none">
-                            <option value="" disabled selected>Pilih Nama Santri</option>
-                            <!-- Opsi akan diisi oleh JavaScript -->
-                        </select>
-                    </div>
-                    <div>
-                        <label for="kelas-santri" class="block text-sm font-medium text-slate-700 mb-1.5">Kelas Santri</label>
-                        <input type="text" id="kelas-santri" readonly class="w-full p-3 border border-slate-300 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label for="keperluan" class="block text-sm font-medium text-slate-700 mb-1.5">Keperluan</label>
-                        <textarea id="keperluan" rows="3" required class="form-input w-full p-3 border border-slate-300 rounded-lg" placeholder="Contoh: menghadiri acara keluarga, kontrol kesehatan, dll."></textarea>
-                        <p class="text-xs text-slate-500 mt-2">Mohon isi keperluan dengan jelas dan rinci. Keperluan yang kurang jelas bisa tidak disetujui.</p>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label for="tanggal-izin" class="block text-sm font-medium text-slate-700 mb-1.5">Tanggal Izin/Keluar</label>
-                            <input type="date" id="tanggal-izin" required class="form-input w-full p-3 border border-slate-300 rounded-lg">
-                        </div>
-                        <div id="tanggal-kembali-wrapper" class="hidden">
-                            <label for="tanggal-kembali" class="block text-sm font-medium text-slate-700 mb-1.5">Tanggal Kembali</label>
-                            <input type="text" id="tanggal-kembali" readonly class="w-full p-3 border border-slate-300 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Waktu Izin</label>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="jam-keluar" class="text-xs text-slate-500">Jam Keluar</label>
-                                <select id="jam-keluar" required class="form-input w-full p-3 border border-slate-300 rounded-lg bg-white appearance-none">
-                                    <option value="" disabled selected>Pilih</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="jam-kembali" class="text-xs text-slate-500">Jam Kembali</label>
-                                <select id="jam-kembali" required class="form-input w-full p-3 border border-slate-300 rounded-lg bg-white appearance-none">
-                                    <option value="" disabled selected>Pilih</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="tujuan" class="block text-sm font-medium text-slate-700 mb-1.5">Tempat Tujuan</label>
-                        <input type="text" id="tujuan" required class="form-input w-full p-3 border border-slate-300 rounded-lg" placeholder="Alamat atau lokasi yang dituju">
-                    </div>
-                    <div id="form-error" class="text-red-600 text-sm hidden font-medium"></div>
-                    <div class="pt-6 border-t border-slate-200">
-                        <button type="submit" class="btn w-full bg-green-500 text-white font-bold py-3.5 px-8 rounded-lg shadow-lg hover:bg-green-600">
-                            Buat & Kirim Surat Izin via WhatsApp
-                        </button>
-                    </div>
-                </form>
+
+                <!-- Google Login Button -->
+                <button id="login-google-btn" class="btn btn-compact bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold flex items-center gap-1">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                    <span>Login Musyrif</span>
+                </button>
+
+                <!-- Primary Action Buttons (Desktop Only - Micro) -->
+                <button class="open-form-btn nav-desktop-btn btn btn-compact bg-blue-600 hover:bg-blue-700 text-white font-semibold hidden md:inline-flex items-center gap-1" data-recipient="musyrif">
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>Ajukan Izin</span>
+                </button>
+
+                <button id="open-history-btn" class="nav-desktop-btn btn btn-compact bg-slate-900 hover:bg-slate-800 text-white font-semibold hidden md:inline-flex items-center gap-1 border border-slate-700">
+                    <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Cek Status</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Floating Quick Approval Bar untuk Musyrif/Pamong -->
+    <div id="quick-approval-bar" class="hidden bg-slate-900 text-white py-1 px-3 shadow-md sticky top-[41px] z-30 transition-all border-b border-amber-500/30">
+        <div class="container mx-auto max-w-4xl flex items-center justify-between gap-2 text-[11px]">
+            <div class="flex items-center gap-1.5 font-medium truncate">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span>Pusat Approval: <span id="quick-pending-count" class="bg-amber-500 text-slate-950 px-1.5 py-0.2 rounded font-extrabold text-[10px]">0</span> Menunggu</span>
+            </div>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <button id="quick-approve-all-btn" class="btn btn-compact bg-emerald-600 text-white font-semibold text-[10px]">ACC Semua</button>
+                <button id="open-quick-approval-modal-btn" class="btn btn-compact bg-slate-800 text-white font-semibold text-[10px]">Tinjau</button>
             </div>
         </div>
     </div>
 
-    <div class="container mx-auto max-w-3xl p-4 sm:p-6 md:p-8">
-
-        <!-- Bagian Hero -->
-        <header class="text-center py-16 sm:py-24 animate-on-scroll">
-            <div class="mx-auto mb-6 w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-3xl shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-            </div>
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
-                Panduan Perizinan Santri
-            </h1>
-            <p class="mt-4 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
-                Prosedur resmi untuk pengajuan izin di Asrama 1 Abu Bakar Ash-Shiddiq, Madrasah Mu'allimin Muhammadiyah Yogyakarta.
-            </p>
-            <div class="mt-8">
-                <a href="#main-content" id="scroll-to-procedures" class="btn bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-blue-700">
-                    Lihat Prosedur
-                </a>
-            </div>
-        </header>
-
-        <main id="main-content">
-            <!-- Ketentuan Umum -->
-            <section class="mb-16 animate-on-scroll" aria-labelledby="ketentuan-umum-heading">
-                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <h2 id="ketentuan-umum-heading" class="text-xl sm:text-2xl font-bold mb-6 text-slate-800">📜 Ketentuan Umum</h2>
-                    <ul class="space-y-4 text-slate-700">
-                        <li class="flex items-start gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>Prosedur ini adalah <strong>acuan resmi</strong> untuk mendukung ketertiban dan kelancaran kegiatan di madrasah.</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>Santri hanya diperkenankan meninggalkan asrama setelah <strong>mendapatkan izin resmi</strong> dari pihak yang berwenang.</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>Pelanggaran terhadap aturan, seperti keluar tanpa izin atau melebihi batas waktu, akan <strong>dikenakan pembinaan</strong> sesuai peraturan yang berlaku.</span>
-                        </li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- Prosedur -->
-            <section aria-labelledby="prosedur-izin-heading">
-                <h2 id="prosedur-izin-heading" class="text-xl sm:text-2xl font-bold text-center mb-8 animate-on-scroll text-slate-800">Prosedur Pengajuan Izin</h2>
-                <div class="space-y-4" id="accordion-container">
-
-                    <!-- Akordeon 1: Izin Keluar & Kembali di Hari yang Sama -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 animate-on-scroll">
-                        <button class="accordion-button w-full text-left p-5 sm:p-6 flex justify-between items-center" aria-expanded="false" aria-controls="accordion-content-1">
-                            <span class="font-bold text-base sm:text-lg text-slate-800">☀️ Izin Keluar & Kembali Hari yang Sama</span>
-                            <span class="icon h-6 w-6 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                            </span>
-                        </button>
-                        <div class="accordion-content px-5 sm:px-6" id="accordion-content-1" role="region" aria-labelledby="accordion-btn-1">
-                            <div class="accordion-content-inner border-t border-slate-200 pt-6">
-                                <p class="mb-4 text-slate-600">Diajukan kepada <strong>Musyrif Kelas</strong>. Silakan gunakan formulir online untuk pengajuan yang lebih mudah.</p>
-                                <button class="btn open-form-btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-recipient="musyrif">📝 Buka Formulir Izin Online</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Akordeon 2: Izin Terlambat Pasca Perpulangan -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 animate-on-scroll">
-                        <button class="accordion-button w-full text-left p-5 sm:p-6 flex justify-between items-center" aria-expanded="false" aria-controls="accordion-content-2">
-                            <span class="font-bold text-base sm:text-lg text-slate-800">⏰ Izin Terlambat Pasca Perpulangan</span>
-                            <span class="icon h-6 w-6 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                            </span>
-                        </button>
-                        <div class="accordion-content px-5 sm:px-6" id="accordion-content-2" role="region" aria-labelledby="accordion-btn-2">
-                            <div class="accordion-content-inner border-t border-slate-200 pt-6">
-                                <p class="mb-4 text-slate-600">Wali santri <strong>wajib mengisi surat permohonan</strong> dan mengirimkannya ke Koordinator Musyrif.</p>
-                                <div class="flex flex-wrap gap-4">
-                                   <a href="https://docs.google.com/document/d/1pDJLZe5SrC2-Djql9Sw_pU-z3Nnpfx5KgNwqaMkIKNw/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm">📄 Unduh Format</a>
-                                   <a href="https://wa.me/6285339213109" target="_blank" rel="noopener noreferrer" class="btn bg-green-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Kirim ke Koordinator</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Akordeon 3: Izin Menginap -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 animate-on-scroll">
-                        <button class="accordion-button w-full text-left p-5 sm:p-6 flex justify-between items-center" aria-expanded="false" aria-controls="accordion-content-3">
-                            <span class="font-bold text-base sm:text-lg text-slate-800">🌙 Izin Menginap (1-3 Hari)</span>
-                            <span class="icon h-6 w-6 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                            </span>
-                        </button>
-                        <div class="accordion-content px-5 sm:px-6" id="accordion-content-3" role="region" aria-labelledby="accordion-btn-3">
-                            <div class="accordion-content-inner border-t border-slate-200 pt-6 space-y-8">
-                                <div class="step">
-                                    <h4 class="font-semibold text-green-700 mb-3">A. Izin Menginap 1 Malam</h4>
-                                    <p class="mb-4 text-slate-600">Diajukan kepada <strong>Pamong Asrama</strong>. Silakan gunakan formulir online untuk pengajuan yang lebih mudah.</p>
-                                    <button class="btn open-form-btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-recipient="pamong">📝 Buka Formulir Izin Online</button>
-                                </div>
-                                <div class="step">
-                                    <h4 class="font-semibold text-green-700 mb-3">B. Izin Menginap 2-3 Hari</h4>
-                                    <p class="mb-4 text-slate-600">Wali santri <strong>wajib mengisi surat permohonan</strong> dan mengirimkannya ke Pamong Asrama.</p>
-                                    <div class="flex flex-wrap gap-4">
-                                        <a href="https://docs.google.com/document/d/1oQtCWzwcrBeHEeM6h3CKhEYX3dFNr5ZzzAGb3zoQFMc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm">📄 Unduh Format</a>
-                                        <a href="https://wa.me/6282145575016" target="_blank" rel="noopener noreferrer" class="btn bg-green-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Kirim ke Pamong</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Akordeon 4: Izin Khusus -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 animate-on-scroll">
-                        <button class="accordion-button w-full text-left p-5 sm:p-6 flex justify-between items-center" aria-expanded="false" aria-controls="accordion-content-4">
-                            <span class="font-bold text-base sm:text-lg text-slate-800">✈️ Izin Khusus (> 3 Hari / Cuti Sakit)</span>
-                            <span class="icon h-6 w-6 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                            </span>
-                        </button>
-                        <div class="accordion-content px-5 sm:px-6" id="accordion-content-4" role="region" aria-labelledby="accordion-btn-4">
-                            <div class="accordion-content-inner border-t border-slate-200 pt-6 space-y-8">
-                                <div class="step">
-                                    <h4 class="font-semibold text-red-700 mb-3">Langkah 1: Siapkan Surat Permohonan</h4>
-                                    <p class="mb-4 text-slate-600">Wali santri membuat <strong>surat permohonan resmi</strong> yang ditujukan kepada <strong>Direktur Madrasah</strong>.</p>
-                                    <a href="https://docs.google.com/document/d/1dbbqi0mpVuBX3VPmcHOoKsvx22uDy6Oo92PswLTYFDo/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm inline-block">📄 Unduh Format Surat</a>
-                                </div>
-                                <div class="step">
-                                    <h4 class="font-semibold text-red-700 mb-3">Langkah 2: Kirim Surat</h4>
-                                    <p class="mb-4 text-slate-600">Surat dapat dikirimkan melalui <strong>Email</strong> atau diserahkan dalam bentuk <strong>Fisik (Hard Copy)</strong>.</p>
-                                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4">
-                                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                                            <span class="text-sm font-medium text-slate-700"><strong>Email:</strong> <span id="email-address">humas@muallimin.sch.id</span></span>
-                                            <button onclick="copyEmail(this)" data-copy-target="email-address" aria-label="Salin alamat email" class="p-1.5 rounded-md hover:bg-slate-200 transition-colors self-start sm:self-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard text-slate-500" viewBox="0 0 16 16" role="img"><title>Salin</title><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                                            </button>
-                                        </div>
-                                        <hr class="border-slate-200/80">
-                                        <div>
-                                            <p class="font-semibold text-slate-800"><strong>Alamat Fisik:</strong></p>
-                                            <p class="text-slate-600 text-sm mt-1">Madrasah Mu'allimin Muhammadiyah Yogyakarta<br>Jl. Letjen S.Parman No.68, Wirobrajan, Kota Yogyakarta, DIY 55252.</p>
-                                            <a href="https://maps.app.goo.gl/PKobJLu6FH3eb3H36" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
-                                                Lihat di Google Maps
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-        </main>
-
-        <footer class="text-center mt-16 md:mt-20 pt-8 md:pt-10 border-t border-slate-200/80">
-            <p class="text-slate-500 text-sm">&copy; 2025 Didesain oleh fadiahaswat</p>
-        </footer>
+    <!-- Mobile Floating Action Buttons (FAB - Compact) -->
+    <div class="fab-container md:hidden">
+        <button class="open-form-btn fab-btn bg-blue-600 text-white shadow-lg" data-recipient="musyrif" title="Ajukan Izin Baru">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        </button>
+        <button id="fab-history-btn" class="fab-btn bg-slate-900 text-white shadow-lg border border-slate-700" title="Cek Status Izin">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </button>
     </div>
 
+    <!-- ============================================ -->
+    <!-- PAGE 1: BERANDA / HOME PAGE VIEW -->
+    <!-- ============================================ -->
+    <div id="page-home" class="page-view">
+        <div class="container mx-auto max-w-4xl px-3 py-3 space-y-4">
+            <main id="main-content" class="space-y-4">
+                <!-- Hero Banner Section (Ultra Compact) -->
+                <section class="animate-on-scroll">
+                    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-4 sm:p-5 shadow-md border border-slate-800">
+                        <div class="relative z-10 space-y-2 max-w-2xl">
+                            <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-[10px] font-semibold">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
+                                <span>Perizinan Santri Kampus Sedayu</span>
+                            </div>
+
+                            <div class="space-y-1">
+                                <h1 class="text-base sm:text-xl font-extrabold tracking-tight text-white leading-tight">
+                                    Sistem Perizinan Keluar & Pulang Santri Asrama
+                                </h1>
+                                <p class="text-slate-300 text-xs leading-relaxed font-normal">
+                                    Pelayanan mandiri transparan & sesuai SOP resmi Mu'allimin Yogyakarta.
+                                </p>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-2 pt-1">
+                                <button class="open-form-btn btn btn-compact bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-1 shadow-xs" data-recipient="musyrif">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Ajukan Perizinan Baru</span>
+                                </button>
+                                <button id="hero-open-history-btn" onclick="window.showPage('page-history')" class="btn btn-compact bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    <span>Cek Status & Riwayat</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Ketentuan Umum -->
+                <section class="animate-on-scroll">
+                    <div class="bg-white p-3.5 rounded-xl shadow-2xs border border-slate-200 space-y-2">
+                        <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Ketentuan Umum Perizinan</span>
+                        </h2>
+                        <ul class="space-y-1.5 text-slate-600 text-[11px]">
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-600 font-bold">•</span>
+                                <span>Prosedur ini adalah <strong>acuan resmi</strong> untuk mendukung ketertiban & kelancaran kegiatan asrama.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-600 font-bold">•</span>
+                                <span>Santri hanya diperkenankan keluar/pulang setelah <strong>mendapatkan izin resmi</strong> dari pihak berwenang.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-600 font-bold">•</span>
+                                <span>Keluar tanpa izin atau terlambat akan <strong>dikenakan pembinaan</strong> sesuai SOP.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Tabel Kewenangan SOP -->
+                <section class="animate-on-scroll">
+                    <div class="bg-white p-3.5 rounded-xl shadow-2xs border border-slate-200 space-y-2.5">
+                        <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                            <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                <span>Ringkasan SOP Perizinan & Kewenangan</span>
+                            </h2>
+                            <a href="SOP_Perizinan_Keluar_dan_Pulang_Asrama.pdf" target="_blank" class="btn btn-compact bg-slate-100 text-slate-700 font-semibold text-[10px] border border-slate-200">
+                                Dokumen SOP (PDF)
+                            </a>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-[11px] text-slate-700 border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-900 border-b border-slate-200">
+                                        <th class="px-2 py-1 font-bold">Jenis Perizinan SOP</th>
+                                        <th class="px-2 py-1 font-bold text-center">Musyrif</th>
+                                        <th class="px-2 py-1 font-bold text-center">Pamong</th>
+                                        <th class="px-2 py-1 font-bold text-center">Wadir IV</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr class="bg-amber-50/40">
+                                        <td class="px-2 py-1 font-semibold text-amber-900">Sabtu Sore (15.30-17.00) & Ahad Pagi (06.30-11.00)</td>
+                                        <td colspan="3" class="px-2 py-1 text-center text-amber-800 font-bold text-[10px]">
+                                            TANPA PERMOHONAN (Otomatis Pekanan)
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-2 py-1 font-medium">Izin Keluar Biasa (Urgent - Kembali Hari Sama)</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-2 py-1 font-medium">Pemeriksaan Kesehatan (Kontrol/RS/Klinik)</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-2 py-1 font-medium">Izin Pulang / Menginap (Bermalam)</td>
+                                        <td class="px-2 py-1 text-center text-rose-500 font-bold">✕</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-2 py-1 font-medium">Izin Pulang Karena Sakit</td>
+                                        <td class="px-2 py-1 text-center text-slate-400 text-[10px]">Poskestren</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                        <td class="px-2 py-1 text-center text-emerald-600 font-bold">✓</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Prosedur (Micro Accordions) -->
+                <section>
+                    <h2 class="text-xs font-bold text-center mb-2 text-slate-900">Prosedur Pengajuan Perizinan</h2>
+                    <div class="space-y-1.5" id="accordion-container">
+                        <div class="bg-white rounded-lg shadow-2xs border border-slate-200">
+                            <button id="accordion-btn-1" class="accordion-button w-full text-left p-3 flex justify-between items-center text-xs font-bold text-slate-900" aria-expanded="false">
+                                <span>Izin Keluar & Kembali Hari yang Sama</span>
+                                <span class="text-slate-400 text-xs">▼</span>
+                            </button>
+                            <div class="accordion-content px-3" id="accordion-content-1">
+                                <div class="accordion-content-inner border-t border-slate-100 pt-2 pb-2 space-y-1.5 text-xs text-slate-600">
+                                    <div class="p-2 bg-amber-50 rounded border border-amber-200 text-[11px] text-amber-900">
+                                        <strong>SOP Pekanan:</strong> Sabtu Sore (15.30-17.00) & Ahad Pagi (06.30-11.00) <u>bebas/tanpa permohonan</u>.
+                                    </div>
+                                    <p>Izin keluar khusus di luar jadwal rutin diajukan ke <strong>Musyrif Kelas</strong> via form online.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-2xs border border-slate-200">
+                            <button id="accordion-btn-2" class="accordion-button w-full text-left p-3 flex justify-between items-center text-xs font-bold text-slate-900" aria-expanded="false">
+                                <span>Izin Terlambat Pasca Perpulangan</span>
+                                <span class="text-slate-400 text-xs">▼</span>
+                            </button>
+                            <div class="accordion-content px-3" id="accordion-content-2">
+                                <div class="accordion-content-inner border-t border-slate-100 pt-2 pb-2 space-y-1 text-xs text-slate-600">
+                                    <p>Wali santri wajib membuat surat permohonan ke Koordinator Musyrif.</p>
+                                    <a href="https://docs.google.com/document/d/1pDJLZe5SrC2-Djql9Sw_pU-z3Nnpfx5KgNwqaMkIKNw/edit?usp=sharing" target="_blank" class="btn btn-compact bg-slate-900 text-white font-semibold text-[10px] inline-block mt-1">Unduh Format Surat</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-2xs border border-slate-200">
+                            <button id="accordion-btn-3" class="accordion-button w-full text-left p-3 flex justify-between items-center text-xs font-bold text-slate-900" aria-expanded="false">
+                                <span>Izin Menginap (1-3 Hari)</span>
+                                <span class="text-slate-400 text-xs">▼</span>
+                            </button>
+                            <div class="accordion-content px-3" id="accordion-content-3">
+                                <div class="accordion-content-inner border-t border-slate-100 pt-2 pb-2 space-y-1.5 text-xs text-slate-600">
+                                    <p>• <strong>1 Malam:</strong> Diajukan ke Pamong Asrama via form online.</p>
+                                    <p>• <strong>2-3 Hari:</strong> Mengunggah format surat permohonan resmi.</p>
+                                    <a href="https://docs.google.com/document/d/1oQtCWzwcrBeHEeM6h3CKhEYX3dFNr5ZzzAGb3zoQFMc/edit?usp=sharing" target="_blank" class="btn btn-compact bg-slate-900 text-white font-semibold text-[10px] inline-block">Unduh Format Surat</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-2xs border border-slate-200">
+                            <button id="accordion-btn-4" class="accordion-button w-full text-left p-3 flex justify-between items-center text-xs font-bold text-slate-900" aria-expanded="false">
+                                <span>Izin Khusus (> 3 Hari / Cuti Sakit)</span>
+                                <span class="text-slate-400 text-xs">▼</span>
+                            </button>
+                            <div class="accordion-content px-3" id="accordion-content-4">
+                                <div class="accordion-content-inner border-t border-slate-100 pt-2 pb-2 space-y-1.5 text-xs text-slate-600">
+                                    <p>Surat permohonan resmi ditujukan kepada <strong>Direktur Madrasah</strong>.</p>
+                                    <a href="https://docs.google.com/document/d/1dbbqi0mpVuBX3VPmcHOoKsvx22uDy6Oo92PswLTYFDo/edit?usp=sharing" target="_blank" class="btn btn-compact bg-blue-600 text-white font-semibold text-[10px] inline-block">Unduh Format Surat</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer class="text-center py-4 border-t border-slate-200/80">
+                <p class="text-slate-400 text-[11px] font-medium">&copy; 2026 Madrasah Mu'allimin Muhammadiyah Yogyakarta.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGE 2: HALAMAN PENGAJUAN IZIN (FORM VIEW - ULTRA COMPACT) -->
+    <!-- ============================================ -->
+    <div id="page-form" class="page-view hidden py-3">
+        <div class="container mx-auto max-w-lg px-3">
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+                <!-- Header View Form -->
+                <div class="px-3.5 py-2.5 border-b border-slate-100 bg-white text-slate-900 flex justify-between items-center gap-2">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <div class="w-6 h-6 rounded bg-blue-50 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <h2 class="text-xs font-bold truncate">Formulir Perizinan Santri</h2>
+                    </div>
+                    <button onclick="window.showPage('page-home')" class="btn btn-compact bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold flex items-center gap-1">
+                        ← Beranda
+                    </button>
+                </div>
+
+                <!-- Form Content Body (Ultra Compact) -->
+                <form id="izin-form" class="p-3 space-y-2.5" novalidate>
+                    <input type="hidden" id="recipient-type" value="">
+
+                    <!-- 1. SMART STUDENT SEARCH -->
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label for="global-santri-search" class="block text-[11px] font-bold text-slate-800">Pilih Nama Santri</label>
+                            <span id="selected-students-counter" class="text-[9px] font-bold bg-blue-100 text-blue-700 px-1 py-0.2 rounded border border-blue-200">
+                                0 Santri Dipilih
+                            </span>
+                        </div>
+
+                        <div class="relative">
+                            <input type="text" id="global-santri-search" autocomplete="off"
+                                class="form-input w-full px-2.5 py-1 border border-slate-300 rounded text-xs bg-white text-slate-800"
+                                placeholder="Cari nama santri...">
+                            <div id="global-santri-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded shadow-md z-50 max-h-48 overflow-y-auto hidden divide-y divide-slate-100 text-xs"></div>
+                        </div>
+
+                        <div id="selected-students-chips" class="flex flex-wrap gap-1 hidden"></div>
+
+                        <div class="grid grid-cols-2 gap-1.5 text-xs pt-1 border-t border-slate-200/60">
+                            <div>
+                                <span class="text-[9px] text-slate-500 font-semibold block">Kelas:</span>
+                                <select id="kelas-santri" class="form-input w-full p-1 border border-slate-300 rounded bg-white text-xs">
+                                    <option value="" disabled selected>Pilih Kelas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-500 font-semibold block">Santri Kelas:</span>
+                                <select id="nama-santri" class="form-input w-full p-1 border border-slate-300 rounded bg-white text-xs">
+                                    <option value="" disabled selected>Pilih Santri</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. JENIS IZIN & PEMOHON -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label for="jenis-izin" class="block text-[11px] font-bold text-slate-800 mb-0.5">Jenis Perizinan SOP</label>
+                            <select id="jenis-izin" required class="form-input w-full p-1 border border-slate-300 rounded bg-white text-xs font-semibold">
+                                <option value="keluar-biasa" selected>Izin Keluar Biasa (Hari Sama)</option>
+                                <option value="kesehatan">Pemeriksaan Kesehatan (RS/Klinik)</option>
+                                <option value="menginap">Izin Pulang / Menginap</option>
+                                <option value="sakit">Izin Pulang Sakit (Poskestren)</option>
+                            </select>
+                        </div>
+                        <div id="role-pemohon-container" class="hidden">
+                            <input type="hidden" id="role-pemohon" value="orangtua">
+                        </div>
+                    </div>
+
+                    <div id="approval-notice-badge" class="px-2.5 py-1 rounded text-[11px] border bg-amber-50 text-amber-900 border-amber-200 flex items-center justify-between">
+                        <span id="approval-notice-text">Status: <strong>⏳ PENDING</strong> - Menunggu ACC Musyrif</span>
+                    </div>
+
+                    <!-- 3. KEPERLUAN CEPAT & FIELD -->
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-800">Keperluan Cepat:</label>
+
+                        <div class="flex flex-wrap gap-1 quick-chip-wrapper">
+                            <button type="button" class="quick-chip-reason btn px-2 py-0.5 bg-slate-100 hover:bg-blue-50 text-slate-700 border border-slate-200 rounded text-[10px]" data-jenis="keluar-biasa" data-keperluan="Izin keluar khusus di luar jadwal pekanan" data-tujuan="Area Sekitar Sedayu / Yogyakarta">Keluar Khusus</button>
+                            <button type="button" class="quick-chip-reason btn px-2 py-0.5 bg-slate-100 hover:bg-blue-50 text-slate-700 border border-slate-200 rounded text-[10px]" data-jenis="kesehatan" data-keperluan="Pemeriksaan kesehatan / kontrol medis ke RS" data-tujuan="Klinik / Rumah Sakit">Kontrol Dokter/RS</button>
+                            <button type="button" class="quick-chip-reason btn px-2 py-0.5 bg-slate-100 hover:bg-blue-50 text-slate-700 border border-slate-200 rounded text-[10px]" data-jenis="menginap" data-keperluan="Acara keluarga penting / urgent" data-tujuan="Rumah Orang Tua / Wali">Acara Keluarga</button>
+                            <button type="button" class="quick-chip-reason btn px-2 py-0.5 bg-slate-100 hover:bg-blue-50 text-slate-700 border border-slate-200 rounded text-[10px]" data-jenis="keluar-biasa" data-keperluan="Membeli kebutuhan santri" data-tujuan="Toko / Minimarket">Kebutuhan</button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+                            <div>
+                                <label for="keperluan" class="block text-[10px] font-semibold text-slate-700">Detail Keperluan</label>
+                                <input type="text" id="keperluan" required maxlength="200" class="form-input w-full p-1 border border-slate-300 rounded text-xs bg-white" placeholder="Beli obat / Acara keluarga">
+                            </div>
+                            <div>
+                                <label for="tujuan" class="block text-[10px] font-semibold text-slate-700">Tempat Tujuan</label>
+                                <input type="text" id="tujuan" required maxlength="100" class="form-input w-full p-1 border border-slate-300 rounded text-xs bg-white" placeholder="RS PKU / Rumah">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. DATA WALI & PENJEMPUT -->
+                    <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
+                        <div class="flex items-center justify-between text-[11px]">
+                            <h4 class="font-bold text-slate-800">Wali & Penjemput</h4>
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-[10px] text-blue-600">
+                                <input type="checkbox" id="checkbox-penjemput-beda" class="rounded border-slate-300 text-blue-600">
+                                <span>Penjemput Berbeda</span>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-1.5 text-xs">
+                            <div>
+                                <label for="nama-wali" class="block text-[9px] font-medium text-slate-700">Nama Wali <span class="text-rose-500">*</span></label>
+                                <input type="text" id="nama-wali" required maxlength="100" class="form-input w-full p-1 border border-slate-300 rounded text-xs bg-white" placeholder="Nama Wali">
+                            </div>
+                            <div>
+                                <label for="alamat-wali" class="block text-[9px] font-medium text-slate-700">Alamat Wali <span class="text-rose-500">*</span></label>
+                                <input type="text" id="alamat-wali" required maxlength="200" class="form-input w-full p-1 border border-slate-300 rounded text-xs bg-white" placeholder="Alamat Wali">
+                            </div>
+                        </div>
+
+                        <div id="penjemput-detail-fields" class="hidden grid grid-cols-2 gap-1.5 text-xs pt-1 border-t border-slate-200/60">
+                            <div>
+                                <label for="nama-penjemput" class="block text-[9px] font-medium text-slate-700">Penjemput</label>
+                                <input type="text" id="nama-penjemput" class="form-input w-full p-1 border border-slate-300 rounded text-xs bg-white" placeholder="Nama Penjemput">
+                            </div>
+                            <div>
+                                <label for="hubungan-penjemput" class="block text-[9px] font-medium text-slate-700">Hubungan</label>
+                                <select id="hubungan-penjemput" class="form-input w-full p-1 border border-slate-300 rounded bg-white text-xs">
+                                    <option value="Orang Tua (Ayah/Ibu)" selected>Orang Tua</option>
+                                    <option value="Wali / Keluarga">Wali/Keluarga</option>
+                                    <option value="Saudara Kandung">Saudara</option>
+                                    <option value="Travel / Kendaraan Online">Travel/Online</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="rekomendasi-poskestren-wrapper" class="hidden p-2 bg-rose-50 rounded border border-rose-200 text-xs">
+                        <label for="rekomendasi-poskestren" class="block font-semibold text-rose-700 text-[10px]">Rekomendasi Dokter Poskestren</label>
+                        <input type="text" id="rekomendasi-poskestren" class="form-input w-full p-1 text-xs border border-rose-300 rounded bg-white" placeholder="Rekomendasi rawat di rumah">
+                    </div>
+
+                    <!-- 5. WAKTU KELUAR & KEMBALI -->
+                    <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
+                        <div class="grid grid-cols-2 gap-1.5 text-xs">
+                            <div>
+                                <label for="tanggal-izin" class="block text-[9px] font-semibold text-slate-700">Tgl Keluar</label>
+                                <input type="date" id="tanggal-izin" required class="form-input w-full p-1 border border-slate-300 rounded text-xs bg-white">
+                            </div>
+                            <div id="tanggal-kembali-wrapper" class="hidden">
+                                <label for="tanggal-kembali" class="block text-[9px] font-semibold text-slate-700">Tgl Kembali</label>
+                                <input type="date" id="tanggal-kembali" class="form-input w-full p-1 border border-slate-300 rounded text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-1.5 text-xs">
+                            <div>
+                                <label for="jam-keluar" class="block text-[9px] font-semibold text-slate-700">Jam Keluar</label>
+                                <select id="jam-keluar" required class="form-input w-full p-1 border border-slate-300 rounded bg-white text-xs">
+                                    <option value="" disabled selected>Jam Keluar</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="jam-kembali" class="block text-[9px] font-semibold text-slate-700">Jam Kembali</label>
+                                <select id="jam-kembali" required class="form-input w-full p-1 border border-slate-300 rounded bg-white text-xs">
+                                    <option value="" disabled selected>Jam Kembali</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="live-duration-display" class="hidden p-1 bg-blue-50 border border-blue-200 rounded text-[11px] text-blue-900 flex justify-between">
+                            <span>Durasi:</span>
+                            <span id="live-duration-text" class="font-bold text-blue-700"></span>
+                        </div>
+                    </div>
+
+                    <div id="form-error" class="text-rose-600 text-xs hidden font-medium bg-rose-50 p-1.5 rounded border border-rose-200"></div>
+                </form>
+
+                <!-- Action Footer (Ultra Compact) -->
+                <div class="p-2.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+                    <button type="button" onclick="window.showPage('page-home')" class="btn btn-compact bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold">
+                        Batal
+                    </button>
+                    <button type="submit" form="izin-form" id="submit-form-btn" class="btn btn-compact ml-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-1 shadow-2xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        <span>Terbitkan Surat Izin</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGE 3: HALAMAN LOGIN MUSYRIF VIEW -->
+    <!-- ============================================ -->
+    <div id="page-login" class="page-view hidden py-6">
+        <div class="container mx-auto max-w-xs px-3">
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200 p-4 space-y-3 text-center">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                        <span>Login Musyrif / Pamong</span>
+                    </h3>
+                    <button onclick="window.showPage('page-home')" class="btn btn-compact bg-slate-100 text-slate-700 text-[10px]">
+                        ← Beranda
+                    </button>
+                </div>
+
+                <div class="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-600 text-left space-y-1">
+                    <p>• <strong>Wali Santri</strong>: Bebas isi form & cek status tanpa login.</p>
+                    <p>• <strong>Musyrif/Pamong</strong>: Login Google untuk ACC perizinan.</p>
+                </div>
+
+                <div id="google-official-btn-container" class="pt-1 min-h-[40px] flex items-center justify-center"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGE 4: HALAMAN PASS DIGITAL VIEW -->
+    <!-- ============================================ -->
+    <div id="page-pass" class="page-view hidden py-4">
+        <div class="container mx-auto max-w-sm px-3">
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200 p-3.5 space-y-3 text-center">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Surat Izin Resmi</span>
+                    <button onclick="window.showPage('page-home')" class="btn btn-compact bg-slate-100 text-slate-700 text-[10px]">
+                        ← Beranda
+                    </button>
+                </div>
+
+                <!-- Card Surat Izin Digital -->
+                <div id="pass-card-content" class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-left space-y-2 text-xs relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[8px] font-bold tracking-widest text-slate-400 uppercase block">MADRASAH MU'ALLIMIN</span>
+                            <h3 class="text-sm font-extrabold text-slate-900 leading-tight">SURAT IZIN SEDAYU</h3>
+                            <span id="pass-id" class="text-[11px] font-mono font-bold text-blue-600">IZN-XXXXXX</span>
+                        </div>
+                        <div id="pass-status-badge" class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border">
+                            APPROVED
+                        </div>
+                    </div>
+
+                    <div class="border-t border-b border-slate-200/80 py-1.5 space-y-0.5 text-[11px] text-slate-700">
+                        <p><strong>Santri:</strong> <span id="pass-santri" class="font-bold text-slate-900"></span></p>
+                        <p><strong>Kelas:</strong> <span id="pass-kelas"></span></p>
+                        <p><strong>Jenis:</strong> <span id="pass-jenis"></span></p>
+                        <p><strong>Wali:</strong> <span id="pass-wali"></span></p>
+                        <p><strong>Keperluan:</strong> <span id="pass-keperluan"></span></p>
+                        <p><strong>Tujuan:</strong> <span id="pass-tujuan"></span></p>
+                        <p><strong>Penjemput:</strong> <span id="pass-penjemput"></span></p>
+                        <p><strong>Waktu Keluar:</strong> <span id="pass-waktu-keluar"></span></p>
+                        <p><strong>Waktu Kembali:</strong> <span id="pass-waktu-kembali"></span></p>
+                        <p><strong>Pemberi Izin:</strong> <span id="pass-pemberi"></span></p>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-white p-2 rounded border border-slate-200">
+                        <span class="text-[10px] font-semibold text-slate-800">Scan QR Verifikasi</span>
+                        <div id="pass-qrcode-container" class="w-10 h-10 bg-slate-100 rounded flex items-center justify-center overflow-hidden border border-slate-200"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1 pt-0.5">
+                    <button id="pass-share-wa-btn" class="btn btn-compact bg-emerald-600 text-white font-semibold text-[10px]">WhatsApp</button>
+                    <button onclick="window.print()" class="btn btn-compact bg-slate-800 text-white font-semibold text-[10px]">Cetak</button>
+                    <button id="view-in-history-btn" onclick="window.showPage('page-history')" class="btn btn-compact bg-blue-600 text-white font-semibold text-[10px]">Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGE 5: HALAMAN STATUS & RIWAYAT VIEW (SINGLE ROW TOOLBAR) -->
+    <!-- ============================================ -->
+    <div id="page-history" class="page-view hidden py-3">
+        <div class="container mx-auto max-w-4xl px-3 space-y-3">
+            <div class="bg-white p-3 sm:p-4 rounded-xl shadow-xs border border-slate-200 space-y-2.5">
+                <!-- Header (Single Tight Row) -->
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2 gap-2">
+                    <h2 class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        <span>Status & Riwayat Perizinan Santri</span>
+                    </h2>
+                    <button onclick="window.showPage('page-home')" class="btn btn-compact bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold flex items-center gap-1 flex-shrink-0">
+                        ← Beranda
+                    </button>
+                </div>
+
+                <!-- Single Line Compact Toolbar (Status + Date + Search) -->
+                <div class="flex items-center gap-1.5 flex-wrap text-xs">
+                    <!-- Status Filter Pills -->
+                    <div class="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px]">
+                        <button type="button" class="history-tab-btn px-2 py-0.5 rounded text-slate-600 hover:bg-slate-200" data-status="all">Semua</button>
+                        <button type="button" class="history-tab-btn px-2 py-0.5 rounded text-slate-600 hover:bg-slate-200" data-status="PENDING">Pending</button>
+                        <button type="button" class="history-tab-btn active px-2 py-0.5 rounded bg-blue-600 text-white font-bold" data-status="APPROVED">ACC</button>
+                        <button type="button" class="history-tab-btn px-2 py-0.5 rounded text-slate-600 hover:bg-slate-200" data-status="REJECTED">Ditolak</button>
+                    </div>
+                    
+                    <!-- Date Filter Pills -->
+                    <div class="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[10px]">
+                        <button type="button" id="filter-date-today-btn" class="history-date-btn active px-2 py-0.5 rounded bg-blue-600 text-white font-bold">Hari Ini</button>
+                        <button type="button" id="filter-date-all-btn" class="history-date-btn px-2 py-0.5 rounded text-slate-600">Semua Tgl</button>
+                    </div>
+
+                    <!-- Compact Search Input -->
+                    <div class="flex items-center gap-1 flex-1 min-w-[150px]">
+                        <input type="text" id="search-history-input" class="form-input w-full px-2 py-1 border border-slate-300 rounded text-xs bg-white" placeholder="Cari santri, kelas, ID...">
+                        <button id="refresh-history-btn" class="btn btn-compact bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] whitespace-nowrap">
+                            Cari
+                        </button>
+                    </div>
+                </div>
+
+                <div id="history-loading" class="text-center py-4 hidden text-slate-500">
+                    <svg class="animate-spin h-5 w-5 mx-auto text-blue-600 mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span class="text-[11px]">Memuat data...</span>
+                </div>
+
+                <!-- History Container -->
+                <div id="history-container" class="space-y-2 pt-1">
+                    <!-- Data riwayat dirender oleh JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            
-            // --- DATA ---
-            // Data santri dan kelasnya
-            const santriData = [
-                { name: "Adelio Daffa Syahrizha", class: "2A" }, { name: "Ahmad Ahsanur Rizqi", class: "2A" }, { name: "Arkana El Sabilly", class: "2A" },
-                { name: "Athaya Auza'I Mubarak", class: "2A" }, { name: "Dama Arza Evannova", class: "2A" }, { name: "Danar Nizam Daniswara", class: "2A" },
-                { name: "Devgan Jadid Sahlvatico", class: "2A" }, { name: "Fariq Imtiyas Aufaa Kamil", class: "2A" }, { name: "Firaas Izzulhaq", class: "2A" },
-                { name: "Gilang Omar F", class: "2A" }, { name: "Jaladri Arif Wirasena", class: "2A" }, { name: "Kemal Mubarak Siregar", class: "2A" },
-                { name: "Khairil Nizam", class: "2A" }, { name: "Mirza Nasyath Ahza Attaillah", class: "2A" }, { name: "Muhammad Farros Linggar Cahyono", class: "2A" },
-                { name: "Muhammad Fathir Alfalah", class: "2A" }, { name: "Narendra Wibawa", class: "2A" }, { name: "Naufal Zhafran Purnama", class: "2A" },
-                { name: "Ahmad Arkan Sya'Bani", class: "2A" }, { name: "Ahmad Darwis", class: "2A" }, { name: "Ahmad Ghozi El Muntazhor", class: "2A" },
-                { name: "Aldan 'Izzul Islam", class: "2A" }, { name: "Fawwaz Elfareza Zuhri", class: "2A" }, { name: "M. Fathan Alfarisi Harahap", class: "2A" },
-                { name: "Muhammad Ahsani Taqwim", class: "2A" }, { name: "Muhammad Ayyub Al Fatih", class: "2A" }, { name: "Muhammad Gibran Rafassya", class: "2A" },
-                { name: "Narendra Gerrardi Kusumah", class: "2A" }, { name: "Rijal Abdul A'Ziz", class: "2A" }, { name: "Rizki Chandra Dewantara", class: "2A" },
-                { name: "Alano Faaiq Alfeno", class: "2B" }, { name: "Arfandhika Fakhrul Islam", class: "2B" }, { name: "Aydin Rafif", class: "2B" },
-                { name: "Danish Alzahid Dinasti", class: "2B" }, { name: "Ghani Arif Witjaksono", class: "2B" }, { name: "Haidarrafid Satriaa Ardhani", class: "2B" },
-                { name: "Iqbal Zulfikar Al Hanif", class: "2B" }, { name: "Jangky Dausat", class: "2B" }, { name: "Kumara Banyu Argani", class: "2B" },
-                { name: "M. Dede Afkar", class: "2B" }, { name: "Mekha Ilham Lutfianto", class: "2B" }, { name: "Muhammad Aiman Naim", class: "2B" },
-                { name: "Muhammad Karel Ashiddiq", class: "2B" }, { name: "Naufal Fahmi Darsono", class: "2B" }, { name: "Nazhif Fahreza Zuhairy", class: "2B" },
-                { name: "Rais Abqari Ash Shidqi", class: "2B" }, { name: "William Ramadhan Al Ghazali", class: "2B" }, { name: "Zia El Ibrahim Aqeela Putra Wijaya", class: "2B" },
-                { name: "Ahmad Miqdad", class: "2B" }, { name: "Dzaky Salman Al Farisi", class: "2B" }, { name: "Muhammad Alvi Mumtaz Brillian Hafizh", class: "2B" },
-                { name: "Muhammad Mahdi Hafidz", class: "2B" }, { name: "Muhammad Naufal Rasyid Arafi", class: "2B" }, { name: "Nahsif Ilman Hazim Purwono", class: "2B" },
-                { name: "Nawwaf Bahy Rafif", class: "2B" }, { name: "Nizar Adhyatma Aryanda", class: "2B" }, { name: "Rafa Agitananda Az Zayyan", class: "2B" },
-                { name: "Rafa Faeyza Fa'Iz", class: "2B" }, { name: "Rizqi Satria Putra Surya", class: "2B" }, { name: "Umar Ubaidillah Tsaqif", class: "2B" },
-                { name: "Wildan Faiz Mahendra", class: "2B" }, { name: "Faiq Fauzil Adhim", class: "2C" }, { name: "Fairuz Azzam Mahfuzh", class: "2C" },
-                { name: "Muhammad Arkhan Attaqi", class: "2C" }, { name: "Muhammad Daffa Naufal Alaika", class: "2C" }, { name: "Muzakki Fairuzzaman", class: "2C" },
-                { name: "Neymar Tsaqif Hikmatyar", class: "2C" }, { name: "Rifqi Maliki", class: "2C" }, { name: "Yasykur Slamer'Abqariy", class: "2C" },
-                { name: "Zhafran Dhiaurrahman Hakim", class: "2C" }, { name: "Achmad Adi Darwis Elfaza", class: "2D" }, { name: "Galang Afkar Artyanto", class: "2D" },
-                { name: "Gilang Asytar Artyanto", class: "2D" }, { name: "Muhammad Alif Al-Fatih", class: "2D" }, { name: "Muhammad Faiz Ibnu Zakaria", class: "2D" },
-                { name: "Muhammad Mahdi Hanafi", class: "2D" }, { name: "Muhammad Muhdi Hafidz", class: "2D" }, { name: "Rizqi Ahmad Altaf Zafar", class: "2D" },
-                { name: "Dzaky Anthony Akbar", class: "2G" }, { name: "Muwafaqi Amru Ahmad", class: "2G" }, { name: "Abdul Ghani Irfan Rafif", class: "2H" },
-                { name: "Abid Fadhil Abiyah", class: "2H" }, { name: "Ahmad Dahlan Asy'Ari", class: "2H" }, { name: "Athallah Azmi Ghaisan Muhammad", class: "2H" },
-                { name: "Azmi Zulfadli Syafiq", class: "2H" }, { name: "Azri Labibul Khawarizmi", class: "2H" }, { name: "Dzar Al Ghifari", class: "2H" },
-                { name: "Fatihan Al Ghifari", class: "2H" }, { name: "Hisyam Nabil Pasha", class: "2H" }, { name: "Ibadillah Kaiazmi Mubarak", class: "2H" },
-                { name: "Kashvi Jabbar Azana", class: "2H" }, { name: "Khawarizmi Fakhrulhaq", class: "2H" }, { name: "Muh. Naufal Alif", class: "2H" },
-                { name: "Muhammad Aghna Ilman Rafa", class: "2H" }, { name: "Royyan Abdurrahman Ibtisam", class: "2H" }, { name: "Sakhi Arkan Elfariza", class: "2H" }
-            ];
-            
-            // Data kontak Musyrif per kelas
-            const musyrifData = {
-                '2A': { name: 'Ustadz Andi Aqillah Fadia Haswat', number: '6285339213109' },
-                '2B': { name: 'Ustadz Abdullah', number: '62881025916368' },
-                '2C': { name: 'Ustadz Muhammad Zhafir Setiaji', number: '6287717412804' },
-                '2D': { name: 'Ustadz Muhammad Zhafir Setiaji', number: '6287717412804' },
-                '2G': { name: 'Ustadz Muhammad Zhafir Setiaji', number: '6287717412804' },
-                '2H': { name: 'Ustadz Muhammad Zhafir Setiaji', number: '6287717412804' }
-            };
-            
-            // Data kontak Pamong Asrama
-            const pamongData = { name: 'Ustadz Muhammad Ahnaf Lubab', number: '6282145575016' };
-
-            // --- DOM Elements ---
-            const modal = document.getElementById('form-modal');
-            const modalBackdrop = document.getElementById('modal-backdrop');
-            const closeModalBtn = document.getElementById('close-modal-btn');
-            const openModalButtons = document.querySelectorAll('.open-form-btn');
-            const izinForm = document.getElementById('izin-form');
-            const santriDropdown = document.getElementById('nama-santri');
-            const kelasField = document.getElementById('kelas-santri');
-            const tanggalIzinField = document.getElementById('tanggal-izin');
-            const tanggalKembaliField = document.getElementById('tanggal-kembali');
-            const tanggalKembaliWrapper = document.getElementById('tanggal-kembali-wrapper');
-            const recipientTypeInput = document.getElementById('recipient-type');
-            const jamKeluarSelect = document.getElementById('jam-keluar');
-            const jamKembaliSelect = document.getElementById('jam-kembali');
-            const accordionContainer = document.getElementById('accordion-container');
-            
-            // --- FUNCTIONS ---
-
-            /**
-             * Mengisi dropdown nama santri dari data yang ada.
-             */
-            function populateSantriDropdown() {
-                santriData.sort((a, b) => a.name.localeCompare(b.name)); // Urutkan nama secara alfabetis
-                santriData.forEach(santri => {
-                    const option = document.createElement('option');
-                    option.value = `${santri.name}|${santri.class}`;
-                    option.textContent = santri.name;
-                    santriDropdown.appendChild(option);
-                });
-            }
-            
-            /**
-             * Mengisi dropdown waktu dengan interval 15 menit.
-             * @param {HTMLSelectElement} selectElement - Elemen select yang akan diisi.
-             * @param {number} startHour - Jam mulai.
-             * @param {number} endHour - Jam selesai.
-             */
-            function populateTimeDropdowns(selectElement, startHour, endHour) {
-                selectElement.innerHTML = '<option value="" disabled selected>Pilih</option>'; // Hapus opsi lama
-                for (let i = startHour; i <= endHour; i++) {
-                    for (let j = 0; j < 60; j += 15) {
-                        if (i === endHour && j > 0) continue;
-                        const hour = i.toString().padStart(2, '0');
-                        const minute = j.toString().padStart(2, '0');
-                        const time = `${hour}:${minute}`;
-                        const option = document.createElement('option');
-                        option.value = time;
-                        option.textContent = time;
-                        selectElement.appendChild(option);
-                    }
-                }
-            }
-
-            /**
-             * Membuka modal formulir dan mengaturnya berdasarkan tipe penerima.
-             * @param {string} recipientType - Tipe penerima ('musyrif' atau 'pamong').
-             */
-            function openModal(recipientType) {
-                recipientTypeInput.value = recipientType;
-                
-                // Atur form berdasarkan tipe izin
-                if (recipientType === 'musyrif') {
-                    populateTimeDropdowns(jamKeluarSelect, 6, 21);
-                    populateTimeDropdowns(jamKembaliSelect, 6, 21);
-                    tanggalKembaliWrapper.classList.add('hidden');
-                    tanggalKembaliField.removeAttribute('required');
-                } else { // pamong
-                    populateTimeDropdowns(jamKeluarSelect, 6, 21);
-                    populateTimeDropdowns(jamKembaliSelect, 6, 21);
-                    tanggalKembaliWrapper.classList.remove('hidden');
-                    tanggalKembaliField.setAttribute('required', 'true');
-                }
-
-                izinForm.reset();
-                kelasField.value = '';
-                tanggalKembaliField.value = '';
-                document.getElementById('form-error').classList.add('hidden');
-                
-                modal.classList.remove('hidden');
-                setTimeout(() => modal.classList.add('is-open'), 10);
-                document.body.style.overflow = 'hidden'; // Mencegah scroll di belakang modal
-            }
-
-            /**
-             * Menutup modal formulir.
-             */
-            function closeModal() {
-                modal.classList.remove('is-open');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = ''; // Mengembalikan scroll
-                }, 300);
-            }
-
-            /**
-             * Menangani pengiriman formulir izin.
-             * @param {Event} event - Event submit.
-             */
-            function handleFormSubmit(event) {
-                event.preventDefault();
-                if (!izinForm.checkValidity()) {
-                    izinForm.reportValidity();
-                    return;
-                }
-
-                const recipientType = recipientTypeInput.value;
-                const namaWali = document.getElementById('nama-wali').value.trim();
-                const alamatWali = document.getElementById('alamat-wali').value.trim();
-                const [namaSantri, kelas] = santriDropdown.value.split('|');
-                const keperluan = document.getElementById('keperluan').value.trim();
-                const tanggal = tanggalIzinField.value;
-                const jamKeluarValue = jamKeluarSelect.value;
-                const jamKembaliValue = jamKembaliSelect.value;
-                const tujuan = document.getElementById('tujuan').value.trim();
-                const formError = document.getElementById('form-error');
-
-                let targetRecipient, recipientTitle, waktuText;
-                const hariTanggalIzin = new Date(tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
-                if (recipientType === 'musyrif') {
-                    targetRecipient = musyrifData[kelas];
-                    if (!targetRecipient) {
-                        formError.textContent = 'Data Musyrif untuk kelas ini tidak ditemukan. Silakan hubungi admin.';
-                        formError.classList.remove('hidden');
-                        return;
-                    }
-                    recipientTitle = `Musyrif Kelas ${kelas}\nAsrama 1 Abu Bakar Ash - Shiddiq.`;
-                    waktuText = `*Hari, Tanggal* : ${hariTanggalIzin}\n*Waktu* : ${jamKeluarValue} - ${jamKembaliValue}`;
-                } else { // pamong
-                    targetRecipient = pamongData;
-                    recipientTitle = "Pamong Asrama 1 Abu Bakar Ash - Shiddiq.";
-                    waktuText = `*Waktu* : Mulai ${hariTanggalIzin} pukul ${jamKeluarValue},\nkembali pada ${tanggalKembaliField.value} pukul ${jamKembaliValue}.`;
-                }
-                
-                formError.classList.add('hidden');
-                
-                const tanggalSurat = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-                
-                const message = `
-*SURAT PERMOHONAN IZIN MENINGGALKAN ASRAMA*
-
-Yogyakarta, ${tanggalSurat}
-Kepada Yth.
-*${targetRecipient.name}*
-${recipientTitle}
-
-_Assalamu’alaikum warahmatullahi wabarakatuh,_
-
-Dengan hormat, saya selaku wali santri dari putra kami:
-
-*Nama Santri* : ${namaSantri}
-*Kelas* : ${kelas}
-*Nama Wali* : ${namaWali}
-*Alamat Wali* : ${alamatWali}
-
-Dengan ini kami mengajukan permohonan izin meninggalkan asrama bagi putra kami dengan rincian sebagai berikut:
-${waktuText}
-*Keperluan* : ${keperluan}
-*Tempat Tujuan* : ${tujuan}
-
-Kami memastikan bahwa putra kami akan dijemput dan dalam pengawasan kami selama meninggalkan asrama, serta akan kembali sesuai waktu yang telah ditentukan.
-
-Demikian surat ini kami sampaikan. Besar harapan kami agar Ustadz berkenan memberikan izin. Atas perhatian dan kebijaksanaan Ustadz, kami ucapkan terima kasih.
-
-_Wassalamu’alaikum warahmatullahi wabarakatuh._
-
-Hormat kami,
-
-*${namaWali}*
-                `.trim();
-                
-                const whatsappUrl = `https://wa.me/${targetRecipient.number}?text=${encodeURIComponent(message)}`;
-                
-                window.open(whatsappUrl, '_blank');
-                closeModal();
-            }
-
-            /**
-             * Menangani klik pada akordeon untuk membuka/menutup konten.
-             * @param {Event} event - Event klik.
-             */
-            function handleAccordionClick(event) {
-                const button = event.target.closest('.accordion-button');
-                if (button) {
-                    const isAlreadyActive = button.getAttribute('aria-expanded') === 'true';
-                    // Tutup semua akordeon
-                    accordionContainer.querySelectorAll('.accordion-button').forEach(btn => {
-                        btn.setAttribute('aria-expanded', 'false');
-                    });
-                    // Buka akordeon yang diklik jika sebelumnya tertutup
-                    if (!isAlreadyActive) {
-                        button.setAttribute('aria-expanded', 'true');
-                    }
-                }
-            }
-
-            // --- EVENT LISTENERS ---
-
-            // Inisialisasi dropdown saat halaman dimuat
-            populateSantriDropdown();
-
-            // Event listener untuk tombol buka modal
-            openModalButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const recipient = button.getAttribute('data-recipient');
-                    openModal(recipient);
-                });
-            });
-
-            // Event listener untuk tombol tutup modal dan latar belakangnya
-            closeModalBtn.addEventListener('click', closeModal);
-            modalBackdrop.addEventListener('click', closeModal);
-
-            // Event listener untuk pengiriman formulir
-            izinForm.addEventListener('submit', handleFormSubmit);
-
-            // Event listener untuk dropdown santri -> isi kelas otomatis
-            santriDropdown.addEventListener('change', function() {
-                kelasField.value = this.value ? this.value.split('|')[1] : '';
-            });
-
-            // Event listener untuk tanggal izin -> isi tanggal kembali otomatis untuk izin pamong
-            tanggalIzinField.addEventListener('input', function() {
-                const recipientType = recipientTypeInput.value;
-                if (recipientType === 'pamong' && this.value) {
-                    const tglIzin = new Date(this.value);
-                    tglIzin.setDate(tglIzin.getDate() + 1);
-                    tanggalKembaliField.value = tglIzin.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                }
-            });
-
-            // Event listener untuk akordeon
-            if (accordionContainer) {
-                accordionContainer.addEventListener('click', handleAccordionClick);
-            }
-
-            // --- ANIMATION OBSERVER ---
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry, index) => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.transitionDelay = `${index * 100}ms`;
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            document.querySelectorAll('.animate-on-scroll').forEach(el => {
-                observer.observe(el);
-            });
-        });
-
-        /**
-         * Menyalin teks ke clipboard.
-         * @param {HTMLButtonElement} button - Tombol yang diklik.
-         */
-        function copyEmail(button) {
-            const targetId = button.getAttribute('data-copy-target');
-            const emailSpan = document.getElementById(targetId);
-            const email = emailSpan.textContent;
-
-            // Buat elemen textarea sementara untuk menyalin
-            const textarea = document.createElement('textarea');
-            textarea.value = email;
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                // Beri feedback visual
-                const originalText = button.innerHTML;
-                button.innerHTML = '<span class="text-green-500">Tersalin!</span>';
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                }, 2000);
-            } catch (err) {
-                console.error('Gagal menyalin email: ', err);
-                // Beri feedback error jika perlu
-                const originalText = button.innerHTML;
-                button.innerHTML = '<span class="text-red-500">Gagal</span>';
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                }, 2000);
-            }
-            document.body.removeChild(textarea);
-        }
+        window.APP_CONFIG = {
+            GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwQnacuM2ZsgWYP20M9Gjwi--adZsNxzJk14IyH2l8iBuv_tKZCPPrYKdLeJhZhU7iz/exec',
+            GOOGLE_CLIENT_ID: '279330879292-5rc2mbk58k1k6rtm9pm4pq3jm4uiltb6.apps.googleusercontent.com',
+            REGISTERED_EMAILS: []
+        };
     </script>
+    <script src="js/data.js?v=20260813_v19"></script>
+    <script src="js/app.js?v=20260813_v19"></script>
 </body>
 </html>

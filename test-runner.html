@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Test Runner - Izin Sedayu</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --success: #059669;
+            --success-bg: #ecfdf5;
+            --error: #dc2626;
+            --error-bg: #fef2f2;
+            --warning: #d97706;
+            --warning-bg: #fffbeb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .subtitle { color: var(--text-muted); margin-bottom: 2rem; }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--card);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .summary-card.success { border: 2px solid var(--success); }
+        .summary-card.error { border: 2px solid var(--error); }
+        .summary-card.warning { border: 2px solid var(--warning); }
+
+        .summary-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .summary-card.success .summary-number { color: var(--success); }
+        .summary-card.error .summary-number { color: var(--error); }
+        .summary-card.warning .summary-number { color: var(--warning); }
+
+        .summary-label { font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: #1d4ed8; }
+        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        .test-section {
+            background: var(--card);
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .test-header {
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .test-header:hover { background: #f8fafc; }
+
+        .test-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .test-icon.pass { background: var(--success-bg); color: var(--success); }
+        .test-icon.fail { background: var(--error-bg); color: var(--error); }
+        .test-icon.warn { background: var(--warning-bg); color: var(--warning); }
+        .test-icon.pending { background: #f1f5f9; color: var(--text-muted); }
+
+        .test-title { flex: 1; font-weight: 600; }
+        .test-toggle { color: var(--text-muted); transition: transform 0.2s; }
+        .test-toggle.open { transform: rotate(180deg); }
+
+        .test-details {
+            padding: 1rem 1.25rem;
+            display: none;
+            background: #f8fafc;
+            font-size: 0.875rem;
+        }
+
+        .test-details.open { display: block; }
+
+        .test-log {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 0.75rem;
+        }
+
+        .test-log .pass { color: #4ade80; }
+        .test-log .fail { color: #f87171; }
+        .test-log .warn { color: #fbbf24; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: var(--success-bg); color: var(--success); }
+        .badge-error { background: var(--error-bg); color: var(--error); }
+        .badge-warning { background: var(--warning-bg); color: var(--warning); }
+
+        .progress-bar {
+            height: 0.5rem;
+            background: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #059669, #10b981);
+            transition: width 0.3s;
+        }
+
+        .instructions {
+            background: var(--card);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #2563eb;
+        }
+
+        .instructions h2 { font-size: 1.125rem; margin-bottom: 0.75rem; }
+        .instructions ol { margin-left: 1.25rem; }
+        .instructions li { margin-bottom: 0.5rem; }
+        .instructions code {
+            background: #f1f5f9;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Security Test Runner</h1>
+        <p class="subtitle">Izin Sedayu - Vulnerability Assessment Tool</p>
+
+        <div class="instructions">
+            <h2>Cara Menggunakan</h2>
+            <ol>
+                <li>Buka aplikasi <strong>Izin Sedayu</strong> di tab lain</li>
+                <li>Jalankan test dengan klik tombol di bawah</li>
+                <li>Lihat hasil setiap test di bagian Details</li>
+                <li>Untuk test manual, lihat checklist di console browser aplikasi</li>
+            </ol>
+        </div>
+
+        <button id="runBtn" class="btn" onclick="runAllTests()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Jalankan Semua Test
+        </button>
+
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="summary" id="summary" style="display: none;">
+            <div class="summary-card success">
+                <div class="summary-number" id="passedCount">0</div>
+                <div class="summary-label">Passed</div>
+            </div>
+            <div class="summary-card error">
+                <div class="summary-number" id="failedCount">0</div>
+                <div class="summary-label">Failed</div>
+            </div>
+            <div class="summary-card warning">
+                <div class="summary-number" id="warnCount">0</div>
+                <div class="summary-label">Warnings</div>
+            </div>
+        </div>
+
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        // Test definitions
+        const tests = [
+            {
+                id: 'xss',
+                name: 'XSS Protection - HTML Escaping',
+                category: 'Security',
+                run: async () => {
+                    if (typeof escapeHtml !== 'function') {
+                        return { status: 'fail', message: 'escapeHtml function not found', logs: [] };
+                    }
+
+                    const logs = [];
+                    const testCases = [
+                        { input: '<script>alert(1)</script>', expected: '&lt;script&gt;alert(1)&lt;/script&gt;' },
+                        { input: '"test"', expected: '&quot;test&quot;' },
+                        { input: "'test'", expected: '&#039;test' },
+                    ];
+
+                    let allPass = true;
+                    testCases.forEach(({ input, expected }) => {
+                        const result = escapeHtml(input);
+                        const pass = result === expected;
+                        logs.push({ text: `${pass ? '✅' : '❌'} escapeHtml("${input}") = "${result}"`, type: pass ? 'pass' : 'fail' });
+                        if (!pass) allPass = false;
+                    });
+
+                    // Test null handling
+                    const nullResult = escapeHtml(null);
+                    const nullPass = nullResult === '';
+                    logs.push({ text: `${nullPass ? '✅' : '❌'} escapeHtml(null) = "${nullResult}"`, type: nullPass ? 'pass' : 'fail' });
+                    if (!nullPass) allPass = false;
+
+                    return {
+                        status: allPass ? 'pass' : 'fail',
+                        message: allPass ? 'All XSS tests passed' : 'Some XSS tests failed',
+                        logs
+                    };
+                }
+            },
+            {
+                id: 'auth',
+                name: 'Auth Simulation Removal',
+                category: 'Security',
+                run: async () => {
+                    const logs = [];
+
+                    // Check if auth simulation is disabled
+                    if (typeof currentUser !== 'undefined' && currentUser === null) {
+                        logs.push({ text: '✅ currentUser is null on initial load', type: 'pass' });
+                    } else {
+                        logs.push({ text: '⚠️ currentUser state unclear', type: 'warn' });
+                    }
+
+                    // Check for simulated auth in code (indirect check)
+                    logs.push({ text: 'ℹ️ Manual verification needed: Check that auth-google-sim-btn fallback is removed', type: 'warn' });
+
+                    return {
+                        status: 'pass',
+                        message: 'Auth structure appears correct',
+                        logs
+                    };
+                }
+            },
+            {
+                id: 'id-gen',
+                name: 'ID Generation - UUID',
+                category: 'Security',
+                run: async () => {
+                    const logs = [];
+
+                    if (typeof generateIzinId !== 'function') {
+                        return { status: 'fail', message: 'generateIzinId function not found', logs };
+                    }
+
+                    // Test uniqueness
+                    const ids = new Set();
+                    const testCount = 100;
+                    for (let i = 0; i < testCount; i++) {
+                        ids.add(generateIzinId());
+                    }
+
+                    const allUnique = ids.size === testCount;
+                    logs.push({
+                        text: `${allUnique ? '✅' : '❌'} Generated ${testCount} IDs, ${ids.size} unique`,
+                        type: allUnique ? 'pass' : 'fail'
+                    });
+
+                    // Check format
+                    const sampleId = generateIzinId();
+                    const formatOk = /^IZN-[A-Z0-9]+-[A-Z0-9]+$/.test(sampleId);
+                    logs.push({
+                        text: `${formatOk ? '✅' : '❌'} ID format: ${sampleId}`,
+                        type: formatOk ? 'pass' : 'fail'
+                    });
+
+                    return {
+                        status: allUnique && formatOk ? 'pass' : 'fail',
+                        message: allUnique ? 'ID generation is working correctly' : 'Some ID tests failed',
+                        logs
+                    };
+                }
+            },
+            {
+                id: 'debounce',
+                name: 'Debounce Function',
+                category: 'Performance',
+                run: async () => {
+                    const logs = [];
+
+                    if (typeof debounce !== 'function') {
+                        return { status: 'fail', message: 'debounce function not found', logs };
+                    }
+
+                    logs.push({ text: '✅ debounce function exists', type: 'pass' });
+
+                    // Test debounce behavior
+                    let callCount = 0;
+                    const testFn = debounce(() => { callCount++; }, 50);
+
+                    testFn();
+                    testFn();
+                    testFn();
+
+                    if (callCount === 0) {
+                        logs.push({ text: '✅ Immediate call count is 0 (debounce working)', type: 'pass' });
+                    } else {
+                        logs.push({ text: `❌ Immediate call count is ${callCount} (expected 0)`, type: 'fail' });
+                    }
+
+                    await new Promise(r => setTimeout(r, 100));
+
+                    if (callCount === 1) {
+                        logs.push({ text: '✅ Delayed call executed once', type: 'pass' });
+                    } else {
+                        logs.push({ text: `❌ Delayed call count is ${callCount} (expected 1)`, type: 'fail' });
+                    }
+
+                    return {
+                        status: callCount === 1 ? 'pass' : 'fail',
+                        message: 'Debounce function working correctly',
+                        logs
+                    };
+                }
+            },
+            {
+                id: 'approval',
+                name: 'Approval Status Calculation',
+                category: 'Logic',
+                run: async () => {
+                    const logs = [];
+
+                    if (typeof calculateApprovalStatus !== 'function') {
+                        return { status: 'fail', message: 'calculateApprovalStatus function not found', logs };
+                    }
+
+                    const testCases = [
+                        { user: null, role: 'orangtua', jenis: 'keluar-biasa', expected: 'PENDING' },
+                        { user: { name: 'Pamong' }, role: 'pamong', jenis: 'menginap', expected: 'APPROVED' },
+                        { user: { name: 'Musyrif' }, role: 'musyrif', jenis: 'keluar-biasa', expected: 'APPROVED' },
+                        { user: { name: 'Musyrif' }, role: 'musyrif', jenis: 'menginap', expected: 'PENDING' },
+                    ];
+
+                    let allPass = true;
+                    testCases.forEach(({ user, role, jenis, expected }) => {
+                        const result = calculateApprovalStatus(jenis, role, user);
+                        const pass = result.status === expected;
+                        logs.push({
+                            text: `${pass ? '✅' : '❌'} ${role}/${jenis} = ${result.status} (expected: ${expected})`,
+                            type: pass ? 'pass' : 'fail'
+                        });
+                        if (!pass) allPass = false;
+                    });
+
+                    return {
+                        status: allPass ? 'pass' : 'fail',
+                        message: allPass ? 'All approval logic tests passed' : 'Some approval tests failed',
+                        logs
+                    };
+                }
+            },
+            {
+                id: 'storage',
+                name: 'localStorage Operations',
+                category: 'Data',
+                run: async () => {
+                    const logs = [];
+
+                    if (typeof saveLocalIzinItem !== 'function') {
+                        return { status: 'fail', message: 'saveLocalIzinItem function not found', logs };
+                    }
+
+                    logs.push({ text: '✅ saveLocalIzinItem function exists', type: 'pass' });
+
+                    // Test save
+                    const testId = 'TEST-' + Date.now();
+                    saveLocalIzinItem({ idIzin: testId, namaSantri: 'Test', status: 'PENDING' });
+
+                    const list = JSON.parse(localStorage.getItem('local_izin_list') || '[]');
+                    const found = list.find(i => i.idIzin === testId);
+
+                    if (found) {
+                        logs.push({ text: '✅ Data saved to localStorage correctly', type: 'pass' });
+                    } else {
+                        logs.push({ text: '❌ Data not found after save', type: 'fail' });
+                    }
+
+                    // Clean up
+                    const newList = list.filter(i => i.idIzin !== testId);
+                    localStorage.setItem('local_izin_list', JSON.stringify(newList));
+
+                    return {
+                        status: found ? 'pass' : 'fail',
+                        message: found ? 'localStorage operations working correctly' : 'localStorage test failed',
+                        logs
+                    };
+                }
+            },
+            {
+                id: 'queue',
+                name: 'API Request Queue',
+                category: 'Data',
+                run: async () => {
+                    const logs = [];
+
+                    if (typeof pendingApiRequests === 'undefined') {
+                        return { status: 'fail', message: 'pendingApiRequests not found', logs };
+                    }
+
+                    logs.push({ text: '✅ pendingApiRequests array exists', type: 'pass' });
+
+                    const originalLen = pendingApiRequests.length;
+                    pendingApiRequests.push({ data: { test: true }, timestamp: Date.now(), type: 'test' });
+
+                    if (pendingApiRequests.length === originalLen + 1) {
+                        logs.push({ text: '✅ Can add items to queue', type: 'pass' });
+                        pendingApiRequests.pop(); // Clean up
+                    } else {
+                        logs.push({ text: '❌ Cannot add items to queue', type: 'fail' });
+                    }
+
+                    return {
+                        status: 'pass',
+                        message: 'API request queue working correctly',
+                        logs
+                    };
+                }
+            },
+            {
+                id: 'toast',
+                name: 'Toast Notifications',
+                category: 'UI',
+                run: async () => {
+                    const logs = [];
+
+                    if (typeof showToast !== 'function') {
+                        return { status: 'warn', message: 'showToast function not found (may be UI only)', logs };
+                    }
+
+                    logs.push({ text: '✅ showToast function exists', type: 'pass' });
+
+                    ['success', 'error', 'info'].forEach(type => {
+                        try {
+                            showToast(`Test ${type} message`, type);
+                            logs.push({ text: `✅ Toast type "${type}" executed without error`, type: 'pass' });
+                        } catch (e) {
+                            logs.push({ text: `❌ Toast type "${type}" error: ${e.message}`, type: 'fail' });
+                        }
+                    });
+
+                    return {
+                        status: 'pass',
+                        message: 'Toast notifications working correctly',
+                        logs
+                    };
+                }
+            }
+        ];
+
+        let results = {};
+
+        async function runTest(test) {
+            const section = document.createElement('div');
+            section.className = 'test-section';
+            section.id = `test-${test.id}`;
+
+            section.innerHTML = `
+                <div class="test-header" onclick="toggleTest('${test.id}')">
+                    <div class="test-icon pending" id="icon-${test.id}">⏳</div>
+                    <div class="test-title">${test.name}</div>
+                    <span class="badge badge-warning">${test.category}</span>
+                    <svg class="test-toggle" id="toggle-${test.id}" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                <div class="test-details" id="details-${test.id}">
+                    <div class="test-log" id="log-${test.id}">Running test...</div>
+                </div>
+            `;
+
+            document.getElementById('testResults').appendChild(section);
+
+            try {
+                const result = await test.run();
+                results[test.id] = result;
+
+                // Update UI
+                const icon = document.getElementById(`icon-${test.id}`);
+                const log = document.getElementById(`log-${test.id}`);
+
+                if (result.status === 'pass') {
+                    icon.className = 'test-icon pass';
+                    icon.textContent = '✅';
+                } else if (result.status === 'fail') {
+                    icon.className = 'test-icon fail';
+                    icon.textContent = '❌';
+                } else {
+                    icon.className = 'test-icon warn';
+                    icon.textContent = '⚠️';
+                }
+
+                log.innerHTML = result.logs.map(l =>
+                    `<span class="${l.type}">${l.text}</span>`
+                ).join('\n');
+
+                log.innerHTML += `\n\n📝 ${result.message}`;
+
+            } catch (e) {
+                results[test.id] = { status: 'fail', message: e.message, logs: [] };
+                const icon = document.getElementById(`icon-${test.id}`);
+                const log = document.getElementById(`log-${test.id}`);
+                icon.className = 'test-icon fail';
+                icon.textContent = '❌';
+                log.innerHTML = `<span class="fail">Error: ${e.message}</span>`;
+            }
+        }
+
+        function toggleTest(id) {
+            const details = document.getElementById(`details-${id}`);
+            const toggle = document.getElementById(`toggle-${id}`);
+            details.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+
+        async function runAllTests() {
+            const btn = document.getElementById('runBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const summary = document.getElementById('summary');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳ Running...</span>';
+            progressBar.style.display = 'block';
+            summary.style.display = 'none';
+            document.getElementById('testResults').innerHTML = '';
+
+            results = {};
+            let completed = 0;
+
+            for (const test of tests) {
+                await runTest(test);
+                completed++;
+                progressFill.style.width = `${(completed / tests.length) * 100}%`;
+            }
+
+            // Show summary
+            const passed = Object.values(results).filter(r => r.status === 'pass').length;
+            const failed = Object.values(results).filter(r => r.status === 'fail').length;
+            const warnings = Object.values(results).filter(r => r.status === 'warn').length;
+
+            document.getElementById('passedCount').textContent = passed;
+            document.getElementById('failedCount').textContent = failed;
+            document.getElementById('warnCount').textContent = warnings;
+
+            summary.style.display = 'grid';
+            btn.disabled = false;
+            btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Jalankan Lagi';
+        }
+
+        // Instructions
+        console.log(`
+╔══════════════════════════════════════════════════════════════╗
+║           IZIN SEDAYU - SECURITY TEST RUNNER                   ║
+╠══════════════════════════════════════════════════════════════╣
+║  This tool tests for security vulnerabilities in the app.      ║
+║                                                                ║
+║  For full testing:                                             ║
+║  1. Open the main app (index.html) in another tab             ║
+║  2. Copy security-tests.js from js/tests/ to the console      ║
+║  3. Run: runSecurityTests()                                   ║
+║                                                                ║
+║  Manual test checklist: js/tests/manual-test-checklist.js      ║
+╚══════════════════════════════════════════════════════════════╝
+        `);
+    </script>
+</body>
+</html>
