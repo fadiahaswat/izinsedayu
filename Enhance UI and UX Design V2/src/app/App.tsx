@@ -1146,10 +1146,12 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
           }
         });
 
+        // GSI width must be px value (not %) — use container actual width capped at 400
+        const containerWidth = Math.min(btnContainer.offsetWidth || 360, 400);
         (window as any).google.accounts.id.renderButton(btnContainer, {
           theme: "outline",
           size: "large",
-          width: "100%",
+          width: containerWidth,
           text: "continue_with",
           shape: "pill"
         });
@@ -1194,7 +1196,7 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
             {/* Google Authentication Only */}
             <div className="space-y-3">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">Login Autentikasi Resmi Google</p>
-              <div id="google-signin-btn" className="w-full flex justify-center min-h-[44px]"></div>
+              <div id="google-signin-btn" className="w-full flex justify-center min-h-[44px]" style={{minWidth:"280px"}}></div>
             </div>
 
             <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-2xl text-xs text-blue-900 space-y-1">
