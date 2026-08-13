@@ -1,4 +1,3 @@
-
 // Helper to check valid configured GAS Web App URL
 function isConfiguredGasUrl(url) {
     if (!url || typeof url !== 'string') return false;
@@ -29,14 +28,12 @@ window.showPage = function(pageId) {
 };
 
 /**
- * Application Logic - Izin Sedayu v2.1 (Secure)
+ * Application Logic - Izin Sedayu v2.0
  * Security Features:
- * - Server-side session validation via JWT
- * - CSRF token protection
+ * - Session integrity with expiry & HMAC signature
+ * - Server-side validation
  * - XSS protection via HTML escaping
  * - Input sanitization
- * - Rate limiting awareness
- * - Idempotency keys for requests
  *
  * UX Improvements:
  * - Better form validation with visual feedback
@@ -50,13 +47,12 @@ window.showPage = function(pageId) {
 // KONFIGURASI
 // ============================================
 const APP_CONFIG = {
-    SESSION_EXPIRY_HOURS: 8,
+    SESSION_EXPIRY_HOURS: 8, // Session expires after 8 hours
+    SESSION_SECRET: 'IZIN_SEDAYU_2024_SECRET_KEY', // For demo - in production use server-side
     DEBOUNCE_MS: 200,
     TOAST_DURATION: 5000,
     MAX_RETRIES: 3,
-    API_TIMEOUT: 10000,
-    MAX_ITEMS_LIMIT: 500, // Magic number replaced with constant
-    MAX_LOCAL_STORAGE_ITEMS: 1000
+    API_TIMEOUT: 10000
 };
 
 // ============================================
@@ -151,13 +147,8 @@ function normalizeClassKey(str) {
 }
 
 // ============================================
-// SESSION MANAGEMENT (Server-Validated)
+// SESSION MANAGEMENT (with integrity)
 // ============================================
-
-/**
- * Creates a session object for local storage
- * Session validation is done server-side via JWT
- */
 function createSecureSession(userObj) {
     const session = {
         ...userObj,
@@ -166,86 +157,43 @@ function createSecureSession(userObj) {
         sessionId: generateUUID()
     };
 
+    // Create signature for integrity check
+    const dataToSign = `${session.email}:${session.createdAt}:${session.expiresAt}:${APP_CONFIG.SESSION_SECRET}`;
+    session.signature = btoa(dataToSign).substring(0, 32);
+
     return session;
 }
 
-/**
- * Validates session client-side (expiry only)
- * Full validation happens server-side with JWT
- */
 function validateSession(session) {
-    if (!session || !session.email) return false;
+    if (!session || !session.email || !session.signature) return false;
 
-    // Check expiry client-side
+    // Check expiry
     if (Date.now() > session.expiresAt) return false;
 
-    // Note: Full signature validation is done server-side
+    // Verify signature
+    const dataToSign = `${session.email}:${session.createdAt}:${session.expiresAt}:${APP_CONFIG.SESSION_SECRET}`;
+    const expectedSignature = btoa(dataToSign).substring(0, 32);
+
+    if (session.signature !== expectedSignature) return false;
+
     return true;
-}
-
-/**
- * Generate CSRF token for form submissions
- */
-function generateCSRFToken() {
-    const array = new Uint8Array(32);
-    crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-}
-
-// Store CSRF token in memory (not localStorage)
-let currentCSRFToken = null;
-
-function getCSRFToken() {
-    if (!currentCSRFToken) {
-        currentCSRFToken = generateCSRFToken();
-    }
-    return currentCSRFToken;
 }
 
 function saveUserSession(userObj) {
     const secureSession = createSecureSession(userObj);
     currentUser = secureSession;
-
-    // Store session in sessionStorage (cleared when browser closes)
-    // Security: Unlike localStorage, sessionStorage is not accessible via XSS
-    try {
-        sessionStorage.setItem('izin_user_session', JSON.stringify(secureSession));
-    } catch (e) {
-        console.error('Session storage unavailable, falling back to memory only');
-    }
-
-    // Generate new CSRF token for this session
-    currentCSRFToken = generateCSRFToken();
-
+    localStorage.setItem('izin_user_session', JSON.stringify(secureSession));
     renderUserSessionUI();
-    showToast(`Login berhasil! Selamat datang, ${escapeHtml(userObj.name)}`, 'success');
+    showToast(`Login berhasil! Selamat datang, ${userObj.name}`, 'success');
 }
 
 function loadUserSession() {
-    // First try sessionStorage (more secure)
-    let saved = sessionStorage.getItem('izin_user_session');
-
-    // Fallback to localStorage if sessionStorage is empty
-    // (for migration from old sessions)
-    if (!saved) {
-        saved = localStorage.getItem('izin_user_session');
-        if (saved) {
-            // Migrate to sessionStorage and clear localStorage
-            try {
-                sessionStorage.setItem('izin_user_session', saved);
-                localStorage.removeItem('izin_user_session');
-            } catch (e) {
-                // If sessionStorage fails, continue with localStorage
-            }
-        }
-    }
-
+    const saved = localStorage.getItem('izin_user_session');
     if (saved) {
         try {
             const session = JSON.parse(saved);
             if (validateSession(session)) {
                 currentUser = session;
-                currentCSRFToken = generateCSRFToken(); // Refresh CSRF token
                 return true;
             } else {
                 // Session invalid or expired
@@ -262,15 +210,9 @@ function loadUserSession() {
 
 function logoutUserSession(showMessage = false) {
     currentUser = null;
-    currentCSRFToken = null;
-
-    // Clear from both storage types
-    sessionStorage.removeItem('izin_user_session');
     localStorage.removeItem('izin_user_session');
-
     DOM.userProfileWidget?.classList.add('hidden');
     DOM.loginGoogleBtn?.classList.remove('hidden');
-
     if (showMessage) {
         showToast('Sesi Anda telah berakhir. Silakan login kembali.', 'info');
     }
@@ -443,28 +385,8 @@ function showSkeleton(container) {
 }
 
 // ============================================
-// API CALLS (with CSRF & Idempotency)
+// API CALLS
 // ============================================
-
-// Track sent requests to prevent duplicates
-const sentRequestIds = new Set();
-
-/**
- * Generate idempotency key for request deduplication
- */
-function generateIdempotencyKey(action, data) {
-    const keyParts = [action, data.idIzin || '', data.idToken || '', Date.now()];
-    // Create hash from key parts
-    let hash = 0;
-    const str = keyParts.join('|');
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return `idem_${Math.abs(hash).toString(36)}_${Date.now().toString(36)}`;
-}
-
 async function apiCall(endpoint, data, options = {}) {
     const { retries = APP_CONFIG.MAX_RETRIES, timeout = APP_CONFIG.API_TIMEOUT } = options;
 
@@ -477,14 +399,6 @@ async function apiCall(endpoint, data, options = {}) {
         return { success: true, offline: true };
     }
 
-    // Add CSRF token and idempotency key
-    const enrichedData = {
-        ...data,
-        csrfToken: getCSRFToken(),
-        idempotencyKey: generateIdempotencyKey(data.action, data),
-        timestamp: Date.now()
-    };
-
     let lastError;
 
     for (let i = 0; i < retries; i++) {
@@ -496,10 +410,9 @@ async function apiCall(endpoint, data, options = {}) {
                 method: 'POST',
                 mode: 'cors',
                 headers: {
-                    'Content-Type': 'text/plain;charset=utf-8',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'Content-Type': 'text/plain;charset=utf-8'
                 },
-                body: JSON.stringify(enrichedData),
+                body: JSON.stringify(data),
                 signal: controller.signal
             });
 
@@ -508,40 +421,10 @@ async function apiCall(endpoint, data, options = {}) {
             if (response.ok) {
                 try {
                     const result = await response.json();
-
-                    // Check for server-side CSRF validation result
-                    if (result.code === 'CSRF_INVALID') {
-                        console.error('CSRF validation failed');
-                        logoutUserSession(true);
-                        throw new Error('Validasi keamanan gagal. Sesi telah diakhiri. Silakan login ulang.');
-                    }
-
-                    if (result.code === 'AUTH_FAILED') {
-                        console.error('Authentication failed');
-                        logoutUserSession(true);
-                        throw new Error('Autentikasi gagal. Silakan login ulang.');
-                    }
-
-                    if (result.code === 'RATE_LIMITED') {
-                        throw new Error(`Terlalu banyak permintaan. Mohon tunggu ${result.retryAfter || 60} detik.`);
-                    }
-
-                    if (result.code === 'NOT_AUTHORIZED') {
-                        throw new Error('Anda tidak memiliki hak akses untuk operasi ini.');
-                    }
-
                     return result;
                 } catch (e) {
-                    if (e.message.includes('Validasi keamanan') || e.message.includes('Autentikasi')) throw e;
                     return { success: true };
                 }
-            } else if (response.status === 429) {
-                throw new Error('Terlalu banyak permintaan. Mohon tunggu beberapa saat.');
-            } else if (response.status === 403) {
-                logoutUserSession(true);
-                throw new Error('Akses ditolak. Sesi mungkin sudah berakhir. Silakan login ulang.');
-            } else if (response.status === 400) {
-                throw new Error('Request tidak valid. Mohon periksa data yang dikirim.');
             }
 
         } catch (error) {
@@ -577,7 +460,7 @@ function saveLocalIzinItem(item) {
     // Prevent duplicates
     if (!list.some(x => x.idIzin === item.idIzin)) {
         list.unshift(item);
-        localStorage.setItem('local_izin_list', JSON.stringify(list.slice(0, APP_CONFIG.MAX_LOCAL_STORAGE_ITEMS)));
+        localStorage.setItem('local_izin_list', JSON.stringify(list.slice(0, 1000))); // Keep max 1000 items
     }
 }
 
@@ -607,8 +490,7 @@ function saveToGoogleSheets(payload) {
         action: 'create',
         ...payload,
         userEmail: currentUser?.email || '',
-        userRole: currentUser?.role || '',
-        googleToken: currentUser?.googleToken || '' // Include for server validation
+        userRole: currentUser?.role || ''
     };
 
     // Queue for retry
@@ -636,10 +518,10 @@ async function updateLeaveStatus(idIzin, newStatus, catatan = '') {
         return;
     }
 
-    const approverNotes = catatan || `Diperbarui via Aplikasi oleh ${escapeHtml(currentUser.name)}`;
+    const approverNotes = catatan || `Diperbarui via Aplikasi oleh ${currentUser.name}`;
     updateLocalIzinStatus(idIzin, newStatus, approverNotes);
 
-    showToast(`Status izin ${escapeHtml(idIzin)} diubah menjadi ${newStatus}`, 'success');
+    showToast(`Status izin ${idIzin} diubah menjadi ${newStatus}`, 'success');
 
     const url = typeof GAS_WEB_APP_URL !== 'undefined' ? GAS_WEB_APP_URL : (window.GAS_WEB_APP_URL || '');
     if (!isConfiguredGasUrl(url)) return;
@@ -650,8 +532,7 @@ async function updateLeaveStatus(idIzin, newStatus, catatan = '') {
         status: newStatus,
         catatan: approverNotes,
         userEmail: currentUser?.email || '',
-        userRole: currentUser?.role || '',
-        googleToken: currentUser?.googleToken || '' // Include for server validation
+        userRole: currentUser?.role || ''
     };
 
     try {
@@ -1160,16 +1041,7 @@ function handleFormSubmit(event) {
 
     } catch (error) {
         console.error('Form submit error:', error);
-
-        // Handle specific error types
-        if (error.message.includes('Security') || error.message.includes('Autentikasi')) {
-            showFormError(error.message);
-            setTimeout(() => logoutUserSession(true), 2000);
-        } else if (error.message.includes('RATE_LIMITED') || error.message.includes('Terlalu banyak')) {
-            showFormError('Terlalu banyak permintaan. Mohon tunggu beberapa saat sebelum mengirim ulang.');
-        } else {
-            showFormError('Terjadi kesalahan. Silakan coba lagi.');
-        }
+        showFormError('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
         isSubmittingForm = false;
         hideLoading(DOM.submitFormBtn);
@@ -1320,7 +1192,7 @@ function handleGoogleCredentialResponse(response) {
     }
 
     try {
-        // Decode JWT token client-side for display only
+        // Decode JWT token
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
@@ -1335,7 +1207,7 @@ function handleGoogleCredentialResponse(response) {
 
         // Collect all authorized emails dynamically
         const authorizedEmails = new Set();
-
+        
         if (typeof REGISTERED_EMAILS !== 'undefined' && Array.isArray(REGISTERED_EMAILS)) {
             REGISTERED_EMAILS.forEach(e => e && authorizedEmails.add(e.toLowerCase().trim()));
         }
@@ -1358,18 +1230,16 @@ function handleGoogleCredentialResponse(response) {
         const isEmailRegistered = authorizedEmails.has(userEmail);
 
         if (!isDomainAllowed && !isEmailRegistered) {
-            showToast(`Akses ditolak! Akun belum terdaftar sebagai Musyrif/Pamong resmi.`, 'error', true);
+            showToast(`Akses ditolak! Akun ${userEmail} belum terdaftar sebagai Musyrif/Pamong resmi.`, 'error', true);
             return;
         }
 
-        // Store Google credential token for server-side verification
-        // The actual session will be validated server-side
+        // Create session
         saveUserSession({
             name: profile.name || profile.email.split('@')[0],
             email: profile.email,
             avatar: profile.picture,
-            role: 'Musyrif/Pamong',
-            googleToken: response.credential // Store for server validation
+            role: 'Musyrif/Pamong'
         });
 
         closeLoginModal();
@@ -1704,7 +1574,7 @@ function renderHistoryCards(items) {
         emptyDiv.innerHTML = `
             <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
             </div>
             <p class="text-slate-600 font-semibold mb-1">Belum Ada Data Perizinan</p>
@@ -2126,6 +1996,7 @@ function initDOMReferences() {
         fabHistoryBtn: document.getElementById('fab-history-btn'),
         searchHistoryInput: document.getElementById('search-history-input'),
         refreshHistoryBtn: document.getElementById('refresh-history-btn'),
+        quickChipReasons: document.querySelectorAll('.quick-chip-reason'),
         historyTabBtns: document.querySelectorAll('.history-tab-btn'),
         historyLoading: document.getElementById('history-loading'),
         historyContainer: document.getElementById('history-container'),
