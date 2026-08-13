@@ -1126,54 +1126,20 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
           </div>
 
           <div className="space-y-4">
-            {/* Google Authentication */}
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">1. Autentikasi Resmi via Google</p>
+            {/* Google Authentication Only */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">Login Autentikasi Resmi Google</p>
               <div id="google-signin-btn" className="w-full flex justify-center min-h-[44px]"></div>
             </div>
 
-            <div className="relative flex py-1 items-center">
-              <div className="flex-grow border-t border-border"></div>
-              <span className="flex-shrink mx-3 text-[10px] font-bold text-muted-foreground uppercase">Atau Akses Cepat Pengurus</span>
-              <div className="flex-grow border-t border-border"></div>
-            </div>
-
-            {/* Pamong Asrama */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-foreground flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-600"/> Pamong Asrama (ACC Semua Izin):
+            <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-2xl text-xs text-blue-900 space-y-1">
+              <p className="font-semibold flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0"/> Ketentuan Hak Akses Pengurus:
               </p>
-              <div className="grid grid-cols-1 gap-2">
-                {pamongList.map(p => (
-                  <button key={p.email} onClick={()=>loginAsPamong(p)}
-                    className="w-full flex items-center justify-between p-3 bg-indigo-50/60 hover:bg-indigo-100/80 border border-indigo-200/80 rounded-xl text-left transition-colors btn-press">
-                    <div className="min-w-0">
-                      <p className="font-bold text-xs text-indigo-950 truncate">{p.name}</p>
-                      <p className="text-[10px] text-indigo-600 truncate">{p.email}</p>
-                    </div>
-                    <span className="text-[10px] font-bold bg-indigo-600 text-white px-2 py-1 rounded-lg">Pamong &rarr;</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Musyrif Kelas */}
-            <div className="space-y-2 pt-2 border-t border-border">
-              <p className="text-xs font-semibold text-foreground flex items-center gap-1">
-                <UserCheck className="w-3.5 h-3.5 text-blue-600"/> Musyrif Kelas:
-              </p>
-              <div className="flex gap-2">
-                <select value={selectedClass} onChange={e=>setSelectedClass(e.target.value)}
-                  className="flex-1 text-xs bg-white border border-border rounded-xl px-3 py-2.5 font-medium">
-                  {Object.keys(musyrifData).map(k => (
-                    <option key={k} value={k}>{getClassLabel(k)} — {musyrifData[k]?.name || "Musyrif"}</option>
-                  ))}
-                </select>
-                <button onClick={()=>loginAsMusyrif(selectedClass)}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors btn-press">
-                  Masuk
-                </button>
-              </div>
+              <ul className="list-disc pl-4 text-[11px] text-blue-800 space-y-0.5">
+                <li>Gunakan email Google resmi yang terdaftar sebagai <strong>Musyrif Kelas</strong> atau <strong>Pamong Asrama</strong>.</li>
+                <li>Sistem otomatis mencocokkan email dengan whitelist server untuk menentukan hak persetujuan perizinan (ACC).</li>
+              </ul>
             </div>
           </div>
         </div>
