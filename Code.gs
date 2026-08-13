@@ -1,7 +1,8 @@
 /**
- * GOOGLE APPS SCRIPT BACKEND - IZIN SEDAYU v2.1 (SECURE)
+ * GOOGLE APPS SCRIPT BACKEND - IZIN SEDAYU v2.2 (REAL-TIME OPTIMIZED)
  * Fitur: SCRUD (Search, Create, Read, Update, Delete) Data Perizinan Santri
  * Keamanan: Server-side Auth, Input Validation, Rate Limiting, Audit Log, CSRF Protection
+ * Optimasi Real-time: Caching, Incremental Updates, Last-Modified Tracking
  */
 
 // ============================================
@@ -10,6 +11,17 @@
 const SHEET_NAME = "DataPerizinan";
 const AUDIT_SHEET_NAME = "AuditLog";
 const IDEMPOTENCY_SHEET_NAME = "IdempotencyKeys"; // Track processed requests
+
+// ============================================
+// REAL-TIME OPTIMIZATION: Cache Configuration
+// ============================================
+const CACHE_TTL_MS = 5000; // Cache valid for 5 seconds
+const MAX_CACHE_ROWS = 1000; // Max rows to cache
+
+// In-memory cache (persists during script execution, ~6 min max)
+let _sheetCache = null;
+let _cacheTimestamp = 0;
+let _cacheLastRowCount = 0;
 
 // ============================================
 // SECURITY: CORS - Ganti dengan domain produksi Anda
@@ -173,6 +185,57 @@ function validateCSRFToken(submittedToken, storedToken) {
 }
 
 // ============================================
+// REAL-TIME: Cache Management
+// ============================================
+function getCachedSheetData(forceRefresh = false) {
+  const now = Date.now();
+  const cacheAge = now - _cacheTimestamp;
+
+  // Return cached data if valid and not forced
+  if (!forceRefresh && _sheetCache && cacheAge < CACHE_TTL_MS) {
+    return { data: _sheetCache, fromCache: true, cacheAge: cacheAge };
+  }
+
+  // Fetch fresh data from sheet
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    return { data: [], fromCache: false, cacheAge: 0, isEmpty: true };
+  }
+
+  const data = sheet.getDataRange().getValues();
+  const rowCount = data.length;
+
+  // Update cache
+  _sheetCache = data;
+  _cacheTimestamp = now;
+  _cacheLastRowCount = rowCount;
+
+  return { data: data, fromCache: false, cacheAge: 0, rowCount: rowCount };
+}
+
+function invalidateCache() {
+  _sheetCache = null;
+  _cacheTimestamp = 0;
+}
+
+function getLastModifiedTimestamp() {
+  if (_sheetCache && _sheetCache.length > 1) {
+    // Return timestamp of most recent modification
+    // Check last row's update timestamp (column 21, index 20)
+    const lastRow = _sheetCache[_sheetCache.length - 1];
+    if (lastRow[20]) { // timestampUpdate
+      return new Date(lastRow[20]).getTime();
+    }
+    if (lastRow[1]) { // waktuPengajuan
+      return new Date(lastRow[1]).getTime();
+    }
+  }
+  return Date.now();
+}
+
+// ============================================
 // HELPER: Get atau Buat Sheet
 // ============================================
 function getOrCreateSheet() {
@@ -199,6 +262,10 @@ function getOrCreateSheet() {
     sheet.setColumnWidth(6, 120);  // Kelas
     sheet.setColumnWidth(18, 120); // Status
   }
+
+  // Invalidate cache when sheet is modified
+  invalidateCache();
+
   return sheet;
 }
 
@@ -224,6 +291,8 @@ function logAudit(action, idIzin, userEmail, userRole, oldStatus, newStatus, det
     const auditSheet = getOrCreateAuditSheet();
     const timestamp = new Date().toISOString();
     auditSheet.appendRow([timestamp, action, idIzin, userEmail || '', userRole || '', oldStatus || '', newStatus || '', details || '']);
+    // Invalidate cache after audit log write
+    invalidateCache();
   } catch (e) {
     console.error('Audit log failed:', e);
   }
@@ -398,11 +467,23 @@ function doOptions(e) {
 function doGet(e) {
   try {
     const callback = e.parameter ? e.parameter.callback : null;
-    const sheet = getOrCreateSheet();
-    const data = sheet.getDataRange().getValues();
+    const params = e.parameter || {};
+
+    // Use cached data when possible
+    const cached = getCachedSheetData();
+    const data = cached.data;
 
     if (data.length <= 1) {
-      return jsonpOrJsonResponse({ status: "success", data: [] }, callback);
+      return jsonpOrJsonResponse({
+        status: "success",
+        data: [],
+        meta: {
+          total: 0,
+          timestamp: new Date().toISOString(),
+          lastModified: Date.now(),
+          fromCache: cached.fromCache
+        }
+      }, callback);
     }
 
     const headers = data[0];
@@ -417,9 +498,43 @@ function doGet(e) {
       return obj;
     });
 
+    // ============================================
+    // INCREMENTAL UPDATE: Only return changed items
+    // ============================================
+    if (params.since) {
+      const sinceTime = parseInt(params.since);
+      if (!isNaN(sinceTime)) {
+        // Filter items modified after sinceTime
+        resultList = resultList.filter(item => {
+          if (!item.timestampUpdate) return false;
+          const updateTime = new Date(item.timestampUpdate).getTime();
+          return updateTime > sinceTime;
+        });
+
+        // Also include new rows (by rowIndex comparison with cache)
+        // This is handled by checking timestampUpdate
+
+        return jsonpOrJsonResponse({
+          status: "success",
+          data: resultList,
+          meta: {
+            total: resultList.length,
+            hasChanges: resultList.length > 0,
+            timestamp: new Date().toISOString(),
+            lastModified: getLastModifiedTimestamp(),
+            fromCache: cached.fromCache
+          }
+        }, callback);
+      }
+    }
+
+    // ============================================
+    // STANDARD READ: All data (with filters)
+    // ============================================
+
     // Filter by search query
-    if (e.parameter && e.parameter.search) {
-      const q = e.parameter.search.toLowerCase();
+    if (params.search) {
+      const q = params.search.toLowerCase();
       resultList = resultList.filter(item =>
         (item.namaSantri && item.namaSantri.toString().toLowerCase().includes(q)) ||
         (item.idIzin && item.idIzin.toString().toLowerCase().includes(q)) ||
@@ -428,20 +543,20 @@ function doGet(e) {
     }
 
     // Filter by class
-    if (e.parameter && e.parameter.kelas) {
-      const k = e.parameter.kelas.toLowerCase();
+    if (params.kelas) {
+      const k = params.kelas.toLowerCase();
       resultList = resultList.filter(item => item.kelas && item.kelas.toString().toLowerCase() === k);
     }
 
     // Filter by status
-    if (e.parameter && e.parameter.status) {
-      const s = e.parameter.status.toLowerCase();
+    if (params.status) {
+      const s = params.status.toLowerCase();
       resultList = resultList.filter(item => item.status && item.status.toString().toLowerCase() === s);
     }
 
     // Filter by date range
-    if (e.parameter && e.parameter.startDate) {
-      const startDate = new Date(e.parameter.startDate);
+    if (params.startDate) {
+      const startDate = new Date(params.startDate);
       resultList = resultList.filter(item => {
         if (!item.timestamp) return true;
         const itemDate = new Date(item.timestamp);
@@ -462,7 +577,10 @@ function doGet(e) {
       data: resultList,
       meta: {
         total: resultList.length,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        lastModified: getLastModifiedTimestamp(),
+        fromCache: cached.fromCache,
+        cacheAge: cached.cacheAge || 0
       }
     }, callback);
 
@@ -569,6 +687,9 @@ function doPost(e) {
 
       sheet.appendRow(newRow);
 
+      // Invalidate cache after write
+      invalidateCache();
+
       // Log audit
       logAudit('CREATE', idIzin, contents.userEmail, contents.userRole, '', initialStatus, 'New permission created');
 
@@ -656,6 +777,9 @@ function doPost(e) {
             sheet.getRange(i + 1, 22).setValue(sanitizeInput(contents.userRole));
           }
 
+          // Invalidate cache after update
+          invalidateCache();
+
           break;
         }
       }
@@ -688,6 +812,8 @@ function doPost(e) {
       for (let i = 1; i < data.length; i++) {
         if (String(data[i][0]) === String(idIzin)) {
           sheet.deleteRow(i + 1);
+          // Invalidate cache after delete
+          invalidateCache();
           found = true;
           break;
         }

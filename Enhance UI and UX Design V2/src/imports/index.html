@@ -605,6 +605,12 @@
                     <span class="text-[11px]">Memuat data...</span>
                 </div>
 
+                <!-- Real-time Indicator -->
+                <div id="new-data-indicator" class="hidden fixed top-20 right-4 z-50 bg-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5 animate-bounce">
+                    <span class="w-2 h-2 rounded-full bg-white"></span>
+                    <span>Data baru!</span>
+                </div>
+
                 <!-- History Container -->
                 <div id="history-container" class="space-y-2 pt-1">
                     <!-- Data riwayat dirender oleh JavaScript -->
@@ -616,7 +622,7 @@
     <!-- Scripts -->
     <script>
         window.APP_CONFIG = {
-            GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwQnacuM2ZsgWYP20M9Gjwi--adZsNxzJk14IyH2l8iBuv_tKZCPPrYKdLeJhZhU7iz/exec',
+            GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbxDF8pSewvyJJxnQVkNAQ-qSI_YppNbKvo3PZ_oPCJb2svpNUz5odmJqeZ93bXl6KNd/exec',
             GOOGLE_CLIENT_ID: '279330879292-5rc2mbk58k1k6rtm9pm4pq3jm4uiltb6.apps.googleusercontent.com',
             REGISTERED_EMAILS: []
         };

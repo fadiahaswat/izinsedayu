@@ -160,18 +160,39 @@ function calcDuration(jk: string, jb: string, jenis: string, tl: string, tk: str
   return [h>0&&`${h} Jam`, m>0&&`${m} Menit`].filter(Boolean).join(" ") || "< 1 Menit";
 }
 
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwQnacuM2ZsgWYP20M9Gjwi--adZsNxzJk14IyH2l8iBuv_tKZCPPrYKdLeJhZhU7iz/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxDF8pSewvyJJxnQVkNAQ-qSI_YppNbKvo3PZ_oPCJb2svpNUz5odmJqeZ93bXl6KNd/exec";
 
 function getLocal(): IzinRecord[] {
   try { return JSON.parse(localStorage.getItem("local_izin_list")||"[]"); } catch { return []; }
 }
 
-async function fetchRemoteData(): Promise<IzinRecord[]> {
+// Real-time sync state
+let lastFetchTimestamp = 0;
+const DATA_TIMESTAMP_KEY = "izin_last_fetch_time";
+
+async function fetchRemoteData(incremental = false): Promise<IzinRecord[]> {
   try {
-    const res = await fetch(`${GAS_WEB_APP_URL}?action=read`);
+    // Use incremental fetch with since parameter for efficiency
+    const sinceTimestamp = incremental
+      ? (localStorage.getItem(DATA_TIMESTAMP_KEY) || "0")
+      : "0";
+    const fetchUrl = `${GAS_WEB_APP_URL}?action=read&since=${sinceTimestamp}`;
+
+    const res = await fetch(fetchUrl);
     if (res.ok) {
       const json = await res.json();
       if (json?.data && Array.isArray(json.data)) {
+        // Update lastModified timestamp from server
+        if (json.meta?.lastModified) {
+          lastFetchTimestamp = json.meta.lastModified;
+          localStorage.setItem(DATA_TIMESTAMP_KEY, String(lastFetchTimestamp));
+        }
+
+        // Check if there are actual changes (for incremental fetches)
+        if (incremental && json.meta?.hasChanges === false && json.data.length === 0) {
+          return getLocal(); // No changes, return cached
+        }
+
         localStorage.setItem("local_izin_list", JSON.stringify(json.data));
         return json.data;
       }
@@ -1654,10 +1675,12 @@ export default function App() {
       if(s){ const u=JSON.parse(s); if(u?.name&&u?.email) setCurrentUser(u); }
     } catch {}
 
-    fetchRemoteData();
+    // Initial full fetch
+    fetchRemoteData(false);
+    // Real-time sync every 3 seconds with incremental updates
     const timer = setInterval(() => {
-      fetchRemoteData();
-    }, 10000);
+      fetchRemoteData(true);
+    }, 3000);
     return () => clearInterval(timer);
   },[]);
 

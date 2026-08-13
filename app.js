@@ -84,6 +84,17 @@ let isSubmittingForm = false;
 let currentPassData = null;
 
 // ============================================
+// REAL-TIME SYNC STATE
+// ============================================
+let lastFetchTimestamp = 0; // Last time we fetched data
+let lastKnownDataHash = ''; // Hash of last known data to detect changes
+let realtimeIntervalId = null;
+const REALTIME_INTERVAL_MS = 3000; // Poll every 3 seconds
+const MIN_FETCH_INTERVAL_MS = 2000; // Minimum time between fetches
+const DATA_HASH_KEY = 'izin_last_data_hash';
+const DATA_TIMESTAMP_KEY = 'izin_last_fetch_time';
+
+// ============================================
 // UTILITIES
 // ============================================
 
@@ -105,6 +116,18 @@ function generateUUID() {
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
+}
+
+// Simple hash function for data comparison
+function simpleHash(data) {
+    const str = JSON.stringify(data);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString(36);
 }
 
 // Generate Permission ID
@@ -1454,8 +1477,10 @@ function formatTimePeriod(tanggalKeluar, jamKeluar, tanggalKembali, jamKembali) 
 async function fetchLeaveHistory(query = '') {
     if (!DOM.historyContainer) return;
 
-    // Show loading skeleton
-    showSkeleton(DOM.historyContainer);
+    // Show loading skeleton on initial load
+    if (rawHistoryData.length === 0) {
+        showSkeleton(DOM.historyContainer);
+    }
 
     // Get local data first
     const localData = getLocalIzinList();
@@ -1481,10 +1506,18 @@ async function fetchLeaveHistory(query = '') {
     rawHistoryData = filterData(Array.from(map.values()));
     applyHistoryTabFilter();
 
+    // Track data hash for change detection
+    lastKnownDataHash = simpleHash(rawHistoryData);
+    lastFetchTimestamp = Date.now();
+    localStorage.setItem(DATA_HASH_KEY, lastKnownDataHash);
+    localStorage.setItem(DATA_TIMESTAMP_KEY, lastFetchTimestamp.toString());
+
     // Fetch from remote API
     const url = typeof GAS_WEB_APP_URL !== 'undefined' ? GAS_WEB_APP_URL : (window.GAS_WEB_APP_URL || '');
     if (isConfiguredGasUrl(url)) {
-        if (DOM.historyLoading) DOM.historyLoading.classList.remove('hidden');
+        if (DOM.historyLoading && rawHistoryData.length === 0) {
+            DOM.historyLoading.classList.remove('hidden');
+        }
 
         try {
             const fetchUrl = `${url}?action=read&search=${encodeURIComponent(query)}`;
@@ -1492,10 +1525,20 @@ async function fetchLeaveHistory(query = '') {
             if (response.ok) {
                 const json = await response.json();
                 if (json?.data && Array.isArray(json.data)) {
+                    // Update lastModified timestamp from server
+                    if (json.meta?.lastModified) {
+                        lastFetchTimestamp = json.meta.lastModified;
+                        localStorage.setItem(DATA_TIMESTAMP_KEY, lastFetchTimestamp.toString());
+                    }
+
                     // Google Spreadsheet is Single Source of Truth
                     localStorage.setItem('local_izin_list', JSON.stringify(json.data));
                     rawHistoryData = filterData(json.data);
                     applyHistoryTabFilter();
+
+                    // Update hash
+                    lastKnownDataHash = simpleHash(rawHistoryData);
+                    localStorage.setItem(DATA_HASH_KEY, lastKnownDataHash);
                 }
             }
         } catch (err) {
@@ -2044,6 +2087,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch history
     fetchLeaveHistory();
 
+    // Start real-time sync (every 3 seconds)
+    startRealtimeSync();
+
     // Process pending requests
     if (navigator.onLine) {
         setTimeout(processPendingRequests, 2000);
@@ -2088,32 +2134,96 @@ async function fetchLeaveHistorySilently() {
     const url = typeof GAS_WEB_APP_URL !== 'undefined' ? GAS_WEB_APP_URL : (window.GAS_WEB_APP_URL || '');
     if (!isConfiguredGasUrl(url)) return;
 
+    // Rate limiting: skip if fetched recently
+    const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
+    if (timeSinceLastFetch < MIN_FETCH_INTERVAL_MS) {
+        return;
+    }
+
     try {
-        const fetchUrl = `${url}?action=read`;
+        // Use incremental fetch with since parameter for efficiency
+        const sinceTimestamp = localStorage.getItem(DATA_TIMESTAMP_KEY) || 0;
+        const fetchUrl = `${url}?action=read&since=${sinceTimestamp}`;
         const response = await fetch(fetchUrl);
+
         if (response.ok) {
             const json = await response.json();
             if (json?.data && Array.isArray(json.data)) {
-                // Google Spreadsheet is Single Source of Truth
-                localStorage.setItem('local_izin_list', JSON.stringify(json.data));
-                
-                const historyPage = document.getElementById('page-history');
-                if (historyPage && !historyPage.classList.contains('hidden')) {
-                    rawHistoryData = json.data;
-                    applyHistoryTabFilter();
+                // Update lastModified timestamp from server
+                if (json.meta?.lastModified) {
+                    lastFetchTimestamp = json.meta.lastModified;
+                    localStorage.setItem(DATA_TIMESTAMP_KEY, lastFetchTimestamp.toString());
                 }
-                updatePendingCounterBadge();
+
+                // Check if there are actual changes
+                const currentData = getLocalIzinList();
+                const newDataHash = simpleHash(currentData);
+
+                // If no changes detected, skip DOM update
+                if (json.meta?.hasChanges === false && json.data.length === 0) {
+                    return;
+                }
+
+                // If server has different data, update local storage
+                if (json.data.length > 0 || json.meta?.hasChanges) {
+                    localStorage.setItem('local_izin_list', JSON.stringify(json.data));
+
+                    // Update UI if history page is visible
+                    const historyPage = document.getElementById('page-history');
+                    if (historyPage && !historyPage.classList.contains('hidden')) {
+                        rawHistoryData = json.data;
+                        applyHistoryTabFilter();
+                        showNewDataIndicator();
+                    }
+
+                    // Update pending counter
+                    updatePendingCounterBadge();
+                }
             }
         }
     } catch (e) {
-        // Silent catch
+        // Silent catch - network errors are expected
     }
 }
 
-// Start 10-second automatic real-time sync loop
-if (!window.realtimeSyncInterval) {
-    window.realtimeSyncInterval = setInterval(() => {
+// Visual indicator for new data
+function showNewDataIndicator() {
+    const indicator = document.getElementById('new-data-indicator');
+    if (indicator) {
+        indicator.classList.remove('hidden');
+        indicator.classList.add('animate-pulse');
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+            indicator.classList.add('hidden');
+            indicator.classList.remove('animate-pulse');
+        }, 3000);
+    }
+}
+
+// Start real-time sync loop
+function startRealtimeSync() {
+    if (realtimeIntervalId) {
+        clearInterval(realtimeIntervalId);
+    }
+
+    realtimeIntervalId = setInterval(() => {
         fetchLeaveHistorySilently();
         processPendingRequests();
-    }, 10000);
+    }, REALTIME_INTERVAL_MS);
+
+    window.realtimeSyncInterval = realtimeIntervalId;
 }
+
+// Stop real-time sync
+function stopRealtimeSync() {
+    if (realtimeIntervalId) {
+        clearInterval(realtimeIntervalId);
+        realtimeIntervalId = null;
+    }
+}
+
+// Initialize real-time sync on page load
+document.addEventListener('DOMContentLoaded', function() {
+    startRealtimeSync();
+});
