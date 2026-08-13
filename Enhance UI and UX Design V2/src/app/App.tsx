@@ -373,40 +373,39 @@ function BottomNav({ page, setPage }: { page: PageId; setPage:(p:PageId)=>void }
 const STEP_LABELS = ["Santri","Jenis Izin","Waktu","Wali"];
 
 function StepProgress({ step }: { step: number }) {
-  const pct = ((step-1)/(STEP_LABELS.length-1))*100;
   return (
-    <div className="px-5 pt-5 pb-4">
-      {/* Bar */}
-      <div className="relative h-2 bg-slate-100 rounded-full mb-6">
-        <div className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full transition-all duration-500"
-          style={{ width:`${pct}%` }}/>
-        {STEP_LABELS.map((_,i) => {
-          const s = i+1;
-          const done = s<step, active = s===step;
+    <div className="px-5 pt-5 pb-5">
+      <div className="flex items-center">
+        {STEP_LABELS.map((label, i) => {
+          const s = i + 1;
+          const done  = s < step;
+          const active = s === step;
+          const isLast = i === STEP_LABELS.length - 1;
           return (
-            <div key={s}
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-300"
-              style={{ left:`${(i/(STEP_LABELS.length-1))*100}%` }}>
-              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-300
-                ${done  ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200"
-                : active ? "bg-white border-blue-600 text-blue-600 shadow-lg shadow-blue-100 scale-110"
-                : "bg-white border-slate-200 text-slate-400"}`}>
-                {done ? <Check className="w-3.5 h-3.5"/> : s}
+            <div key={s} className="flex items-center" style={{ flex: isLast ? "0 0 auto" : 1 }}>
+              {/* Circle + label */}
+              <div className="flex flex-col items-center gap-1.5">
+                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 flex-shrink-0
+                  ${done   ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                  : active ? "bg-white border-blue-600 text-blue-600 shadow-md shadow-blue-100 ring-4 ring-blue-50"
+                  : "bg-white border-slate-200 text-slate-400"}`}>
+                  {done ? <Check className="w-4 h-4"/> : s}
+                </div>
+                <span className={`text-[11px] font-semibold whitespace-nowrap transition-colors
+                  ${active ? "text-primary" : done ? "text-blue-400" : "text-slate-300"}`}>
+                  {label}
+                </span>
               </div>
+              {/* Connector line between steps */}
+              {!isLast && (
+                <div className="flex-1 mx-2 mb-5">
+                  <div className="h-0.5 w-full rounded-full bg-slate-100 relative overflow-hidden">
+                    <div className={`absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-500
+                      ${done ? "w-full" : "w-0"}`}/>
+                  </div>
+                </div>
+              )}
             </div>
-          );
-        })}
-      </div>
-      {/* Labels */}
-      <div className="flex justify-between mt-1">
-        {STEP_LABELS.map((label,i) => {
-          const s = i+1, active = s===step, done = s<step;
-          return (
-            <span key={s} className={`text-[11px] font-semibold transition-colors
-              ${active ? "text-primary" : done ? "text-blue-400" : "text-slate-300"}`}
-              style={{ width:`${100/STEP_LABELS.length}%`, textAlign:i===0?"left":i===STEP_LABELS.length-1?"right":"center" }}>
-              {label}
-            </span>
           );
         })}
       </div>
