@@ -14,7 +14,7 @@ import {
   UserCheck, AlertCircle, ShieldCheck, Users, Send,
   Calendar, MapPin, User, Heart, Stethoscope, Moon,
   Sparkles, TrendingUp, ClipboardList, Shield, Download,
-  ScanLine, Camera
+  ScanLine, Camera, CreditCard, AlertTriangle, Info
 } from "lucide-react";
 
 // ─── Styles injected once ──────────────────────────────────────
@@ -54,10 +54,49 @@ const GLOBAL_CSS = `
 input, select {
   font-family: inherit;
 }
+
+/* Student Card ISO 7810 ID-1 (85.6mm x 54mm) Styles */
+.id-card {
+  width: 85.6mm;
+  height: 54mm;
+  background: #ffffff;
+  border-radius: 3.5mm;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 0.8px solid #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  background-image: 
+    radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 0% 100%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .cards-print-grid {
+    display: grid !important;
+    grid-template-columns: 85.6mm 85.6mm !important;
+    gap: 6mm 10mm !important;
+    justify-content: center !important;
+    padding: 8mm 6mm !important;
+  }
+  .id-card {
+    box-shadow: none !important;
+    border: 0.3mm solid #94a3b8 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  @page { size: A4 portrait; margin: 8mm 6mm; }
+}
 `;
 
 // ─── Types ─────────────────────────────────────────────────────
-type PageId      = "home" | "form" | "login" | "pass" | "history" | "verify";
+type PageId      = "home" | "form" | "login" | "pass" | "history" | "verify" | "scanner" | "cards";
 type StatusType  = "PENDING" | "APPROVED" | "REJECTED" | "RETURNED";
 type JenisIzinKey = "keluar-biasa" | "kesehatan" | "menginap" | "sakit";
 
@@ -1115,80 +1154,109 @@ function NavBar({ setPage, currentUser, onLogout, onOpenScanner }: {
   setPage:(p:PageId)=>void; currentUser:UserSession|null; onLogout:()=>void; onOpenScanner:()=>void;
 }) {
   return (
-    <nav className="sticky top-0 z-40 bg-white/92 backdrop-blur-lg border-b border-border" style={{boxShadow:"0 1px 0 0 rgba(15,23,42,0.06)"}}>
-      <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-        <button onClick={()=>setPage("home")} className="flex items-center gap-2.5 btn-press">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 no-print">
+      <div className="max-w-5xl mx-auto px-4 h-15 flex items-center justify-between gap-3">
+        {/* Brand Logo */}
+        <button onClick={()=>setPage("home")} className="flex items-center gap-2.5 btn-press focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl p-1">
           <img src={logoBlue} alt="Logo Mu'allimin" className="h-8 w-auto object-contain"/>
         </button>
 
+        {/* Navigation Actions */}
         <div className="flex items-center gap-2">
-          <button onClick={onOpenScanner}
-            className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors btn-press">
-            <ScanLine className="w-3.5 h-3.5 text-emerald-600"/>
-            <span className="hidden sm:inline">Scan QR</span>
+          <button onClick={()=>setPage("scanner")}
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors btn-press">
+            <Camera className="w-4 h-4 text-emerald-600"/>
+            <span>Pos Satpam</span>
           </button>
-          <button onClick={()=>setPage("form")}
-            className="hidden md:flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-primary text-white hover:bg-blue-700 transition-colors btn-press shadow-sm">
-            <Plus className="w-3.5 h-3.5"/> Ajukan Izin
+          
+          <button onClick={()=>setPage("cards")}
+            className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors btn-press">
+            <CreditCard className="w-4 h-4 text-amber-600"/>
+            <span>Cetak Kartu</span>
           </button>
+
           <button onClick={()=>setPage("history")}
-            className="hidden md:flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-colors btn-press">
-            <BarChart2 className="w-3.5 h-3.5 text-blue-400"/> Cek Status
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors btn-press">
+            <BarChart2 className="w-4 h-4 text-blue-600"/>
+            <span className="hidden xs:inline">Riwayat</span>
+          </button>
+
+          <button onClick={()=>setPage("form")}
+            className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl bg-primary text-white hover:bg-blue-700 transition-all btn-press shadow-sm">
+            <Plus className="w-4 h-4"/>
+            <span>Ajukan Izin</span>
           </button>
 
           {currentUser ? (
-            <div className="flex items-center gap-1.5">
-              <div className="hidden sm:flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">
+            <div className="flex items-center gap-1.5 pl-1 border-l border-slate-200">
+              <div className="hidden lg:flex items-center gap-2 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1.5 rounded-xl">
+                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
                   {currentUser.name.charAt(0)}
                 </span>
-                <span className="text-xs font-semibold text-emerald-800 max-w-[80px] truncate">{currentUser.name}</span>
+                <span className="text-xs font-semibold text-emerald-900 max-w-[90px] truncate">{currentUser.name}</span>
               </div>
-              <button onClick={onLogout} title="Keluar"
-                className="p-2 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors">
+              <button onClick={onLogout} title="Keluar Akun"
+                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors btn-press" aria-label="Keluar">
                 <LogOut className="w-4 h-4"/>
               </button>
             </div>
           ) : (
             <button onClick={()=>setPage("login")}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-border hover:bg-muted transition-colors">
-              <UserCheck className="w-3.5 h-3.5 text-primary"/>
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors btn-press">
+              <UserCheck className="w-4 h-4 text-primary"/>
               <span className="hidden sm:inline">Login</span>
             </button>
           )}
         </div>
       </div>
-    </nav>
+    </header>
   );
 }
 
 // ─── BottomNav ──────────────────────────────────────────────────
 function BottomNav({ page, setPage }: { page: PageId; setPage:(p:PageId)=>void }) {
+  const items = [
+    { id: "home" as PageId, label: "Beranda", icon: Home },
+    { id: "form" as PageId, label: "Ajukan", icon: Plus, highlight: true },
+    { id: "history" as PageId, label: "Riwayat", icon: BarChart2 },
+    { id: "scanner" as PageId, label: "Satpam", icon: Camera },
+  ];
+
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/96 backdrop-blur-md border-t border-border"
-      style={{ paddingBottom:"env(safe-area-inset-bottom,0px)", boxShadow:"0 -1px 0 0 rgba(15,23,42,0.06)" }}>
-      <div className="flex items-center justify-around h-16 px-8">
-        <button onClick={()=>setPage("home")}
-          className={`flex flex-col items-center gap-1 transition-all btn-press
-            ${page==="home" ? "text-primary scale-105" : "text-muted-foreground"}`}>
-          <Home className="w-5 h-5"/>
-          <span className="text-[10px] font-semibold">Beranda</span>
-        </button>
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-slate-200/80 no-print"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <div className="grid grid-cols-4 h-16 max-w-md mx-auto px-2">
+        {items.map((item) => {
+          const Icon = item.icon;
+          const active = page === item.id;
 
-        <button onClick={()=>setPage("form")} className="flex flex-col items-center gap-1 -mt-5 btn-press">
-          <span className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg flex items-center justify-center"
-            style={{boxShadow:"0 8px 20px -4px rgba(37,99,235,0.45)"}}>
-            <Plus className="w-6 h-6"/>
-          </span>
-          <span className="text-[10px] font-semibold text-primary mt-0.5">Ajukan</span>
-        </button>
+          if (item.highlight) {
+            return (
+              <button
+                key={item.id}
+                onClick={() => setPage(item.id)}
+                className="flex flex-col items-center justify-center -mt-4 btn-press focus:outline-none"
+              >
+                <span className="w-12 h-12 rounded-2xl bg-primary text-white shadow-md flex items-center justify-center border-4 border-white transition-transform active:scale-95">
+                  <Icon className="w-5 h-5" />
+                </span>
+                <span className="text-[11px] font-bold text-primary mt-1">{item.label}</span>
+              </button>
+            );
+          }
 
-        <button onClick={()=>setPage("history")}
-          className={`flex flex-col items-center gap-1 transition-all btn-press
-            ${page==="history" ? "text-primary scale-105" : "text-muted-foreground"}`}>
-          <BarChart2 className="w-5 h-5"/>
-          <span className="text-[10px] font-semibold">Status</span>
-        </button>
+          return (
+            <button
+              key={item.id}
+              onClick={() => setPage(item.id)}
+              className={`flex flex-col items-center justify-center gap-1 transition-colors btn-press focus:outline-none
+                ${active ? "text-primary font-bold" : "text-slate-500 hover:text-slate-900"}`}
+            >
+              <Icon className={`w-5 h-5 transition-transform ${active ? "scale-110" : ""}`} />
+              <span className="text-[11px] font-medium">{item.label}</span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );
@@ -1333,7 +1401,7 @@ function PageHome({ setPage, setInitialJenis }: {
 
       {/* 4 Jenis Izin — tap to open form with pre-selected type */}
       <section className="space-y-2">
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Pilih Jenis Izin</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Pilih Jenis Izin Non-Rutin</p>
         <div className="grid grid-cols-2 gap-3">
           {JENIS_OPTIONS.map((j,i)=>(
             <button key={j.key} onClick={()=>goForm(j.key)}
@@ -1352,6 +1420,54 @@ function PageHome({ setPage, setInitialJenis }: {
               <ChevronRight className={`w-4 h-4 ${j.color} opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-0.5`}/>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* Routine Weekend Free Pass Section (Sabtu 15-17 & Ahad 07-11) */}
+      <section className="bg-gradient-to-r from-emerald-950/90 via-teal-950/80 to-slate-900 p-5 rounded-3xl border border-emerald-500/30 text-white space-y-3.5 shadow-md">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-extrabold text-xs shadow-sm">
+              QR
+            </div>
+            <div>
+              <h2 className="text-sm font-extrabold text-white">Izin Rutin Bebas Akhir Pekan (Tanpa Pengajuan)</h2>
+              <p className="text-[11px] text-emerald-300">Sabtu: 15.00 – 17.00 • Ahad: 07.00 – 11.00</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+            Wajib Kartu QR
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <button onClick={() => setPage("scanner")}
+            className="p-3.5 bg-slate-900/90 hover:bg-slate-800 rounded-2xl border border-emerald-500/40 text-left transition-all btn-press flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600/30 text-emerald-400 flex items-center justify-center font-bold text-lg flex-shrink-0">
+              <Camera className="w-5 h-5"/>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-1">
+                <span>Buka Scanner Pos Satpam</span>
+                <span className="text-emerald-400">&rarr;</span>
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Scan kartu santri saat keluar &amp; kembali gerbang</p>
+            </div>
+          </button>
+
+          <button onClick={() => setPage("cards")}
+            className="p-3.5 bg-slate-900/90 hover:bg-slate-800 rounded-2xl border border-amber-500/40 text-left transition-all btn-press flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-600/30 text-amber-400 flex items-center justify-center font-bold text-lg flex-shrink-0">
+              <CreditCard className="w-5 h-5"/>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-1">
+                <span>Cetak Kartu Santri QR</span>
+                <span className="text-amber-400">&rarr;</span>
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Ukuran KTP/ATM (85.6 &times; 54 mm) siap print A4</p>
+            </div>
+          </button>
         </div>
       </section>
 
@@ -1541,13 +1657,12 @@ function PageForm({ currentUser, setPage, onSubmit, initialJenis }: {
 
   function selectJenis(k: JenisIzinKey) {
     setJenis(k);
-    setAutoAdvancing(true);
-    setTimeout(()=>{ setAutoAdvancing(false); nav(3,"fwd"); }, 350);
+    setError("");
   }
 
   function handleSubmit() {
-    if (!namaWali.trim())   { setError("Isi nama wali."); return; }
-    if (!alamatWali.trim()) { setError("Isi alamat wali."); return; }
+    if (!namaWali.trim())   { setError("Harap lengkapi nama wali santri."); return; }
+    if (!alamatWali.trim()) { setError("Harap lengkapi kota / alamat asal."); return; }
 
     localStorage.setItem("last_wali_name", namaWali.trim());
     localStorage.setItem("last_wali_addr", alamatWali.trim());
@@ -1586,365 +1701,403 @@ function PageForm({ currentUser, setPage, onSubmit, initialJenis }: {
       keperluan: keperluan.trim(), tujuan: tujuan.trim(),
       tanggalKeluar: tglKeluar, tanggalKembali: overnight?(tglKembali||tglKeluar):tglKeluar,
       jamKeluar, jamKembali,
-      namaPenjemput:  bedaPenjemput ? namaPenjemput : namaWali.trim(),
+      namaPenjemput:  bedaPenjemput ? (namaPenjemput.trim() || namaWali.trim()) : namaWali.trim(),
       hubunganPenjemput: bedaPenjemput ? hubungan : "Orang Tua (Ayah/Ibu)",
       pemberiIzin,
       catatanAdmin,
       createdAt: new Date().toISOString(),
     };
     saveLocal(record);
-    setTimeout(()=>{ setSubmitting(false); onSubmit(record); toast.success("Surat izin berhasil diterbitkan!"); }, 600);
+    setTimeout(()=>{ setSubmitting(false); onSubmit(record); toast.success("Surat izin berhasil diterbitkan!"); }, 500);
   }
 
   const animClass = dir==="fwd" ? "step-enter-fwd" : "step-enter-back";
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      <div className="bg-white rounded-3xl border border-border overflow-hidden" style={{boxShadow:"0 4px 24px -4px rgba(15,23,42,0.1)"}}>
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-1">
+        <div className="flex items-center justify-between px-6 pt-5 pb-2">
           <div>
-            <h2 className="font-extrabold text-base text-foreground">Formulir Perizinan Santri</h2>
-            <p className="text-xs text-muted-foreground">Mu'allimin Yogyakarta</p>
+            <h2 className="font-extrabold text-base text-slate-900">Formulir Perizinan Santri</h2>
+            <p className="text-xs text-slate-500">Madrasah Mu'allimin Muhammadiyah Yogyakarta</p>
           </div>
-          <button onClick={()=>setPage("home")} className="p-2 hover:bg-muted rounded-xl transition-colors text-muted-foreground">
-            <X className="w-4 h-4"/>
+          <button onClick={()=>setPage("home")} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-700" aria-label="Tutup form">
+            <X className="w-5 h-5"/>
           </button>
         </div>
 
         <StepProgress step={step}/>
 
         {/* Step content */}
-        <div className="border-t border-border">
-          <div key={stepKey} className={`${animClass} p-5 space-y-4`}>
+        <div className="border-t border-slate-100">
+          <div key={stepKey} className={`${animClass} p-6 space-y-5`}>
 
-            {/* ── Step 1 ── */}
-            {step===1 && <>
-              <div>
-                <h3 className="font-bold text-sm text-foreground">Siapa yang akan izin?</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Ketik nama santri, pilih dari saran.</p>
-              </div>
-
-              <div ref={searchRef} className="relative">
-                <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
-                  <Input
-                    value={query} autoFocus
-                    onChange={e=>{setQuery(e.target.value);setShowSug(true);}}
-                    onFocus={()=>setShowSug(true)}
-                    placeholder="Ketik nama santri..."
-                    className="pl-10 pr-10"/>
-                  {query && <button onClick={()=>{setQuery("");setShowSug(false);}}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                    <X className="w-4 h-4"/></button>}
+            {/* ── Step 1: Santri ── */}
+            {step===1 && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Pilih Santri yang Mengajukan Izin</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Ketik nama santri di bawah untuk mencari data dari sistem.</p>
                 </div>
 
-                {showSug && suggestions.length>0 && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-border rounded-2xl shadow-lg z-50 max-h-56 overflow-y-auto fade-up"
-                    style={{boxShadow:"0 8px 24px -4px rgba(15,23,42,0.12)"}}>
-                    {suggestions.map(s=>(
-                      <button key={s.name} type="button" onMouseDown={()=>addStudent(s)}
-                        className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 border-b border-border last:border-0">
-                        <div className="min-w-0">
-                          <p className="font-semibold text-sm text-foreground truncate">{s.name}</p>
-                          <p className="text-xs text-muted-foreground">{s.classLabel} &bull; {s.musyrifName}</p>
+                <div ref={searchRef} className="relative">
+                  <div className="relative">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+                    <Input
+                      value={query} autoFocus
+                      onChange={e=>{setQuery(e.target.value);setShowSug(true);}}
+                      onFocus={()=>setShowSug(true)}
+                      placeholder="Ketik minimal 2 huruf nama santri..."
+                      className="pl-10 pr-10"/>
+                    {query && (
+                      <button onClick={()=>{setQuery("");setShowSug(false);}}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+                        <X className="w-4 h-4"/>
+                      </button>
+                    )}
+                  </div>
+
+                  {showSug && suggestions.length>0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-56 overflow-y-auto divide-y divide-slate-100 fade-up">
+                      {suggestions.map(s=>(
+                        <button key={s.name} type="button" onMouseDown={()=>addStudent(s)}
+                          className="w-full text-left px-4 py-3 hover:bg-blue-50/70 transition-colors flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-xs text-slate-900 truncate">{s.name}</p>
+                            <p className="text-[11px] text-slate-500">{s.classLabel} &bull; {s.musyrifName}</p>
+                          </div>
+                          <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 font-bold">
+                            <Plus className="w-4 h-4"/>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {showSug && query.length>=2 && suggestions.length===0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-md z-50 px-4 py-4 text-center text-xs text-slate-500 fade-up">
+                      Santri dengan nama "{query}" tidak ditemukan dalam data kelas.
+                    </div>
+                  )}
+                </div>
+
+                {students.length>0 ? (
+                  <div className="space-y-2 pt-1">
+                    <p className="text-xs font-semibold text-slate-600">{students.length} santri dipilih:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {students.map((s,i)=>(
+                        <div key={i}
+                          className="inline-flex items-center gap-2 pl-2.5 pr-2 py-1.5 bg-blue-50 border border-blue-200/80 rounded-xl text-xs font-semibold text-blue-900 scale-pop">
+                          <div className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                            {s.name.charAt(0)}
+                          </div>
+                          <span className="truncate max-w-[140px]">{s.name}</span>
+                          <span className="text-[10px] font-normal text-blue-700 bg-blue-100/80 px-1.5 py-0.5 rounded-md">{s.classLabel}</span>
+                          <button onClick={()=>setStudents(p=>p.filter((_,j)=>j!==i))}
+                            className="hover:text-rose-600 transition-colors p-0.5" aria-label="Hapus santri">
+                            <X className="w-3.5 h-3.5"/>
+                          </button>
                         </div>
-                        <span className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                          <Plus className="w-4 h-4"/>
-                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 py-8 text-center bg-slate-50/70 border border-dashed border-slate-200 rounded-xl">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+                      <Users className="w-5 h-5"/>
+                    </div>
+                    <p className="text-xs font-bold text-slate-600">Belum ada santri yang dipilih</p>
+                    <p className="text-[11px] text-slate-400">Cari nama santri pada kotak pencarian di atas</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Step 2: Jenis Izin ── */}
+            {step===2 && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Pilih Kategori Perizinan</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Pilih kategori yang sesuai dengan keperluan santri, lalu klik <strong>Lanjut</strong>.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {JENIS_OPTIONS.map((j)=>{
+                    const selected = jenis===j.key;
+                    return (
+                      <button key={j.key} type="button" onClick={()=>selectJenis(j.key)}
+                        className={`relative flex items-center gap-3.5 p-4 rounded-xl border-2 text-left transition-all btn-press
+                          ${selected ? "bg-blue-50/60 border-blue-600 ring-2 ring-blue-100 shadow-sm" : "bg-white border-slate-200 hover:border-slate-300"}`}>
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${j.gradient} flex items-center justify-center flex-shrink-0 text-white shadow-sm`}>
+                          {j.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-xs text-slate-900">{j.title}</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{j.subtitle}</p>
+                        </div>
+                        {selected && <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-blue-600"/>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className={`flex items-start gap-2.5 p-3.5 rounded-xl border text-xs font-medium
+                  ${approval.status==="APPROVED"?"bg-emerald-50 border-emerald-200 text-emerald-900":"bg-amber-50 border-amber-200 text-amber-900"}`}>
+                  {approval.status==="APPROVED"
+                    ?<CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-600"/>
+                    :<Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600"/>}
+                  <span><strong>{approval.status==="APPROVED"?"Otoritas Persetujuan:":"Status Alur: "}</strong> {approval.text}</span>
+                </div>
+              </div>
+            )}
+
+            {/* ── Step 3: Waktu & Keperluan ── */}
+            {step===3 && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Keperluan &amp; Jadwal Perizinan</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Lengkapi detail keperluan, tujuan, dan jam keluar-kembali santri.</p>
+                </div>
+
+                {/* Jenis badge */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800">
+                  <span className="text-blue-600">{jenisInfo.icon}</span>
+                  <span>{jenisInfo.title}</span>
+                  <button onClick={()=>nav(2,"back")} className="text-blue-600 hover:underline text-[11px] font-bold ml-1">Ganti</button>
+                </div>
+
+                {/* SOP notice for specific types */}
+                {jenis === "sakit" && (
+                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"/>
+                    <p>
+                      <strong>Koordinasi Poskestren Wajib:</strong> Pemulangan karena sakit harus atas rekomendasi Dokter/Petugas Poskestren.
+                    </p>
+                  </div>
+                )}
+
+                {jenis === "menginap" && (
+                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900">
+                    <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5"/>
+                    <p>
+                      <strong>Izin Menginap:</strong> Wewenang persetujuan izin bermalam di luar asrama berada pada Pamong Asrama / Wadir.
+                    </p>
+                  </div>
+                )}
+
+                {/* Quick fill chips */}
+                <div className="space-y-1.5">
+                  <p className="text-xs font-semibold text-slate-600">Pilihan Keperluan Cepat:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(jenis === "keluar-biasa"
+                      ? [
+                          {label:"Acara Keluarga", kep:"Menghadiri acara keluarga penting (pernikahan, lelayu, dsb)", tuj:"Rumah Orang Tua / Wali"},
+                          {label:"Keluarga Sakit", kep:"Keluarga inti sakit / kondisi keluarga mendesak", tuj:"Rumah Orang Tua / RS"},
+                          {label:"Keperluan Madrasah", kep:"Keperluan madrasah mendesak", tuj:"Lokasi Keperluan Madrasah"},
+                          {label:"Keperluan Mendesak", kep:"Keperluan mendesak yang harus keluar asrama", tuj:"Sesuai Lokasi Tujuan"},
+                        ]
+                      : jenis === "menginap"
+                      ? [
+                          {label:"Libur Semester", kep:"Pulang liburan semester ke rumah orang tua", tuj:"Rumah Orang Tua"},
+                          {label:"Acara Keluarga", kep:"Menghadiri acara penting keluarga", tuj:"Rumah Orang Tua / Wali"},
+                          {label:"Keperluan Medis", kep:"Pemeriksaan / pengobatan lanjutan yang tidak bisa selesai hari yang sama", tuj:"Rumah Sakit / Klinik"},
+                          {label:"Keluarga Mendesak", kep:"Keperluan keluarga mendesak / darurat", tuj:"Rumah Orang Tua"},
+                        ]
+                      : jenis === "kesehatan"
+                      ? [
+                          {label:"Kontrol Rutin", kep:"Kontrol kesehatan rutin / cek up (kembali hari yang sama)", tuj:"Klinik / Puskesmas Terdekat"},
+                          {label:"Gigi & Mulut", kep:"Pemeriksaan dan perawatan gigi", tuj:"Dokter Gigi / Klinik"},
+                          {label:"Pemeriksaan Mata", kep:"Pemeriksaan mata dan pembuatan kacamata", tuj:"Optik / Dokter Mata"},
+                          {label:"Rawat Jalan RS", kep:"Pemeriksaan di rumah sakit (kembali hari yang sama)", tuj:"RS PKU / RSUD Terdekat"},
+                        ]
+                      : [
+                          {label:"Rawat Rumah", kep:"Perawatan di rumah atas rekomendasi Dokter Poskestren", tuj:"Rumah Orang Tua"},
+                          {label:"Rawat Inap RS", kep:"Dirawat inap di rumah sakit atas rekomendasi Poskestren", tuj:"RS PKU / RSUD Terdekat"},
+                          {label:"Tindakan Medis", kep:"Menjalani operasi / tindakan medis berdasar rekomendasi Poskestren", tuj:"Rumah Sakit"},
+                          {label:"Observasi", kep:"Observasi kondisi kesehatan pasca sakit", tuj:"Rumah Orang Tua / Wali"},
+                        ]
+                    ).map(c=>(
+                      <button key={c.label} type="button"
+                        onClick={()=>{setKeperluan(c.kep);setTujuan(c.tuj);}}
+                        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors btn-press">
+                        {c.label}
                       </button>
                     ))}
                   </div>
-                )}
-                {showSug && query.length>=2 && suggestions.length===0 && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-border rounded-2xl shadow-md z-50 px-4 py-4 text-center text-sm text-muted-foreground fade-up">
-                    Nama "{query}" tidak ditemukan dalam data
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label required>Detail Keperluan</Label>
+                    <Input value={keperluan} onChange={e=>setKeperluan(e.target.value)}
+                      placeholder={jenis==="keluar-biasa"?"Misal: acara keluarga, keperluan penting...":jenis==="menginap"?"Misal: acara keluarga, liburan semester...":jenis==="kesehatan"?"Misal: kontrol gigi, periksa mata...":"Misal: dirawat di rumah sakit..."}/>
+                  </div>
+                  <div>
+                    <Label required>Tempat Tujuan</Label>
+                    <Input value={tujuan} onChange={e=>setTujuan(e.target.value)}
+                      placeholder={jenis==="keluar-biasa"?"Misal: Rumah Orang Tua, Toko Buku...":jenis==="menginap"?"Misal: Rumah Orang Tua di Solo...":jenis==="kesehatan"?"Misal: RS PKU Gamping...":"Misal: RS PKU / Rumah Orang Tua..."}/>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label required>Tanggal Keluar</Label>
+                    <Input type="date" value={tglKeluar} onChange={e=>setTglKeluar(e.target.value)}/>
+                  </div>
+                  {overnight ? (
+                    <div>
+                      <Label required>Tanggal Kembali</Label>
+                      <Input type="date" min={tglKeluar} value={tglKembali} onChange={e=>setTglKembali(e.target.value)}/>
+                    </div>
+                  ) : (
+                    <div>
+                      <Label>Durasi</Label>
+                      <div className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center text-xs font-bold text-slate-700">
+                        {duration || "Hari yang sama"}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label required>Jam Keluar</Label>
+                    <SelectField value={jamKeluar} onChange={e=>setJamKeluar(e.target.value)}>
+                      {TIME_SLOTS.map(t=><option key={t} value={t}>{t} WIB</option>)}
+                    </SelectField>
+                  </div>
+                  <div>
+                    <Label required>Jam Kembali</Label>
+                    <SelectField value={jamKembali} onChange={e=>setJamKembali(e.target.value)}>
+                      {TIME_SLOTS.map(t=><option key={t} value={t}>{t} WIB</option>)}
+                    </SelectField>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Step 4: Data Wali & Penjemput ── */}
+            {step===4 && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Data Wali &amp; Penjemput Santri</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Pastikan identitas penanggung jawab santri telah terisi benar.</p>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label required>Nama Wali Santri</Label>
+                    <Input value={namaWali} onChange={e=>setNamaWali(e.target.value)} placeholder="Contoh: Bapak/Ibu Ahmad"/>
+                  </div>
+                  <div>
+                    <Label required>Kota Asal / Alamat</Label>
+                    <Input value={alamatWali} onChange={e=>setAlamatWali(e.target.value)} placeholder="Contoh: Yogyakarta / Solo / Jakarta"/>
+                  </div>
+                </div>
+
+                {/* Toggle Penjemput */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Penjemput berbeda dengan Wali?</p>
+                    <p className="text-[11px] text-slate-500">Aktifkan jika santri dijemput oleh pihak lain / keluarga selain wali</p>
+                  </div>
+                  <button type="button" onClick={()=>setBedaPenjemput(p=>!p)}
+                    className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${bedaPenjemput ? "bg-primary" : "bg-slate-300"}`}>
+                    <span className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${bedaPenjemput ? "translate-x-5" : "translate-x-0"}`}/>
+                  </button>
+                </div>
+
+                {bedaPenjemput && (
+                  <div className="grid sm:grid-cols-2 gap-3 fade-up">
+                    <div>
+                      <Label required>Nama Penjemput</Label>
+                      <Input value={namaPenjemput} onChange={e=>setNamaPenjemput(e.target.value)} placeholder="Nama penjemput..."/>
+                    </div>
+                    <div>
+                      <Label required>Hubungan Penjemput</Label>
+                      <SelectField value={hubungan} onChange={e=>setHubungan(e.target.value)}>
+                        <option>Orang Tua (Ayah/Ibu)</option>
+                        <option>Keluarga / Saudara Kandung</option>
+                        <option>Wali Santri</option>
+                        <option>Travel / Layanan Jemputan</option>
+                        <option>Lainnya</option>
+                      </SelectField>
+                    </div>
                   </div>
                 )}
-              </div>
 
-              {students.length>0 ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground">{students.length} santri dipilih:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {students.map((s,i)=>(
-                      <div key={i}
-                        className="inline-flex items-center gap-2 pl-3 pr-2 py-2 bg-primary/8 border border-primary/20 rounded-xl text-sm font-semibold text-primary scale-pop"
-                        style={{"--delay":`${i*0.04}s`} as React.CSSProperties}>
-                        <div className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">
-                          {s.name.charAt(0)}
-                        </div>
-                        <span className="truncate max-w-[130px]">{s.name}</span>
-                        <span className="text-[10px] font-normal text-primary/60 bg-primary/10 px-1.5 py-0.5 rounded-md">{s.classLabel}</span>
-                        <button onClick={()=>setStudents(p=>p.filter((_,j)=>j!==i))}
-                          className="hover:text-rose-500 transition-colors"><X className="w-3.5 h-3.5"/></button>
+                {/* Ringkasan Pengajuan */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50/90 overflow-hidden">
+                  <div className="px-4 py-2.5 bg-slate-100 border-b border-slate-200 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-600"/>
+                    <span className="text-xs font-bold text-slate-900">Ringkasan Surat Perizinan</span>
+                  </div>
+                  <div className="p-4 space-y-2 text-xs">
+                    {[
+                      ["Santri", students.map(s=>s.name).join(", ")],
+                      ["Jenis Izin", jenisInfo.title],
+                      ["Keperluan", keperluan],
+                      ["Tujuan", tujuan],
+                      ["Waktu Keluar", `${fmtDate(tglKeluar)} — ${jamKeluar} WIB`],
+                      ["Waktu Kembali", overnight ? `${fmtDate(tglKembali||tglKeluar)} — ${jamKembali} WIB` : `${jamKembali} WIB`],
+                      ["Status Izin", approval.status==="APPROVED" ? "Disetujui Langsung (e-Pass Terbit)" : "Menunggu ACC Musyrif/Pamong"],
+                    ].map(([k,v])=>(
+                      <div key={k} className="flex gap-2">
+                        <span className="text-slate-500 w-24 flex-shrink-0 font-medium">{k}:</span>
+                        <span className="font-semibold text-slate-900 break-words flex-1">{v}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2 py-8 text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-slate-300"/>
-                  </div>
-                  <p className="text-sm font-semibold text-muted-foreground">Belum ada santri dipilih</p>
-                  <p className="text-xs text-slate-300">Ketik nama di atas untuk mencari</p>
-                </div>
-              )}
-            </>}
-
-            {/* ── Step 2 ── */}
-            {step===2 && <>
-              <div>
-                <h3 className="font-bold text-sm text-foreground">Apa keperluan izinnya?</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {autoAdvancing ? "Melanjutkan ke langkah berikutnya..." : "Pilih salah satu — akan otomatis lanjut."}
-                </p>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {JENIS_OPTIONS.map((j,i)=>{
-                  const selected = jenis===j.key;
-                  return (
-                    <button key={j.key} type="button" onClick={()=>selectJenis(j.key)}
-                      style={{"--delay":`${i*0.06}s`} as React.CSSProperties}
-                      className={`fade-up relative flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 btn-press
-                        ${selected ? `${j.bg} ${j.border} shadow-sm ring-2 ${j.ring}` : "bg-white border-border hover:border-slate-300 hover:shadow-sm"}`}>
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${j.gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                        <span className="text-white">{j.icon}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`font-bold text-sm ${selected?j.color:"text-foreground"}`}>{j.title}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{j.subtitle}</p>
-                      </div>
-                      {selected && <Check className={`w-5 h-5 flex-shrink-0 ${j.color}`}/>}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className={`flex items-start gap-3 p-3.5 rounded-2xl border text-xs font-medium
-                ${approval.status==="APPROVED"?"bg-emerald-50 border-emerald-200 text-emerald-800":"bg-amber-50 border-amber-200 text-amber-800"}`}>
-                {approval.status==="APPROVED"
-                  ?<CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5"/>
-                  :<Clock className="w-4 h-4 flex-shrink-0 mt-0.5"/>}
-                <span><strong>{approval.status==="APPROVED"?"Langsung Disetujui:":"Status Menunggu:"}</strong> {approval.text}</span>
-              </div>
-            </>}
-
-            {/* ── Step 3 ── */}
-            {step===3 && <>
-              <div>
-                <h3 className="font-bold text-sm text-foreground">Kapan &amp; ke mana?</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Keperluan, tujuan, dan jadwal keluar.</p>
-              </div>
-
-              {/* Jenis badge */}
-              <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ${jenisInfo.bg} ${jenisInfo.border} border`}>
-                <span className={jenisInfo.color}>{jenisInfo.icon}</span>
-                <span className={`text-xs font-bold ${jenisInfo.color}`}>{jenisInfo.title}</span>
-                <button onClick={()=>nav(2,"back")} className={`text-xs underline ${jenisInfo.color} opacity-60 hover:opacity-100`}>Ganti</button>
-              </div>
-
-              {/* Peringatan SOP: sakit wajib Poskestren */}
-              {jenis === "sakit" && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-2xl bg-amber-50 border border-amber-200">
-                  <span className="text-amber-500 mt-0.5 flex-shrink-0">⚠️</span>
-                  <div>
-                    <p className="text-xs font-bold text-amber-800">Wajib Koordinasi Poskestren</p>
-                    <p className="text-xs text-amber-700 mt-0.5">
-                      Sesuai SOP, pemulangan karena sakit <strong>harus dikoordinasikan dengan Poskestren / Dokter</strong> terlebih dahulu. Musyrif & Pamong tidak diperbolehkan memulangkan tanpa persetujuan Poskestren.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Peringatan SOP: menginap hanya Pamong/Wadir */}
-              {jenis === "menginap" && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-2xl bg-blue-50 border border-blue-200">
-                  <span className="text-blue-500 mt-0.5 flex-shrink-0">ℹ️</span>
-                  <div>
-                    <p className="text-xs font-bold text-blue-800">Perlu Persetujuan Pamong / Wadir</p>
-                    <p className="text-xs text-blue-700 mt-0.5">
-                      Sesuai SOP, izin pulang/menginap <strong>hanya dapat diberikan oleh Pamong atau Wadir</strong>. Musyrif tidak berwenang memberikan izin jenis ini.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Quick fill */}
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground">Isi cepat:</p>
-                <div className="flex flex-wrap gap-2">
-                  {(jenis === "keluar-biasa"
-                    ? [
-                        // SOP: keluar biasa hanya untuk keperluan urgent/penting/darurat
-                        {label:"Acara Keluarga",   kep:"Menghadiri acara keluarga penting (pernikahan, lelayu, dsb)", tuj:"Rumah Orang Tua / Wali"},
-                        {label:"Keluarga Sakit",   kep:"Keluarga inti sakit / kondisi keluarga mendesak",             tuj:"Rumah Orang Tua / RS"},
-                        {label:"Keperluan Madrasah",kep:"Keperluan madrasah mendesak yang harus dilaksanakan saat ini",tuj:"Lokasi Keperluan Madrasah"},
-                        {label:"Kondisi Darurat",  kep:"Keadaan darurat yang mengharuskan keluar segera",             tuj:"Sesuai Keperluan Darurat"},
-                      ]
-                    : jenis === "menginap"
-                    ? [
-                        {label:"Libur Semester",   kep:"Pulang liburan semester ke rumah orang tua",           tuj:"Rumah Orang Tua"},
-                        {label:"Acara Keluarga",   kep:"Menghadiri acara penting keluarga",                    tuj:"Rumah Orang Tua / Wali"},
-                        {label:"Keperluan Medis",  kep:"Pemeriksaan / pengobatan lanjutan yang tidak bisa selesai hari yang sama", tuj:"Rumah Sakit / Klinik"},
-                        {label:"Kondisi Darurat",  kep:"Keperluan keluarga mendesak / darurat",                tuj:"Rumah Orang Tua"},
-                      ]
-                    : jenis === "kesehatan"
-                    ? [
-                        {label:"Kontrol Rutin",    kep:"Kontrol kesehatan rutin / cek up (kembali hari yang sama)", tuj:"Klinik / Puskesmas Terdekat"},
-                        {label:"Gigi & Mulut",     kep:"Pemeriksaan dan perawatan gigi",                       tuj:"Dokter Gigi / Klinik"},
-                        {label:"Mata",             kep:"Pemeriksaan mata dan kacamata",                        tuj:"Optik / Dokter Mata"},
-                        {label:"Rawat Jalan RS",   kep:"Pemeriksaan dan pengobatan di rumah sakit (kembali hari yang sama)", tuj:"RS PKU / RSUD Terdekat"},
-                      ]
-                    : /* sakit — wajib koordinasi Poskestren */[
-                        {label:"Rawat Rumah",      kep:"Perawatan di rumah atas rekomendasi Dokter Poskestren",  tuj:"Rumah Orang Tua"},
-                        {label:"Rawat Inap RS",    kep:"Dirawat inap di rumah sakit atas rekomendasi Poskestren",tuj:"RS PKU / RSUD Terdekat"},
-                        {label:"Operasi",          kep:"Menjalani operasi / tindakan medis (sudah koordinasi Poskestren)", tuj:"Rumah Sakit"},
-                        {label:"Observasi",        kep:"Observasi kondisi kesehatan pasca sakit",               tuj:"Rumah Orang Tua / Wali"},
-                      ]
-                  ).map(c=>(
-                    <button key={c.label} type="button"
-                      onClick={()=>{setKeperluan(c.kep);setTujuan(c.tuj);}}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-border bg-white hover:bg-primary/8 hover:border-primary/30 hover:text-primary transition-all btn-press">
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div><Label required>Detail Keperluan</Label><Input value={keperluan} onChange={e=>setKeperluan(e.target.value)}
-                  placeholder={jenis==="keluar-biasa"?"Misal: beli alat tulis, cukur rambut...":jenis==="menginap"?"Misal: acara keluarga, libur semester...":jenis==="kesehatan"?"Misal: kontrol gigi, periksa mata...":"Misal: dirawat RS, rawat rumah..."}/></div>
-                <div><Label required>Tempat Tujuan</Label><Input value={tujuan} onChange={e=>setTujuan(e.target.value)}
-                  placeholder={jenis==="keluar-biasa"?"Misal: Minimarket, Toko Alat Tulis...":jenis==="menginap"?"Misal: Rumah Orang Tua, Yogyakarta...":jenis==="kesehatan"?"Misal: RS PKU, Klinik Pratama...":"Misal: RS PKU, Rumah Orang Tua..."}/></div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label>Tanggal Keluar</Label><Input type="date" value={tglKeluar} onChange={e=>setTglKeluar(e.target.value)}/></div>
-                {overnight && <div><Label>Tanggal Kembali</Label><Input type="date" min={tglKeluar} value={tglKembali} onChange={e=>setTglKembali(e.target.value)}/></div>}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Jam Keluar</Label>
-                  <SelectField value={jamKeluar} onChange={e=>setJamKeluar(e.target.value)}>
-                    {TIME_SLOTS.map(t=><option key={t} value={t}>{t} WIB</option>)}
-                  </SelectField>
-                </div>
-                <div>
-                  <Label>Jam Kembali</Label>
-                  <SelectField value={jamKembali} onChange={e=>setJamKembali(e.target.value)}>
-                    {TIME_SLOTS.map(t=><option key={t} value={t}>{t} WIB</option>)}
-                  </SelectField>
-                </div>
-              </div>
-
-              {duration && (
-                <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/15 rounded-2xl">
-                  <span className="text-sm text-muted-foreground font-medium">Durasi izin:</span>
-                  <span className="text-sm font-extrabold text-primary">{duration}</span>
-                </div>
-              )}
-            </>}
-
-            {/* ── Step 4 ── */}
-            {step===4 && <>
-              <div>
-                <h3 className="font-bold text-sm text-foreground">Data wali &amp; penjemput</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Siapa yang bertanggung jawab menjemput santri?</p>
-              </div>
-
-              <div className="space-y-3">
-                <div><Label required>Nama Wali</Label><Input value={namaWali} onChange={e=>setNamaWali(e.target.value)} placeholder="Bapak / Ibu..."/></div>
-                <div><Label required>Alamat / Kota</Label><Input value={alamatWali} onChange={e=>setAlamatWali(e.target.value)} placeholder="Yogyakarta / Solo..."/></div>
-              </div>
-
-              {/* Toggle penjemput beda */}
-              <label className="flex items-center justify-between px-4 py-3.5 bg-slate-50 border border-border rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Penjemput berbeda dengan wali?</p>
-                  <p className="text-xs text-muted-foreground">Aktifkan jika yang menjemput bukan wali santri</p>
-                </div>
-                <div className={`w-12 h-6 rounded-full relative transition-colors ${bedaPenjemput?"bg-primary":"bg-slate-200"}`}
-                  onClick={()=>setBedaPenjemput(p=>!p)}>
-                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${bedaPenjemput?"left-7":"left-1"}`}/>
-                </div>
-              </label>
-
-              {bedaPenjemput && (
-                <div className="grid sm:grid-cols-2 gap-3 fade-up">
-                  <div><Label>Nama Penjemput</Label><Input value={namaPenjemput} onChange={e=>setNamaPenjemput(e.target.value)} placeholder="Nama penjemput..."/></div>
-                  <div>
-                    <Label>Hubungan</Label>
-                    <SelectField value={hubungan} onChange={e=>setHubungan(e.target.value)}>
-                      <option>Orang Tua (Ayah/Ibu)</option>
-                      <option>Wali / Keluarga</option>
-                      <option>Saudara Kandung</option>
-                      <option>Travel / Kendaraan Online</option>
-                      <option>Lainnya</option>
-                    </SelectField>
-                  </div>
-                </div>
-              )}
-
-              {/* Summary card */}
-              <div className="rounded-2xl border border-border bg-slate-50 overflow-hidden">
-                <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary"/>
-                  <span className="text-xs font-bold text-foreground">Ringkasan Surat Izin</span>
-                </div>
-                <div className="px-4 py-3 space-y-1.5 text-xs">
-                  {[
-                    ["Santri",    students.map(s=>s.name).join(", ")],
-                    ["Jenis",     jenisInfo.title],
-                    ["Keperluan", keperluan],
-                    ["Tujuan",    tujuan],
-                    ["Keluar",    `${fmtDate(tglKeluar)} — ${jamKeluar} WIB`],
-                    ["Kembali",   overnight?`${fmtDate(tglKembali||tglKeluar)} — ${jamKembali} WIB`:`${jamKembali} WIB`],
-                    ["Status",    approval.status==="APPROVED"?"✅ Langsung Disetujui":"⏳ Menunggu ACC Ustadz"],
-                  ].map(([k,v])=>(
-                    <div key={k} className="flex gap-2">
-                      <span className="text-muted-foreground w-20 flex-shrink-0 font-medium">{k}:</span>
-                      <span className="font-semibold text-foreground break-words">{v}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>}
+            )}
 
           </div>{/* /step content */}
 
-          {/* Error */}
+          {/* Error Message banner */}
           {error && (
-            <div className="mx-5 mb-2">
-              <div className="flex items-center gap-2 px-4 py-3 bg-rose-50 border border-rose-200 rounded-2xl text-sm text-rose-700 font-medium fade-up">
-                <AlertCircle className="w-4 h-4 flex-shrink-0"/> {error}
+            <div className="mx-6 mb-3">
+              <div className="flex items-center gap-2 px-3.5 py-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold fade-up">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600"/>
+                <span>{error}</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Nav buttons */}
-        <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-slate-50/50">
+        {/* Footer Nav buttons */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/60">
           <button type="button" onClick={goBack}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-2xl border border-border bg-white hover:bg-muted transition-colors btn-press">
-            <ArrowLeft className="w-4 h-4"/>{step===1?"Batal":"Kembali"}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition-colors btn-press">
+            <ArrowLeft className="w-4 h-4"/>
+            <span>{step===1 ? "Batal" : "Kembali"}</span>
           </button>
-          {step<4
-            ? <button type="button" onClick={goNext} disabled={step===1&&students.length===0}
-                className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-2xl bg-primary text-white hover:bg-blue-700 transition-colors btn-press disabled:opacity-40"
-                style={{boxShadow:"0 2px 12px -2px rgba(37,99,235,0.35)"}}>
-                Lanjut <ChevronRight className="w-4 h-4"/>
-              </button>
-            : <button type="button" onClick={handleSubmit} disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-2xl bg-primary text-white hover:bg-blue-700 transition-colors btn-press disabled:opacity-40"
-                style={{boxShadow:"0 2px 12px -2px rgba(37,99,235,0.35)"}}>
-                {submitting?<><RefreshCw className="w-4 h-4 animate-spin"/>Menyimpan...</>:<><Send className="w-4 h-4"/>Terbitkan Izin</>}
-              </button>
-          }
+          
+          {step<4 ? (
+            <button type="button" onClick={goNext} disabled={step===1&&students.length===0}
+              className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold rounded-xl bg-primary text-white hover:bg-blue-700 transition-colors btn-press disabled:opacity-40 shadow-sm">
+              <span>Lanjut</span>
+              <ChevronRight className="w-4 h-4"/>
+            </button>
+          ) : (
+            <button type="button" onClick={handleSubmit} disabled={submitting}
+              className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold rounded-xl bg-primary text-white hover:bg-blue-700 transition-colors btn-press disabled:opacity-40 shadow-sm">
+              {submitting ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin"/>
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4"/>
+                  <span>Terbitkan Surat Izin</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -2026,7 +2179,6 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
           }
         });
 
-        // GSI width must be px value (not %) — use container actual width capped at 400
         const containerWidth = Math.min(btnContainer.offsetWidth || 360, 400);
         (window as any).google.accounts.id.renderButton(btnContainer, {
           theme: "outline",
@@ -2043,29 +2195,29 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
 
   return (
     <div className="max-w-md mx-auto px-4 py-8">
-      <div className="bg-white rounded-3xl border border-border overflow-hidden" style={{boxShadow:"0 8px 32px -8px rgba(15,23,42,0.12)"}}>
-        <div className="px-6 py-6 bg-gradient-to-br from-slate-900 to-indigo-950 text-white">
-          <button onClick={()=>setPage("home")} className="flex items-center gap-1 text-xs text-white/50 hover:text-white mb-4 transition-colors">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-6 bg-slate-900 text-white">
+          <button onClick={()=>setPage("home")} className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white mb-3 transition-colors btn-press">
             <ArrowLeft className="w-3.5 h-3.5"/> Beranda
           </button>
-          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-3">
-            <ShieldCheck className="w-6 h-6 text-blue-300"/>
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-3">
+            <ShieldCheck className="w-5 h-5 text-blue-300"/>
           </div>
-          <h3 className="font-extrabold text-lg">Pusat Akses &amp; Login</h3>
-          <p className="text-sm text-blue-300 mt-1">Pilih tipe akses akun perizinan asrama</p>
+          <h3 className="font-extrabold text-lg text-white">Pusat Akses &amp; Login</h3>
+          <p className="text-xs text-slate-300 mt-0.5">Pilih tipe akses akun perizinan santri asrama</p>
         </div>
 
         {/* Tab Selector */}
-        <div className="p-2 bg-slate-100 border-b border-border flex gap-1">
+        <div className="p-1.5 bg-slate-100 border-b border-slate-200 flex gap-1">
           <button
             onClick={() => setLoginTab("wali")}
-            className={`flex-1 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${loginTab === "wali" ? "bg-white text-blue-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${loginTab === "wali" ? "bg-white text-blue-700 shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
           >
             <Users className="w-4 h-4 text-blue-600" /> Wali Santri
           </button>
           <button
             onClick={() => setLoginTab("ustadz")}
-            className={`flex-1 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${loginTab === "ustadz" ? "bg-white text-blue-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${loginTab === "ustadz" ? "bg-white text-emerald-800 shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
           >
             <ShieldCheck className="w-4 h-4 text-emerald-600" /> Ustadz / Pamong
           </button>
@@ -2075,12 +2227,12 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
           {loginTab === "wali" ? (
             /* WALI SANTRI LOGIN TAB */
             <div className="space-y-4 fade-up">
-              <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl text-xs text-blue-900 space-y-1">
+              <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs text-blue-950 space-y-1">
                 <p className="font-bold flex items-center gap-1">
-                  👨‍👩‍👦 Akses Khusus Wali Santri
+                  Akses Khusus Wali Santri
                 </p>
-                <p className="text-[11px] text-blue-800">
-                  Cari dan pilih nama santri putra Anda untuk melihat riwayat izin dan membuka tiket keluar asrama (e-Pass) secara otomatis.
+                <p className="text-[11px] text-blue-800 leading-relaxed">
+                  Cari dan pilih nama santri putra Anda untuk memantau status surat izin dan membuka tiket digital (e-Pass).
                 </p>
               </div>
 
@@ -2099,10 +2251,10 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
                       }
                     }}
                     placeholder="Ketik minimal 2 huruf nama santri..."
-                    className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="w-full pl-9 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
                   />
                   {searchSantri && (
-                    <button onClick={() => { setSearchSantri(""); setSelectedSantri(null); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                    <button onClick={() => { setSearchSantri(""); setSelectedSantri(null); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                       <X className="w-4 h-4" />
                     </button>
                   )}
@@ -2110,7 +2262,7 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
 
                 {/* Autocomplete Dropdown */}
                 {searchSantri.length >= 2 && !selectedSantri && (
-                  <div className="mt-1 bg-white border border-slate-200 rounded-2xl shadow-lg max-h-48 overflow-y-auto divide-y divide-slate-100 fade-up z-20 relative">
+                  <div className="mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto divide-y divide-slate-100 fade-up z-20 relative">
                     {santriResults.length === 0 ? (
                       <p className="p-3 text-xs text-slate-500 text-center">Nama santri tidak ditemukan.</p>
                     ) : (
@@ -2122,7 +2274,7 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
                             setSelectedSantri(s);
                             setSearchSantri(s.name);
                           }}
-                          className="w-full px-3.5 py-2 text-left hover:bg-blue-50 flex items-center justify-between transition-colors"
+                          className="w-full px-3.5 py-2.5 text-left hover:bg-blue-50/70 flex items-center justify-between transition-colors"
                         >
                           <span className="text-xs font-bold text-slate-900">{s.name}</span>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800">
@@ -2137,9 +2289,9 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
 
               {/* Selected Santri Badge */}
               {selectedSantri && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between fade-up">
+                <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center justify-between fade-up">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
                       {selectedSantri.name.charAt(0)}
                     </div>
                     <div>
@@ -2159,14 +2311,14 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
                   value={namaWaliInput}
                   onChange={(e) => setNamaWaliInput(e.target.value)}
                   placeholder="Contoh: Bapak/Ibu Ahmad"
-                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
                 />
               </div>
 
               <button
                 onClick={handleWaliLogin}
                 disabled={!selectedSantri}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-2xl transition-colors btn-press shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-primary hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all btn-press shadow-sm disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <Users className="w-4 h-4" />
                 <span>Masuk &amp; Buka Riwayat Santri</span>
@@ -2175,22 +2327,22 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
           ) : (
             /* USTADZ / PAMONG LOGIN TAB */
             <div className="space-y-4 fade-up">
-              <div className="p-3.5 bg-slate-50 rounded-2xl text-xs text-muted-foreground space-y-1 border border-border">
-                <p><strong className="text-foreground">Musyrif / Pamong:</strong> Wajib login dengan email Google yang terdaftar untuk menyetujui (ACC) atau menolak izin.</p>
+              <div className="p-3.5 bg-slate-50 rounded-xl text-xs text-slate-600 space-y-1 border border-slate-200">
+                <p><strong className="text-slate-900">Musyrif / Pamong:</strong> Gunakan akun Google yang terdaftar resmi untuk menyetujui (ACC) atau menolak izin santri.</p>
               </div>
 
               <div className="space-y-3">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">Login Autentikasi Google</p>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Autentikasi Akun Google</p>
                 <div id="google-signin-btn" className="w-full flex justify-center min-h-[44px]" style={{minWidth:"280px"}}></div>
               </div>
 
-              <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-2xl text-xs text-blue-900 space-y-1">
+              <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-xl text-xs text-blue-900 space-y-1">
                 <p className="font-semibold flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0"/> Ketentuan Hak Akses Pengurus:
+                  <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0"/> Hak Akses Pengurus:
                 </p>
                 <ul className="list-disc pl-4 text-[11px] text-blue-800 space-y-0.5">
-                  <li>Gunakan email Google resmi yang terdaftar sebagai <strong>Musyrif Kelas</strong> atau <strong>Pamong Asrama</strong>.</li>
-                  <li>Sistem otomatis mencocokkan email dengan whitelist server untuk menentukan hak persetujuan perizinan (ACC).</li>
+                  <li>Email otomatis divalidasi dengan whitelist resmi Musyrif Kelas &amp; Pamong Asrama.</li>
+                  <li>Musyrif berwenang ACC izin keluar biasa &amp; periksa kesehatan. Pamong berwenang ACC seluruh izin termasuk menginap.</li>
                 </ul>
               </div>
             </div>
@@ -2201,7 +2353,7 @@ function PageLogin({ setPage, onLogin }: { setPage:(p:PageId)=>void; onLogin:(u:
   );
 }
 
-// ─── Page: Pass ─────────────────────────────────────────────────
+// ─── Page: Pass (Digital Permit Pass) ───────────────────────────
 function PagePass({ passData, setPage, currentUser }: { 
   passData:IzinRecord|null; 
   setPage:(p:PageId)=>void; 
@@ -2211,55 +2363,47 @@ function PagePass({ passData, setPage, currentUser }: {
 
   const isPengurus = !!currentUser && (currentUser.role === "musyrif" || currentUser.role === "pamong" || currentUser.role === "admin");
 
-  function shareWA() {
-    const t = `*SURAT IZIN SEDAYU RESMI*\n\n*ID:* ${passData!.idIzin}\n*Santri:* ${passData!.namaSantri} (${passData!.kelas})\n*Jenis:* ${passData!.jenisIzin}\n*Wali:* ${passData!.namaWali}\n*Keperluan:* ${passData!.keperluan}\n*Tujuan:* ${passData!.tujuan}\n*Keluar:* ${fmtDateLong(passData!.tanggalKeluar)} — ${fmtTime(passData!.jamKeluar)}\n*Kembali:* ${fmtDateLong(passData!.tanggalKembali)} — ${fmtTime(passData!.jamKembali)}\n*Status:* ${passData!.status}\n\n_Diterbitkan via Izin Sedayu — Mu'allimin Yogyakarta_`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(t)}`,"_blank");
-  }
-
   const isApproved = passData.status === "APPROVED";
   const isRejected = passData.status === "REJECTED";
   const isReturned = passData.status === "RETURNED";
   const isPending  = passData.status === "PENDING";
 
   return (
-    <div className="max-w-sm mx-auto px-4 py-6">
+    <div className="max-w-md mx-auto px-4 py-6 space-y-4">
+
+      {/* Back button */}
+      <button onClick={()=>setPage("history")} className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors btn-press">
+        <ArrowLeft className="w-4 h-4"/> Kembali ke Riwayat
+      </button>
 
       {/* Status banner */}
-      <div className={`mb-4 flex items-center gap-3 p-4 rounded-2xl scale-pop
-        ${isApproved ? "bg-emerald-50 border border-emerald-200" :
-          isRejected ? "bg-rose-50 border border-rose-200" :
-          isReturned ? "bg-blue-50 border border-blue-200" :
-          "bg-amber-50 border border-amber-200"}`}>
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
-          ${isApproved ? "bg-emerald-100" :
-            isRejected ? "bg-rose-100" :
-            isReturned ? "bg-blue-100" :
-            "bg-amber-100"}`}>
-          {isApproved ? <CheckCircle2 className="w-5 h-5 text-emerald-600"/> :
-           isRejected ? <XCircle className="w-5 h-5 text-rose-600"/> :
-           isReturned ? <Check className="w-5 h-5 text-blue-600"/> :
-           <Clock className="w-5 h-5 text-amber-600"/>}
+      <div className={`flex items-center gap-3 p-4 rounded-xl border scale-pop
+        ${isApproved ? "bg-emerald-50 border-emerald-200 text-emerald-950" :
+          isRejected ? "bg-rose-50 border-rose-200 text-rose-950" :
+          isReturned ? "bg-blue-50 border-blue-200 text-blue-950" :
+          "bg-amber-50 border-amber-200 text-amber-950"}`}>
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0
+          ${isApproved ? "bg-emerald-600 text-white" :
+            isRejected ? "bg-rose-600 text-white" :
+            isReturned ? "bg-blue-600 text-white" :
+            "bg-amber-600 text-white"}`}>
+          {isApproved ? <CheckCircle2 className="w-5 h-5"/> :
+           isRejected ? <XCircle className="w-5 h-5"/> :
+           isReturned ? <Check className="w-5 h-5"/> :
+           <Clock className="w-5 h-5"/>}
         </div>
-        <div>
-          <p className={`font-bold text-sm ${
-            isApproved ? "text-emerald-900" :
-            isRejected ? "text-rose-900" :
-            isReturned ? "text-blue-900" :
-            "text-amber-900"}`}>
-            {isApproved ? "Izin Disetujui (e-Pass Resmi)" :
+        <div className="min-w-0">
+          <p className="font-bold text-xs">
+            {isApproved ? "Izin Disetujui (e-Pass Resmi Terbit)" :
              isRejected ? "Permohonan Izin Ditolak" :
-             isReturned ? "Santri Telah Kembali" :
-             "Pengajuan Terkirim (Menunggu ACC)"}
+             isReturned ? "Santri Telah Kembali ke Asrama" :
+             "Menunggu Persetujuan (ACC)"}
           </p>
-          <p className={`text-xs ${
-            isApproved ? "text-emerald-600" :
-            isRejected ? "text-rose-600" :
-            isReturned ? "text-blue-600" :
-            "text-amber-600"}`}>
-            {isApproved ? "Santri dapat keluar sesuai jadwal" :
+          <p className="text-[11px] opacity-80 mt-0.5 truncate">
+            {isApproved ? "Santri diizinkan keluar asrama sesuai jadwal" :
              isRejected ? (passData.catatanAdmin || "Izin tidak disetujui oleh ustadz") :
              isReturned ? "Telah tercatat kembali ke asrama" :
-             "Menunggu persetujuan Ustadz Musyrif/Pamong"}
+             "Menunggu konfirmasi Ustadz Musyrif / Pamong"}
           </p>
         </div>
       </div>
@@ -2267,48 +2411,43 @@ function PagePass({ passData, setPage, currentUser }: {
       {/* Official pass card */}
       <div 
         id="official-pass-card"
-        className="bg-white rounded-3xl border border-border overflow-hidden"
-        style={{boxShadow:"0 8px 32px -8px rgba(15,23,42,0.15)"}}>
+        className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
         {/* Card header */}
-        <div className="relative px-5 py-4 overflow-hidden"
-          style={{background: isRejected ? "linear-gradient(135deg,#881337,#4c0519)" : isPending ? "linear-gradient(135deg,#78350f,#451a03)" : "linear-gradient(135deg,#0f172a,#1e3a8a)"}}>
-          {/* Subtle pattern */}
-          <div className="absolute inset-0 opacity-10"
-            style={{backgroundImage:`url("data:image/svg+xml,%3Csvg width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='white'/%3E%3C/svg%3E")`}}/>
-          <div className="relative flex items-center justify-between">
+        <div className="px-5 py-4 bg-slate-900 text-white">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white"/>
+              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-blue-300"/>
               </div>
               <div>
-                <p className="text-[9px] font-bold tracking-widest text-blue-300 uppercase">Madrasah Mu'allimin</p>
-                <p className="text-sm font-extrabold text-white tracking-tight">
+                <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">Madrasah Mu'allimin</p>
+                <p className="text-sm font-extrabold text-white">
                   {isApproved ? "SURAT IZIN RESMI (e-PASS)" : isPending ? "BUKTI PENGAJUAN IZIN" : "SURAT PERIZINAN"}
                 </p>
               </div>
             </div>
             <StatusBadge status={passData.status} size="md"/>
           </div>
-          <p className="relative mt-2 font-mono text-xs text-blue-300 opacity-80">{passData.idIzin}</p>
+          <p className="mt-2 font-mono text-[11px] text-blue-300">{passData.idIzin}</p>
         </div>
 
         {/* Main content */}
-        <div className="px-5 py-4 space-y-4">
+        <div className="p-5 space-y-4">
 
           {/* Santri highlight */}
-          <div className="flex items-center gap-3 p-3.5 bg-slate-50 rounded-2xl border border-border">
-            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-extrabold text-lg flex items-center justify-center flex-shrink-0">
+          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-extrabold text-sm flex items-center justify-center flex-shrink-0">
               {passData.namaSantri.charAt(0)}
             </div>
             <div className="min-w-0">
-              <p className="font-extrabold text-sm text-foreground truncate">{passData.namaSantri}</p>
-              <p className="text-xs text-muted-foreground">{passData.kelas}</p>
+              <p className="font-extrabold text-xs text-slate-900 truncate">{passData.namaSantri}</p>
+              <p className="text-[11px] text-slate-500">{passData.kelas}</p>
             </div>
           </div>
 
           {/* Detail rows */}
-          <div className="space-y-2 text-xs">
+          <div className="space-y-1.5 text-xs">
             {[
               ["Jenis Izin",  passData.jenisIzin],
               ["Keperluan",   passData.keperluan],
@@ -2317,8 +2456,8 @@ function PagePass({ passData, setPage, currentUser }: {
               ["Penjemput",   `${passData.namaPenjemput} (${passData.hubunganPenjemput})`],
             ].map(([k,v])=>(
               <div key={k} className="flex gap-2">
-                <span className="text-muted-foreground w-20 flex-shrink-0 font-medium">{k}:</span>
-                <span className="font-semibold text-foreground break-words">{v}</span>
+                <span className="text-slate-400 w-20 flex-shrink-0 font-medium">{k}:</span>
+                <span className="font-semibold text-slate-900 break-words flex-1">{v}</span>
               </div>
             ))}
           </div>
@@ -2329,26 +2468,25 @@ function PagePass({ passData, setPage, currentUser }: {
               {label:"Keluar",  date:passData.tanggalKeluar, jam:cleanTimeOnly(passData.jamKeluar),  icon:<Calendar className="w-3.5 h-3.5"/>},
               {label:"Kembali", date:passData.tanggalKembali,jam:cleanTimeOnly(passData.jamKembali), icon:<CheckCircle2 className="w-3.5 h-3.5"/>},
             ].map(t=>(
-              <div key={t.label} className="p-3 bg-slate-50 rounded-2xl border border-border text-center">
-                <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
+              <div key={t.label} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
                   {t.icon}<span className="text-[10px] font-bold uppercase">{t.label}</span>
                 </div>
-                <p className="text-xs font-bold text-foreground">{fmtDate(t.date)}</p>
-                <p className="text-lg font-extrabold text-primary">{t.jam}</p>
-                <p className="text-[10px] text-muted-foreground">WIB</p>
+                <p className="text-xs font-bold text-slate-900">{fmtDate(t.date)}</p>
+                <p className="text-base font-extrabold text-blue-600">{t.jam} <span className="text-[10px] font-normal text-slate-500">WIB</span></p>
               </div>
             ))}
           </div>
 
           {/* QR code OR Pending/Rejected Alert */}
           {isApproved ? (
-            <div className="flex flex-col items-center gap-3 p-4 bg-slate-900 rounded-2xl">
-              <div className="p-3 bg-white rounded-2xl shadow-md flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2.5 p-4 bg-slate-900 rounded-xl">
+              <div className="p-2.5 bg-white rounded-xl shadow-xs flex items-center justify-center">
                 <QRCodeSVG 
                   id="pass-qrcode-svg"
                   className="qr-code-svg"
                   value={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${encodeURIComponent(passData.idIzin)}` : passData.idIzin} 
-                  size={140} 
+                  size={130} 
                   level="M" 
                   bgColor="#ffffff" 
                   fgColor="#000000"
@@ -2357,39 +2495,37 @@ function PagePass({ passData, setPage, currentUser }: {
               </div>
               <div className="text-center">
                 <p className="text-xs font-bold text-white">QR Verifikasi Satpam</p>
-                <p className="text-[10px] text-slate-300 mt-0.5">Arahkan kamera untuk memeriksa keabsahan surat</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Arahkan kamera di pos gerbang keamanan</p>
               </div>
             </div>
           ) : isPending ? (
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-2">
-              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-                <Clock className="w-5 h-5" />
-              </div>
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center space-y-1.5">
+              <Clock className="w-6 h-6 text-amber-600 mx-auto" />
               <div>
-                <p className="text-xs font-bold text-amber-950">TIKET MASIH DALAM PROSES ACC</p>
-                <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
-                  Kartu Izin Keluar (e-Pass) beserta <strong>QR Code Satpam</strong> baru akan terbit dan dapat diunduh setelah disetujui (ACC) oleh Musyrif/Pamong.
+                <p className="text-xs font-bold text-amber-950">TIKET MASIH MENUNGGU ACC</p>
+                <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                  QR Code Satpam akan aktif otomatis setelah disetujui (ACC) oleh Musyrif Kelas atau Pamong Asrama.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-center space-y-1">
-              <XCircle className="w-8 h-8 text-rose-500 mx-auto mb-1" />
-              <p className="text-xs font-bold text-rose-900">SURAT IZIN TIDAK BERLAKU</p>
-              <p className="text-[11px] text-rose-700">{passData.catatanAdmin || "Permohonan perizinan ditolak oleh Musyrif/Pamong."}</p>
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-center space-y-1">
+              <XCircle className="w-6 h-6 text-rose-600 mx-auto" />
+              <p className="text-xs font-bold text-rose-950">SURAT IZIN TIDAK BERLAKU</p>
+              <p className="text-[11px] text-rose-800">{passData.catatanAdmin || "Permohonan perizinan ditolak oleh Musyrif/Pamong."}</p>
             </div>
           )}
 
           {/* Pemberi izin / Penerbit Info */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="w-3.5 h-3.5 text-primary flex-shrink-0"/>
-            <span>
+          <div className="flex items-center gap-2 text-xs text-slate-500 pt-1 border-t border-slate-100">
+            <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0"/>
+            <span className="text-[11px]">
               {isApproved ? (
-                <>Disetujui oleh: <strong className="text-foreground">{passData.pemberiIzin && passData.pemberiIzin !== "-" ? passData.pemberiIzin : (passData.catatanAdmin || "Ustadz Pembina")}</strong></>
+                <>Disetujui: <strong className="text-slate-900">{passData.pemberiIzin && passData.pemberiIzin !== "-" ? passData.pemberiIzin : (passData.catatanAdmin || "Ustadz Pembina")}</strong></>
               ) : isRejected ? (
                 <>Ditolak: <strong className="text-rose-700">{passData.catatanAdmin || "Oleh Ustadz Pembina"}</strong></>
               ) : (
-                <>Diajukan oleh: <strong className="text-foreground">{passData.catatanAdmin || `Wali Santri (${passData.namaWali})`}</strong></>
+                <>Diajukan: <strong className="text-slate-900">{passData.catatanAdmin || `Wali Santri (${passData.namaWali})`}</strong></>
               )}
             </span>
           </div>
@@ -2398,16 +2534,16 @@ function PagePass({ passData, setPage, currentUser }: {
         {/* Multi-Musyrif WhatsApp Contact Badges ONLY if PENDING */}
         {isPending && findAllMusyrifByClass(passData.kelas).length > 1 && (
           <div className="px-5 pb-3 space-y-1.5">
-            <p className="text-[11px] font-semibold text-slate-600">Pilih Musyrif untuk Konfirmasi:</p>
+            <p className="text-[11px] font-semibold text-slate-600">Hubungi Musyrif Kelas:</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {findAllMusyrifByClass(passData.kelas).map(m => (
                 <button
                   key={m.key}
                   onClick={() => sendWhatsAppMessage(passData, false, m.number)}
-                  className="p-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-left transition-colors flex items-center justify-between"
+                  className="p-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-left transition-colors flex items-center justify-between btn-press"
                 >
-                  <div>
-                    <p className="text-xs font-bold text-emerald-950">{m.classLabel}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-emerald-950 truncate">{m.classLabel}</p>
                     <p className="text-[11px] text-emerald-800 truncate">{m.name}</p>
                   </div>
                   <Share2 className="w-3.5 h-3.5 text-emerald-700 flex-shrink-0"/>
@@ -2417,60 +2553,50 @@ function PagePass({ passData, setPage, currentUser }: {
           </div>
         )}
 
-        {/* Actions (Digital Only) */}
-        <div className="space-y-2 px-5 pb-5">
+        {/* Actions */}
+        <div className="space-y-2 px-5 pb-5 border-t border-slate-100 pt-3">
           {isRejected ? (
             <button onClick={()=>setPage("home")}
-              className="w-full py-3 bg-slate-800 text-white rounded-2xl text-xs font-bold hover:bg-slate-900 transition-colors btn-press">
+              className="w-full py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors btn-press">
               Kembali ke Beranda
             </button>
           ) : isPending ? (
             <div className="space-y-2">
               <button onClick={()=>sendWhatsAppMessage(passData, false)}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold hover:bg-emerald-700 transition-colors btn-press shadow-sm">
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors btn-press shadow-sm">
                 <Share2 className="w-4 h-4"/>
-                <span>Hubungi / WA Musyrif Kelas untuk ACC</span>
+                <span>Hubungi Ustadz Musyrif via WhatsApp</span>
               </button>
               <button onClick={()=>setPage("history")}
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors btn-press">
+                className="w-full flex items-center justify-center gap-2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors btn-press">
                 <ClipboardList className="w-3.5 h-3.5 text-slate-600"/>
-                <span>Lihat Status di Riwayat Izin</span>
+                <span>Pantau Status di Riwayat Izin</span>
               </button>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-2 gap-2.5">
-                {isApproved && isPengurus ? (
-                  <button onClick={()=>sendWhatsAppMessage(passData, true)}
-                    className="flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold hover:bg-emerald-700 transition-colors btn-press shadow-sm">
-                    <Share2 className="w-4 h-4"/>
-                    <span>Kirim Grup Satpam</span>
-                  </button>
-                ) : (
-                  <button onClick={()=>{
-                    const url = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${passData.idIzin}` : passData.idIzin;
-                    navigator.clipboard.writeText(url);
-                    toast.success("Tautan verifikasi resmi berhasil disalin!");
-                  }}
-                    className="flex items-center justify-center gap-2 py-3 bg-slate-800 text-white rounded-2xl text-xs font-bold hover:bg-slate-700 transition-colors btn-press shadow-sm">
-                    <ShieldCheck className="w-4 h-4 text-blue-400"/>
-                    <span>Salin Link</span>
-                  </button>
-                )}
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button onClick={()=>downloadPassImage(passData)}
-                  className="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-2xl text-xs font-bold hover:bg-blue-700 transition-colors btn-press shadow-sm">
+                  className="flex items-center justify-center gap-1.5 py-2.5 bg-primary text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors btn-press shadow-sm">
                   <Download className="w-4 h-4"/> Simpan Gambar
                 </button>
+                <button onClick={()=>{
+                  const url = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${passData.idIzin}` : passData.idIzin;
+                  navigator.clipboard.writeText(url);
+                  toast.success("Tautan verifikasi resmi berhasil disalin!");
+                }}
+                  className="flex items-center justify-center gap-1.5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors btn-press shadow-sm">
+                  <ShieldCheck className="w-4 h-4 text-blue-400"/>
+                  <span>Salin Link</span>
+                </button>
               </div>
-              <button onClick={()=>{
-                const url = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${passData.idIzin}` : passData.idIzin;
-                navigator.clipboard.writeText(url);
-                toast.success("Tautan verifikasi resmi berhasil disalin!");
-              }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors btn-press">
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-600"/> Salin Link Verifikasi
-              </button>
-            </>
+              {isApproved && isPengurus && (
+                <button onClick={()=>sendWhatsAppMessage(passData, true)}
+                  className="w-full flex items-center justify-center gap-1.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors btn-press shadow-sm">
+                  <Share2 className="w-3.5 h-3.5"/> Kirim ke Grup Satpam
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -3015,21 +3141,21 @@ function PageVerify({ verifyId, setPage, currentUser }: {
   const overdue = item ? isOverdue(item) : false;
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
-      <button onClick={() => setPage("home")} className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 mb-4 transition-colors">
+    <div className="max-w-md mx-auto px-4 py-6 space-y-4">
+      <button onClick={() => setPage("home")} className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors btn-press">
         <ArrowLeft className="w-4 h-4"/> Kembali ke Beranda
       </button>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {/* Header */}
         <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-emerald-400"/>
+            <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-emerald-400"/>
             </div>
             <div>
-              <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Verifikasi Resmi Satpam</p>
-              <p className="text-sm font-extrabold text-white">Madrasah Mu'allimin Sedayu</p>
+              <p className="text-[9px] uppercase font-bold tracking-widest text-slate-400">Verifikasi Resmi Satpam</p>
+              <p className="text-xs font-extrabold text-white">Madrasah Mu'allimin Sedayu</p>
             </div>
           </div>
           <span className="font-mono text-xs text-blue-300">{verifyId}</span>
@@ -3038,41 +3164,41 @@ function PageVerify({ verifyId, setPage, currentUser }: {
         {/* Verification Status */}
         {loading ? (
           <div className="p-8 text-center space-y-3">
-            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"/>
+            <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"/>
             <p className="text-xs text-slate-500 font-medium">Memeriksa keaslian surat izin di database server...</p>
           </div>
         ) : !item ? (
           <div className="p-6 text-center space-y-3">
-            <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
-              <XCircle className="w-8 h-8"/>
+            <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center mx-auto">
+              <XCircle className="w-6 h-6"/>
             </div>
-            <h3 className="font-extrabold text-slate-900 text-base">Surat Izin Tidak Ditemukan</h3>
+            <h3 className="font-bold text-slate-900 text-sm">Surat Izin Tidak Ditemukan</h3>
             <p className="text-xs text-slate-500">ID Izin <span className="font-mono font-bold text-slate-700">{verifyId}</span> tidak terdaftar atau tidak valid.</p>
           </div>
         ) : (
           <div className="p-5 space-y-4">
             {/* Status Banner */}
-            <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
-              item.status === "RETURNED" ? "bg-blue-50 border-blue-200 text-blue-900" :
+            <div className={`p-3.5 rounded-xl border flex items-center gap-3 ${
+              item.status === "RETURNED" ? "bg-blue-50 border-blue-200 text-blue-950" :
               item.status === "APPROVED" && overdue ? "bg-amber-50 border-amber-300 text-amber-950" :
-              item.status === "APPROVED" ? "bg-emerald-50 border-emerald-200 text-emerald-900" :
-              item.status === "PENDING" ? "bg-amber-50 border-amber-200 text-amber-900" :
-              "bg-rose-50 border-rose-200 text-rose-900"
+              item.status === "APPROVED" ? "bg-emerald-50 border-emerald-200 text-emerald-950" :
+              item.status === "PENDING" ? "bg-amber-50 border-amber-200 text-amber-950" :
+              "bg-rose-50 border-rose-200 text-rose-950"
             }`}>
-              {item.status === "RETURNED" ? <RefreshCw className="w-6 h-6 text-blue-600 flex-shrink-0"/> :
-               item.status === "APPROVED" && overdue ? <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 animate-bounce"/> :
-               item.status === "APPROVED" ? <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0"/> :
-               item.status === "PENDING" ? <Clock className="w-6 h-6 text-amber-600 flex-shrink-0"/> :
-               <XCircle className="w-6 h-6 text-rose-600 flex-shrink-0"/>}
-              <div>
-                <p className="font-extrabold text-sm">
+              {item.status === "RETURNED" ? <RefreshCw className="w-5 h-5 text-blue-600 flex-shrink-0"/> :
+               item.status === "APPROVED" && overdue ? <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 animate-bounce"/> :
+               item.status === "APPROVED" ? <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0"/> :
+               item.status === "PENDING" ? <Clock className="w-5 h-5 text-amber-600 flex-shrink-0"/> :
+               <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0"/>}
+              <div className="min-w-0">
+                <p className="font-extrabold text-xs">
                   {item.status === "RETURNED" ? "SANTRI SUDAH KEMBALI" :
                    item.status === "APPROVED" && overdue ? "DISETUJUI — LEWAT WAKTU (OVERDUE)" :
                    item.status === "APPROVED" ? "SURAT IZIN RESMI & AKTIF" :
                    item.status === "PENDING" ? "BELUM BERLAKU (MENUNGGU ACC)" :
                    "SURAT IZIN DITOLAK"}
                 </p>
-                <p className="text-xs opacity-80 mt-0.5">
+                <p className="text-[11px] opacity-80 mt-0.5">
                   {item.status === "RETURNED" ? "Santri telah masuk dan dicatat kembali ke asrama." :
                    item.status === "APPROVED" && overdue ? "Batas jadwal jam kembali santri sudah terlewati." :
                    item.status === "APPROVED" ? "Santri diizinkan keluar asrama sesuai jadwal." :
@@ -3083,28 +3209,28 @@ function PageVerify({ verifyId, setPage, currentUser }: {
             </div>
 
             {/* Santri Data */}
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/80">
                 <span className="text-slate-400 font-bold uppercase text-[10px]">Santri</span>
-                <span className="font-bold text-slate-800">{item.namaSantri}</span>
+                <span className="font-bold text-slate-900">{item.namaSantri}</span>
               </div>
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/80">
                 <span className="text-slate-400 font-bold uppercase text-[10px]">Kelas</span>
                 <span className="font-semibold text-slate-800">{item.kelas}</span>
               </div>
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/80">
                 <span className="text-slate-400 font-bold uppercase text-[10px]">Jenis Izin</span>
                 <span className="font-semibold text-blue-700">{item.jenisIzin}</span>
               </div>
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/80">
                 <span className="text-slate-400 font-bold uppercase text-[10px]">Jadwal Keluar</span>
                 <span className="font-semibold text-slate-800">{fmtDate(item.tanggalKeluar)} — {fmtTime(item.jamKeluar)}</span>
               </div>
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/80">
                 <span className="text-slate-400 font-bold uppercase text-[10px]">Rencana Kembali</span>
                 <span className="font-semibold text-slate-800">{fmtDate(item.tanggalKembali || item.tanggalKeluar)} — {fmtTime(item.jamKembali)}</span>
               </div>
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/80">
                 <span className="text-slate-400 font-bold uppercase text-[10px]">Penjemput</span>
                 <span className="font-semibold text-slate-800">{item.namaPenjemput || item.namaWali} ({item.hubunganPenjemput || "Wali"})</span>
               </div>
@@ -3118,13 +3244,792 @@ function PageVerify({ verifyId, setPage, currentUser }: {
             {item.status === "APPROVED" && (
               <button
                 onClick={handleReturn}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-2xl transition-colors btn-press flex items-center justify-center gap-2 shadow-sm"
+                className="w-full py-2.5 bg-primary hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all btn-press flex items-center justify-center gap-2 shadow-sm"
               >
                 <Check className="w-4 h-4"/> Tandai Santri Telah Kembali ke Asrama
               </button>
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Component: PageScanner (Pos Satpam Real-time Scanner HP/Desktop) ───────
+interface RoutineLog {
+  id: string; date: string; santriId: string; santriName: string;
+  santriClass: string; sessionType: string; exitTime: string;
+  returnTime: string; deadline: string; status: "DI_LUAR" | "KEMBALI" | "TERLAMBAT";
+  lateMinutes: number;
+}
+
+function playSynthesizerBeep(type: 'out' | 'in_ontime' | 'late' | 'invalid') {
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'out') {
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+      osc.start(); osc.stop(ctx.currentTime + 0.25);
+    } else if (type === 'in_ontime') {
+      osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08);
+      osc.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.16);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+      osc.start(); osc.stop(ctx.currentTime + 0.35);
+    } else if (type === 'late') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.setValueAtTime(220, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
+      osc.start(); osc.stop(ctx.currentTime + 0.45);
+    } else {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch {}
+}
+
+function PageScanner({ setPage }: { setPage: (p: PageId) => void }) {
+  const [logs, setLogs] = useState<RoutineLog[]>(() => {
+    try {
+      const saved = localStorage.getItem("izin_sedayu_routine_logs");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [testMode, setTestMode] = useState(true);
+  const [timeStr, setTimeStr] = useState("");
+  const [manualText, setManualText] = useState("");
+  const [lastScanned, setLastScanned] = useState<RoutineLog | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState("");
+  const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState<string>("");
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const lastScannedCodeRef = useRef<{ text: string; time: number }>({ text: "", time: 0 });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Clock interval
+  useEffect(() => {
+    function tick() {
+      const now = new Date();
+      setTimeStr(now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+    }
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Save logs to localStorage
+  useEffect(() => {
+    localStorage.setItem("izin_sedayu_routine_logs", JSON.stringify(logs));
+  }, [logs]);
+
+  // Session check (Sabtu 15-17 & Ahad 07-11)
+  const sessionInfo = useMemo(() => {
+    if (testMode) {
+      return { active: true, name: "Mode Uji Coba (Bebas)", deadline: "17:00", deadlineHours: 17, deadlineMins: 0, type: "UJI_COBA" };
+    }
+    const now = new Date();
+    const day = now.getDay();
+    const timeDec = now.getHours() + (now.getMinutes() / 60);
+
+    if (day === 6 && timeDec >= 15.0 && timeDec <= 17.0) {
+      return { active: true, name: "Sesi Sabtu Sore (15.00 – 17.00)", deadline: "17:00", deadlineHours: 17, deadlineMins: 0, type: "SABTU_SORE" };
+    }
+    if (day === 0 && timeDec >= 7.0 && timeDec <= 11.0) {
+      return { active: true, name: "Sesi Ahad Pagi (07.00 – 11.00)", deadline: "11:00", deadlineHours: 11, deadlineMins: 0, type: "AHAD_PAGI" };
+    }
+    return { active: false, name: "Di Luar Jam Izin Rutin", deadline: "-", type: "NONE" };
+  }, [testMode, timeStr]);
+
+  const sessionInfoRef = useRef(sessionInfo);
+  useEffect(() => { sessionInfoRef.current = sessionInfo; }, [sessionInfo]);
+
+  const logsRef = useRef(logs);
+  useEffect(() => { logsRef.current = logs; }, [logs]);
+
+  // Enumerate cameras
+  useEffect(() => {
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length > 0) {
+        setCameras(devices.map(d => ({ id: d.id, label: d.label || `Kamera ${d.id}` })));
+        setSelectedCameraId(devices[0].id);
+      }
+    }).catch(err => {
+      console.warn("Camera enum err:", err);
+    });
+  }, []);
+
+  const handleProcessScan = useCallback((rawInput: string) => {
+    const text = rawInput.trim();
+    if (!text) return;
+
+    const nowTs = Date.now();
+    if (lastScannedCodeRef.current.text === text && nowTs - lastScannedCodeRef.current.time < 1500) {
+      return;
+    }
+    lastScannedCodeRef.current = { text, time: nowTs };
+
+    const currentSession = sessionInfoRef.current;
+    if (!currentSession.active) {
+      toast.error("Saat ini di luar jam izin rutin akhir pekan. Aktifkan 'Mode Uji Coba' untuk simulasi.");
+      playSynthesizerBeep('invalid');
+      return;
+    }
+
+    let sId = "";
+    let sName = "";
+    let sClass = "";
+
+    if (text.startsWith("IZIN|")) {
+      const parts = text.split("|");
+      sId = parts[1] || "";
+      sName = parts[2] || "";
+      sClass = parts[3] || "";
+    } else {
+      const found = santriData.find(s => s.name.toLowerCase() === text.toLowerCase() || text.includes(s.name));
+      if (found) {
+        sName = found.name;
+        sClass = found.class;
+        sId = `STD-${found.class}-MANUAL`;
+      } else {
+        sName = text;
+        sClass = "-";
+        sId = "STD-UNKNOWN";
+      }
+    }
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+    const currentLogs = logsRef.current;
+    const existingIndex = currentLogs.findIndex(l => 
+      l.date === todayStr && 
+      ((sId && l.santriId === sId) || l.santriName.toLowerCase() === sName.toLowerCase()) && 
+      l.status === "DI_LUAR"
+    );
+
+    if (existingIndex === -1) {
+      // 1. SCAN KELUAR
+      const newEntry: RoutineLog = {
+        id: "LOG-" + Date.now(),
+        date: todayStr,
+        santriId: sId,
+        santriName: sName,
+        santriClass: sClass,
+        sessionType: currentSession.type,
+        exitTime: currentTime,
+        returnTime: "-",
+        deadline: currentSession.deadline,
+        status: "DI_LUAR",
+        lateMinutes: 0
+      };
+
+      setLogs(prev => [newEntry, ...prev]);
+      setLastScanned(newEntry);
+      playSynthesizerBeep('out');
+      toast.success(`Izin Keluar: ${sName} (Kelas ${sClass})`);
+      syncToGAS(newEntry, 'CREATE_EXIT');
+    } else {
+      // 2. SCAN KEMBALI
+      const entry = { ...currentLogs[existingIndex] };
+      entry.returnTime = currentTime;
+
+      const curH = now.getHours();
+      const curM = now.getMinutes();
+      let lateMin = 0;
+      if (currentSession.deadlineHours !== undefined) {
+        const deadlineMin = (currentSession.deadlineHours * 60) + (currentSession.deadlineMins || 0);
+        const curTotalMin = (curH * 60) + curM;
+        if (curTotalMin > deadlineMin) {
+          lateMin = curTotalMin - deadlineMin;
+        }
+      }
+
+      if (lateMin > 0) {
+        entry.status = "TERLAMBAT";
+        entry.lateMinutes = lateMin;
+        playSynthesizerBeep('late');
+        toast.warning(`TERLAMBAT ${lateMin} Menit: ${sName}!`);
+      } else {
+        entry.status = "KEMBALI";
+        entry.lateMinutes = 0;
+        playSynthesizerBeep('in_ontime');
+        toast.success(`Kembali Tepat Waktu: ${sName}!`);
+      }
+
+      const updated = [...currentLogs];
+      updated[existingIndex] = entry;
+      setLogs(updated);
+      setLastScanned(entry);
+      syncToGAS(entry, 'UPDATE_RETURN');
+    }
+
+    setManualText("");
+  }, []);
+
+  const startCamera = async () => {
+    setCameraError("");
+    const elementId = "pos-satpam-stream";
+    try {
+      if (scannerRef.current) {
+        try { await scannerRef.current.stop(); } catch {}
+        scannerRef.current = null;
+      }
+
+      const html5QrCode = new Html5Qrcode(elementId);
+      scannerRef.current = html5QrCode;
+
+      const config = {
+        fps: 20,
+        qrbox: (w: number, h: number) => {
+          const edge = Math.min(w, h);
+          return { width: Math.max(220, Math.floor(edge * 0.85)), height: Math.max(220, Math.floor(edge * 0.85)) };
+        },
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
+      };
+
+      const cameraConfig = selectedCameraId 
+        ? selectedCameraId 
+        : { facingMode: "environment" };
+
+      await html5QrCode.start(
+        cameraConfig,
+        config,
+        (decodedText) => {
+          handleProcessScan(decodedText);
+        },
+        () => {}
+      ).catch(async () => {
+        await html5QrCode.start(
+          { facingMode: "user" },
+          config,
+          (decodedText) => {
+            handleProcessScan(decodedText);
+          },
+          () => {}
+        );
+      });
+
+      setCameraActive(true);
+    } catch (err: any) {
+      console.error("Gagal start camera scanner:", err);
+      setCameraError("Kamera tidak dapat diakses atau izin ditolak oleh browser.");
+      setCameraActive(false);
+      toast.error("Gagal menyalakan kamera scanner.");
+    }
+  };
+
+  const stopCamera = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+      } catch {}
+      scannerRef.current = null;
+    }
+    setCameraActive(false);
+  };
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const tId = toast.loading("Memindai foto kartu QR...");
+    try {
+      const html5QrCode = new Html5Qrcode("pos-satpam-file-temp");
+      const decodedResult = await html5QrCode.scanFile(file, true);
+      toast.dismiss(tId);
+      handleProcessScan(decodedResult);
+    } catch (err) {
+      console.error("Gagal scan file:", err);
+      toast.dismiss(tId);
+      toast.error("QR Code tidak terdeteksi pada gambar.");
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        try { scannerRef.current.stop().catch(() => {}); } catch {}
+      }
+    };
+  }, []);
+
+  function syncToGAS(logData: RoutineLog, actionType: string) {
+    try {
+      fetch(GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: JSON.stringify({
+          action: "scan_rutin",
+          actionType: actionType,
+          logData: logData
+        })
+      }).catch(() => {});
+    } catch {}
+  }
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayLogs = logs.filter(l => l.date === todayStr);
+  const totalOut = todayLogs.length;
+  const totalIn = todayLogs.filter(l => l.status === "KEMBALI" || l.status === "TERLAMBAT").length;
+  const stillOut = todayLogs.filter(l => l.status === "DI_LUAR");
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+      
+      {/* Header Banner - Standardized with App Theme */}
+      <section className="relative rounded-2xl overflow-hidden bg-slate-900 text-white shadow-sm">
+        <div className="p-5 sm:p-6 flex items-start justify-between flex-wrap gap-3">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-emerald-400 uppercase mb-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"/>
+              POS KEAMANAN &bull; SCANNER IZIN RUTIN
+            </div>
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+              Pemindai Kartu Santri
+            </h1>
+            <p className="text-xs text-slate-300 mt-1 max-w-md">
+              Izin Bebas Akhir Pekan (Sabtu 15.00–17.00 &bull; Ahad 07.00–11.00 WIB)
+            </p>
+          </div>
+
+          {/* Live Clock & Session Status */}
+          <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-3 text-right flex flex-col items-end">
+            <span className="text-2xl font-extrabold font-mono tracking-wider text-emerald-300 leading-none">
+              {timeStr}
+            </span>
+            <div className="flex items-center gap-2 mt-2">
+              <label className="text-[11px] text-slate-200 flex items-center gap-1.5 bg-black/30 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-black/40 transition-colors">
+                <input type="checkbox" checked={testMode} onChange={e => setTestMode(e.target.checked)} className="rounded text-emerald-500"/>
+                <span className="font-semibold">Uji Coba</span>
+              </label>
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5
+                ${sessionInfo.active ? "bg-emerald-500/25 text-emerald-200 border-emerald-400/40" : "bg-rose-500/25 text-rose-200 border-rose-400/40"}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${sessionInfo.active ? "bg-emerald-400" : "bg-rose-400"}`}/>
+                {sessionInfo.name}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Scanner Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        {/* Left: Camera & Inputs (7 cols) */}
+        <div className="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+                <Camera className="w-4 h-4 text-emerald-600"/>
+              </div>
+              <div>
+                <h2 className="text-xs font-extrabold text-slate-900">Kamera Pemindai</h2>
+                <p className="text-[11px] text-slate-500">Arahkan kartu QR santri ke kamera</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+              Otomatis Keluar / Masuk
+            </span>
+          </div>
+
+          {/* Camera Selector */}
+          {cameras.length > 1 && (
+            <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <label className="text-xs text-slate-600 font-bold flex-shrink-0">Pilih Kamera:</label>
+              <select
+                value={selectedCameraId}
+                onChange={e => setSelectedCameraId(e.target.value)}
+                className="bg-white text-xs text-slate-800 font-semibold px-3 py-1.5 rounded-lg border border-slate-200 outline-none flex-1">
+                {cameras.map(c => (
+                  <option key={c.id} value={c.id}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Camera Viewport */}
+          <div className="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-200 min-h-[260px] flex items-center justify-center shadow-inner">
+            <div id="pos-satpam-stream" className="w-full" />
+            
+            {!cameraActive && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 space-y-3 text-slate-400 bg-slate-900/95 z-10">
+                <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
+                  <Camera className="w-6 h-6"/>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-bold text-white">Kamera Belum Aktif</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Nyalakan kamera untuk memindai kartu fisik santri</p>
+                </div>
+              </div>
+            )}
+
+            {cameraError && (
+              <div className="absolute inset-0 p-6 bg-slate-950/95 text-white flex flex-col items-center justify-center text-center space-y-2 z-20">
+                <AlertTriangle className="w-7 h-7 text-rose-400" />
+                <p className="text-xs text-rose-200 font-semibold">{cameraError}</p>
+                <p className="text-[11px] text-slate-400">Pastikan izin kamera di browser telah diizinkan.</p>
+              </div>
+            )}
+          </div>
+
+          <div id="pos-satpam-file-temp" className="hidden" />
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+
+          {/* Camera Buttons */}
+          <div className="flex gap-2">
+            {!cameraActive ? (
+              <button onClick={startCamera} className="flex-1 py-2.5 bg-primary hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 btn-press shadow-sm transition-colors">
+                <Camera className="w-4 h-4"/> Aktifkan Kamera Scanner
+              </button>
+            ) : (
+              <button onClick={stopCamera} className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 btn-press shadow-sm transition-colors">
+                Matikan Kamera
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 btn-press border border-slate-200 transition-colors"
+            >
+              <Download className="w-4 h-4 rotate-180 text-slate-600" /> Unggah Foto QR
+            </button>
+          </div>
+
+          {/* Manual Input / Barcode Scanner */}
+          <div>
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={manualText}
+                onChange={e => setManualText(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") handleProcessScan(manualText); }}
+                placeholder="Scan Barcode USB atau ketik Nama Santri..."
+                className="w-full pl-3.5 pr-20 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary font-medium"
+              />
+              <button onClick={() => handleProcessScan(manualText)} className="absolute right-1 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg btn-press transition-colors">
+                Proses
+              </button>
+            </div>
+          </div>
+
+          {/* Scanned Result Banner */}
+          {lastScanned && (
+            <div className={`p-3.5 rounded-xl border space-y-2 scale-pop
+              ${lastScanned.status === "DI_LUAR" ? "bg-amber-50 border-amber-300" : lastScanned.status === "TERLAMBAT" ? "bg-rose-50 border-rose-300" : "bg-emerald-50 border-emerald-300"}`}>
+              <div className="flex justify-between items-center pb-1.5 border-b border-black/5">
+                <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-extrabold
+                  ${lastScanned.status === "DI_LUAR" ? "bg-amber-500 text-slate-950" : lastScanned.status === "TERLAMBAT" ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"}`}>
+                  {lastScanned.status === "DI_LUAR" ? "IZIN KELUAR (CHECK-OUT)" : lastScanned.status === "TERLAMBAT" ? `TERLAMBAT ${lastScanned.lateMinutes} MENIT` : "KEMBALI TEPAT WAKTU"}
+                </span>
+                <span className="text-xs font-mono font-bold text-slate-700">
+                  {lastScanned.status === "DI_LUAR" ? lastScanned.exitTime : lastScanned.returnTime} WIB
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                  {lastScanned.santriName.substring(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-extrabold text-xs text-slate-900 truncate">{lastScanned.santriName}</h3>
+                  <p className="text-[11px] text-slate-600">
+                    <span className="text-emerald-700 font-bold">KELAS {lastScanned.santriClass}</span> &bull; {lastScanned.santriId}
+                  </p>
+                  <p className={`text-[11px] font-bold mt-0.5 ${lastScanned.status === "TERLAMBAT" ? "text-rose-700" : "text-amber-800"}`}>
+                    {lastScanned.status === "DI_LUAR" ? `Batas Waktu Masuk: ${lastScanned.deadline} WIB` : lastScanned.status === "TERLAMBAT" ? "Melewati batas waktu!" : "Santri telah kembali ke asrama."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Counters & Outside List (5 cols) */}
+        <div className="lg:col-span-5 space-y-4">
+          
+          {/* Counters */}
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs">
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Keluar</span>
+              <span className="text-xl font-extrabold text-slate-900 font-mono">{totalOut}</span>
+            </div>
+            <div className="bg-emerald-50/70 border border-emerald-200 p-3 rounded-xl shadow-xs">
+              <span className="text-[10px] text-emerald-700 font-bold uppercase block">Kembali</span>
+              <span className="text-xl font-extrabold text-emerald-900 font-mono">{totalIn}</span>
+            </div>
+            <div className="bg-amber-50/70 border border-amber-200 p-3 rounded-xl shadow-xs">
+              <span className="text-[10px] text-amber-700 font-bold uppercase block">Di Luar</span>
+              <span className="text-xl font-extrabold text-amber-900 font-mono">{stillOut.length}</span>
+            </div>
+          </div>
+
+          {/* Outside List */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-xs font-extrabold text-slate-900">Santri Sedang di Luar</h3>
+                <p className="text-[10px] text-slate-400">Total: {stillOut.length} santri</p>
+              </div>
+              <button onClick={() => setPage("cards")} className="text-[11px] bg-slate-100 text-slate-800 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-bold border border-slate-200 transition-colors btn-press">
+                Cetak Kartu
+              </button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[340px] space-y-2 pr-1">
+              {stillOut.length === 0 ? (
+                <div className="text-center py-10 space-y-2">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-5 h-5"/>
+                  </div>
+                  <p className="text-xs font-semibold text-slate-600">Semua santri sudah berada di dalam asrama.</p>
+                </div>
+              ) : (
+                stillOut.map(s => (
+                  <div key={s.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 hover:bg-slate-100 transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 truncate">{s.santriName}</p>
+                      <p className="text-[10px] text-slate-500 truncate">
+                        <span className="text-blue-700 font-bold">Kls {s.santriClass}</span> &bull; Keluar: {s.exitTime} &bull; Batas: {s.deadline}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleProcessScan(s.santriName)}
+                      className="px-3 py-1.5 bg-primary hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition-colors btn-press flex-shrink-0 shadow-xs">
+                      Scan Masuk
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Component: PageCards (Cetak Kartu Santri QR ISO 85.6x54mm) ──
+function getStudentCardDetails(santriClass: string) {
+  const cls = (santriClass || "").toUpperCase();
+  
+  // 1. Musyrif & Wali Kelas
+  const musyrif = musyrifData[santriClass as keyof typeof musyrifData] || { 
+    name: "Ustadz Pembina Asrama", 
+    number: "6285339213109",
+    waliKelas: "-" 
+  };
+
+  // 2. Pamong Asrama
+  let pamong = pamongList[3]; // default Ahnaf Lubab
+  if (cls.startsWith("1") || cls.startsWith("2")) {
+    pamong = pamongList[0]; // Ustadz M. Ismail Marzuq, S.Sos. (6285326693918)
+  } else if (cls.startsWith("3") || cls.startsWith("4")) {
+    pamong = pamongList[2]; // Ustadz Rais Yudhistira, Lc. (6281399548580)
+  } else {
+    pamong = pamongList[3]; // Ustadz Muh. Ahnaf Lubab, M.Pd. (6285779006160)
+  }
+
+  // 3. Nama Gedung Asrama
+  let asramaName = "Asrama Sedayu";
+  if (cls.startsWith("1")) asramaName = "Asrama 1 (KH. Ahmad Dahlan)";
+  else if (cls.startsWith("2")) asramaName = "Asrama 2 (KH. AR Fachruddin)";
+  else if (cls.startsWith("3")) asramaName = "Asrama 3 (Buya Syafii Maarif)";
+  else if (cls.startsWith("4")) asramaName = "Asrama 4 (KH. Mas Mansur)";
+  else if (cls.startsWith("5")) asramaName = "Asrama 5 (Ki Bagus Hadikusumo)";
+  else if (cls.startsWith("6")) asramaName = "Asrama 6 (H. M. Yunus Anis)";
+
+  return { musyrif, pamong, asramaName };
+}
+
+function formatCardPhone(num?: string) {
+  if (!num) return "-";
+  const c = num.replace(/[^0-9]/g, "");
+  if (c.startsWith("62")) return "0" + c.slice(2);
+  return c;
+}
+
+function PageCards({ setPage }: { setPage: (p: PageId) => void }) {
+  const [selectedClass, setSelectedClass] = useState("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const classList = useMemo(() => {
+    const s = new Set<string>();
+    santriData.forEach(item => { if (item.class) s.add(item.class); });
+    return Array.from(s).sort();
+  }, []);
+
+  const filteredStudents = useMemo(() => {
+    return santriData.filter((s) => {
+      const matchClass = selectedClass === "ALL" || s.class === selectedClass;
+      const matchName = !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchClass && matchName;
+    });
+  }, [selectedClass, searchQuery]);
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
+      {/* Top Filter Bar (No Print) */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-sm no-print">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-slate-700">Kelas:</label>
+            <select
+              value={selectedClass}
+              onChange={e => setSelectedClass(e.target.value)}
+              className="text-xs px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary">
+              <option value="ALL">Semua Kelas</option>
+              {classList.map(cls => (
+                <option key={cls} value={cls}>Kelas {cls}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-slate-700">Cari:</label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Ketik nama santri..."
+              className="text-xs px-3.5 py-2 border border-slate-200 rounded-xl bg-slate-50 font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary"
+            />
+          </div>
+
+          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+            {filteredStudents.length} Santri
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button onClick={() => setPage("scanner")} className="text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors btn-press">
+            📷 Scanner Satpam
+          </button>
+          <button onClick={() => window.print()} className="text-xs font-bold px-4 py-2 rounded-xl bg-primary hover:bg-blue-700 text-white transition-all btn-press shadow-sm flex items-center gap-1.5">
+            <Printer className="w-4 h-4"/> Cetak Kartu (A4 / PDF)
+          </button>
+        </div>
+      </div>
+
+      {/* Cards Grid */}
+      <div className="cards-print-grid flex flex-wrap gap-4 justify-center">
+        {filteredStudents.map((s, idx) => {
+          const cleanClass = (s.class || "XX").replace(/[^a-zA-Z0-9]/g, "");
+          const paddedIdx = String(idx + 1).padStart(4, "0");
+          const santriId = `STD-${cleanClass}-${paddedIdx}`;
+          const qrPayload = `IZIN|${santriId}|${s.name}|${s.class}`;
+          const { musyrif, pamong, asramaName } = getStudentCardDetails(s.class);
+
+          return (
+            <div key={santriId} className="id-card">
+              {/* Header */}
+              <div className="card-header" style={{
+                background: "linear-gradient(135deg, #064e3b 0%, #047857 65%, #059669 100%)",
+                color: "white",
+                padding: "1.8mm 3mm",
+                display: "flex",
+                alignItems: "center",
+                gap: "2mm",
+                borderBottom: "0.8mm solid #f59e0b"
+              }}>
+                <div style={{ width: "7.5mm", height: "7.5mm", borderRadius: "50%", background: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: "#047857", fontSize: "2.8mm", flexShrink: 0, boxShadow: "0 0.2mm 0.5mm rgba(0,0,0,0.2)" }}>
+                  M
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "2.1mm", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.1 }}>
+                    Madrasah Mu'allimin
+                  </div>
+                  <div style={{ fontSize: "1.5mm", fontWeight: 700, color: "#a7f3d0", letterSpacing: "0.03em", lineHeight: 1.1 }}>
+                    KARTU IZIN ASRAMA SEDAYU
+                  </div>
+                </div>
+                <div style={{ background: "#f59e0b", color: "#78350f", fontSize: "1.5mm", fontWeight: 900, padding: "0.6mm 1.6mm", borderRadius: "0.8mm", flexShrink: 0, letterSpacing: "0.02em" }}>
+                  SABTU-AHAD
+                </div>
+              </div>
+
+              {/* Body */}
+              <div style={{ padding: "1.8mm 3mm", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "2.5mm", flex: 1, background: "linear-gradient(to bottom, #ffffff, #fcfdfd)" }}>
+                {/* Left Data Details */}
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "0.6mm" }}>
+                  {/* Student Name */}
+                  <div>
+                    <div style={{ fontSize: "1.3mm", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.03em" }}>NAMA SANTRI</div>
+                    <div style={{ fontSize: "2.3mm", fontWeight: 900, color: "#064e3b", lineHeight: 1.15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {s.name}
+                    </div>
+                  </div>
+
+                  {/* Class, NIS & Dorm */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "1.5mm", flexWrap: "wrap", marginTop: "0.1mm" }}>
+                    <span style={{ background: "#047857", color: "white", fontSize: "1.7mm", fontWeight: 900, padding: "0.3mm 1.4mm", borderRadius: "0.6mm" }}>
+                      KELAS {s.class || "-"}
+                    </span>
+                    <span style={{ fontSize: "1.6mm", fontWeight: 700, color: "#334155", fontFamily: "monospace" }}>
+                      {santriId}
+                    </span>
+                  </div>
+
+                  {/* Asrama */}
+                  <div style={{ fontSize: "1.45mm", color: "#475569", lineHeight: 1.15, marginTop: "0.3mm", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <strong style={{ color: "#0f172a" }}>Asrama:</strong> {asramaName}
+                  </div>
+
+                  {/* Musyrif Info */}
+                  <div style={{ fontSize: "1.4mm", color: "#475569", lineHeight: 1.15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <strong style={{ color: "#0f172a" }}>Musyrif:</strong> {musyrif.name}
+                    {musyrif.number && <span style={{ color: "#047857", fontWeight: 700, marginLeft: "1mm" }}>({formatCardPhone(musyrif.number)})</span>}
+                  </div>
+
+                  {/* Pamong Info */}
+                  <div style={{ fontSize: "1.4mm", color: "#475569", lineHeight: 1.15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <strong style={{ color: "#0f172a" }}>Pamong:</strong> {pamong.name}
+                    {pamong.number && <span style={{ color: "#0284c7", fontWeight: 700, marginLeft: "1mm" }}>({formatCardPhone(pamong.number)})</span>}
+                  </div>
+                </div>
+
+                {/* Right QR Code Box */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, gap: "0.8mm" }}>
+                  <div style={{ width: "21mm", height: "21mm", background: "white", border: "0.5mm solid #cbd5e1", borderRadius: "1.5mm", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.6mm", boxShadow: "0 0.2mm 0.5mm rgba(0,0,0,0.06)" }}>
+                    <QRCodeSVG value={qrPayload} size={74} fgColor="#064e3b" />
+                  </div>
+                  <span style={{ fontSize: "1.2mm", fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.02em" }}>
+                    Scan Pos Satpam
+                  </span>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div style={{ background: "#f1f5f9", borderTop: "0.4mm solid #e2e8f0", padding: "1mm 3mm", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "1.3mm", color: "#475569", fontWeight: 700 }}>
+                <span style={{ color: "#047857" }}>⏰ Sabtu 15-17 • Ahad 07-11 WIB</span>
+                <span style={{ color: "#b45309" }}>Wajib Scan Keluar/Masuk</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -3210,6 +4115,8 @@ export default function App() {
           {page==="pass"    && <PagePass passData={passData} setPage={navigate} currentUser={currentUser}/>}
           {page==="history" && <PageHistory currentUser={currentUser} setPage={navigate} onLoginRequest={()=>navigate("login")} setPassData={setPassData}/>}
           {page==="verify"  && <PageVerify verifyId={verifyId || ""} setPage={navigate} currentUser={currentUser}/>}
+          {page==="scanner" && <PageScanner setPage={navigate}/>}
+          {page==="cards"   && <PageCards setPage={navigate}/>}
         </main>
 
         <BottomNav page={page} setPage={navigate}/>
