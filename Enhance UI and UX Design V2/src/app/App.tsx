@@ -624,7 +624,7 @@ async function downloadPassImage(cardElementId: string, idIzin: string, santriNa
     toast.error("Elemen kartu izin tidak ditemukan.");
     return;
   }
-  const tId = toast.loading("Sedang membuat gambar kartu e-Pass...");
+  const tId = toast.loading("Sedang membuat gambar e-Pass...");
   try {
     const canvas = await html2canvas(node, {
       scale: 2,
@@ -632,16 +632,17 @@ async function downloadPassImage(cardElementId: string, idIzin: string, santriNa
       allowTaint: true,
       backgroundColor: "#ffffff",
       logging: false,
-      ignoreElements: (element) => element.classList.contains("no-export"),
     });
 
     const dataUrl = canvas.toDataURL("image/png");
     const link = document.createElement("a");
-    link.download = `ePass_${idIzin}_${(santriName || "santri").replace(/[^a-zA-Z0-9]/g, "_")}.png`;
+    link.download = `Surat_Izin_${idIzin}_${(santriName || "santri").replace(/[^a-zA-Z0-9]/g, "_")}.png`;
     link.href = dataUrl;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 500);
     toast.dismiss(tId);
     toast.success("Kartu e-Pass berhasil disimpan ke galeri/unduhan!");
   } catch (err) {
@@ -2062,17 +2063,19 @@ function PagePass({ passData, setPage, currentUser }: {
 
           {/* QR code */}
           <div className="flex flex-col items-center gap-3 p-4 bg-slate-900 rounded-2xl">
-            <QRCodeSVG 
-              value={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${passData.idIzin}` : passData.idIzin} 
-              size={110} 
-              level="H" 
-              bgColor="#0f172a" 
-              fgColor="#f8fafc"
-              includeMargin={true}
-            />
+            <div className="p-3 bg-white rounded-2xl shadow-md flex items-center justify-center">
+              <QRCodeSVG 
+                value={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${encodeURIComponent(passData.idIzin)}` : passData.idIzin} 
+                size={140} 
+                level="M" 
+                bgColor="#ffffff" 
+                fgColor="#000000"
+                includeMargin={false}
+              />
+            </div>
             <div className="text-center">
               <p className="text-xs font-bold text-white">QR Verifikasi Satpam</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Scan kamera untuk memeriksa keabsahan surat</p>
+              <p className="text-[10px] text-slate-300 mt-0.5">Arahkan kamera untuk memeriksa keabsahan surat</p>
             </div>
           </div>
 
@@ -2559,16 +2562,28 @@ function PageHistory({ currentUser, setPage, onLoginRequest, setPassData }: {
 function PageVerify({ verifyId, setPage, currentUser }: {
   verifyId: string; setPage: (p: PageId) => void; currentUser: UserSession | null;
 }) {
+  const cleanId = (verifyId || "").trim().toLowerCase();
   const [item, setItem] = useState<IzinRecord | null>(() => {
     const list = getLocal();
-    return list.find(x => x.idIzin === verifyId) || null;
+    return list.find(x => x.idIzin?.trim().toLowerCase() === cleanId) || null;
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(() => {
+    return !getLocal().some(x => x.idIzin?.trim().toLowerCase() === cleanId);
+  });
 
   useEffect(() => {
+    if (!verifyId) return;
+    const target = verifyId.trim().toLowerCase();
+    const local = getLocal().find(x => x.idIzin?.trim().toLowerCase() === target);
+    if (local) {
+      setItem(local);
+      setLoading(false);
+    }
     fetchRemoteData(false).then(list => {
-      const found = list.find(x => x.idIzin === verifyId);
+      const found = list.find(x => x.idIzin?.trim().toLowerCase() === target);
       if (found) setItem(found);
+      setLoading(false);
+    }).catch(() => {
       setLoading(false);
     });
   }, [verifyId]);
