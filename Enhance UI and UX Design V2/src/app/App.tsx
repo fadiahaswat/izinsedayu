@@ -617,38 +617,289 @@ function Accordion({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-// Helper unduh kartu izin sebagai gambar PNG (e-Pass) menggunakan html2canvas
-async function downloadPassImage(cardElementId: string, idIzin: string, santriName: string) {
-  const node = document.getElementById(cardElementId);
-  if (!node) {
-    toast.error("Elemen kartu izin tidak ditemukan.");
-    return;
-  }
-  const tId = toast.loading("Sedang membuat gambar e-Pass...");
+// Helper unduh kartu izin resmi sebagai gambar PNG (e-Pass) resolusi tinggi 1080 x 1920 Full HD
+async function downloadPassImage(passData: IzinRecord) {
+  const tId = toast.loading("Sedang membuat gambar e-Pass Full HD (1080x1920)...");
   try {
-    const canvas = await html2canvas(node, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: "#ffffff",
-      logging: false,
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas context failed");
+
+    // Resolusi Full HD 1080 x 1920 (9:16)
+    const w = 1080;
+    const h = 1920;
+    canvas.width = w;
+    canvas.height = h;
+
+    // Aktifkan High Quality Smoothing
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    // 1. Background Luar
+    ctx.fillStyle = "#091224";
+    ctx.fillRect(0, 0, w, h);
+
+    // 2. Card Utama Putih (Modern Floating Card)
+    const cardX = 40;
+    const cardY = 50;
+    const cardW = w - 80;
+    const cardH = h - 100;
+    const radius = 40;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardW, cardH, radius);
+    ctx.fill();
+
+    // 3. Card Header (Gradient Navy Mewah)
+    const headerH = 260;
+    const headGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + headerH);
+    headGrad.addColorStop(0, "#0b1736");
+    headGrad.addColorStop(0.5, "#152a65");
+    headGrad.addColorStop(1, "#1e3a8a");
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardW, headerH, [radius, radius, 0, 0]);
+    ctx.clip();
+    ctx.fillStyle = headGrad;
+    ctx.fillRect(cardX, cardY, cardW, headerH);
+
+    // Subtle header pattern
+    ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+    for (let px = cardX; px < cardX + cardW; px += 40) {
+      for (let py = cardY; py < cardY + headerH; py += 40) {
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    // Header Typography
+    ctx.fillStyle = "#93c5fd";
+    ctx.font = "bold 20px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText("MADRASAH MU'ALLIMIN MUHAMMADIYAH YOGYAKARTA", cardX + 50, cardY + 65);
+
+    ctx.fillStyle = "#60a5fa";
+    ctx.font = "bold 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText("KAMPUS SEDAYU BANTUL", cardX + 50, cardY + 95);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 36px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText("SURAT IZIN RESMI (e-PASS)", cardX + 50, cardY + 155);
+
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "bold 20px monospace";
+    ctx.fillText(`ID IZIN: ${passData.idIzin}`, cardX + 50, cardY + 195);
+
+    // Status Badge (Top Right Header)
+    const badgeW = 230;
+    const badgeH = 54;
+    const badgeX = cardX + cardW - badgeW - 45;
+    const badgeY = cardY + 50;
+
+    ctx.fillStyle = "#059669";
+    ctx.beginPath();
+    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 27);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("✓ DISETUJUI (ACC)", badgeX + (badgeW / 2), badgeY + 34);
+    ctx.textAlign = "left";
+
+    // 4. Student Profile Highlight Card
+    const profY = cardY + headerH + 35;
+    const profH = 145;
+    ctx.fillStyle = "#f8fafc";
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.roundRect(cardX + 45, profY, cardW - 90, profH, 24);
+    ctx.fill();
+    ctx.stroke();
+
+    // Student Initial Avatar Circle
+    const circleX = cardX + 115;
+    const circleY = profY + 72;
+    const circleR = 48;
+    ctx.fillStyle = "#2563eb";
+    ctx.beginPath();
+    ctx.arc(circleX, circleY, circleR, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 42px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(passData.namaSantri ? passData.namaSantri.charAt(0).toUpperCase() : "S", circleX, circleY + 14);
+    ctx.textAlign = "left";
+
+    // Student Name & Class
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "900 34px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText(passData.namaSantri, cardX + 185, profY + 62);
+
+    ctx.fillStyle = "#2563eb";
+    ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText(`Kelas: ${passData.kelas}   •   ${passData.jenisIzin}`, cardX + 185, profY + 105);
+
+    // 5. Details Section (Table of rows)
+    const detailRows = [
+      ["Keperluan Izin", passData.keperluan || "-"],
+      ["Tempat Tujuan",  passData.tujuan || "-"],
+      ["Nama Wali",      passData.namaWali || "-"],
+      ["Penjemput",      `${passData.namaPenjemput || passData.namaWali || "-"} (${passData.hubunganPenjemput || "Wali"})`],
+      ["Pemberi ACC",    passData.pemberiIzin && passData.pemberiIzin !== "-" ? passData.pemberiIzin : (passData.catatanAdmin || "Musyrif / Pamong Asrama")],
+    ];
+
+    let rowY = profY + profH + 45;
+    detailRows.forEach(([label, val]) => {
+      // Row divider
+      ctx.strokeStyle = "#f1f5f9";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cardX + 50, rowY - 10);
+      ctx.lineTo(cardX + cardW - 50, rowY - 10);
+      ctx.stroke();
+
+      ctx.fillStyle = "#64748b";
+      ctx.font = "600 20px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.fillText(label, cardX + 55, rowY + 22);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.fillText(`:  ${val}`, cardX + 240, rowY + 22);
+
+      rowY += 48;
     });
 
-    const dataUrl = canvas.toDataURL("image/png");
+    // 6. Schedule Boxes (Out & Return - Side by Side)
+    rowY += 15;
+    const schedW = (cardW - 110) / 2;
+    const schedH = 175;
+
+    // Out box (Left)
+    ctx.fillStyle = "#eff6ff";
+    ctx.strokeStyle = "#bfdbfe";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(cardX + 45, rowY, schedW, schedH, 20);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#1e40af";
+    ctx.font = "bold 17px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText("JADWAL KELUAR ASRAMA", cardX + 70, rowY + 38);
+
+    ctx.fillStyle = "#1e293b";
+    ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText(`${fmtDate(passData.tanggalKeluar)}`, cardX + 70, rowY + 82);
+
+    ctx.fillStyle = "#2563eb";
+    ctx.font = "900 42px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText(`${cleanTimeOnly(passData.jamKeluar)} WIB`, cardX + 70, rowY + 138);
+
+    // Return box (Right)
+    const schedX2 = cardX + 45 + schedW + 20;
+    ctx.fillStyle = "#ecfdf5";
+    ctx.strokeStyle = "#a7f3d0";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(schedX2, rowY, schedW, schedH, 20);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#065f46";
+    ctx.font = "bold 17px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText("JADWAL KEMBALI ASRAMA", schedX2 + 25, rowY + 38);
+
+    ctx.fillStyle = "#1e293b";
+    ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText(`${fmtDate(passData.tanggalKembali || passData.tanggalKeluar)}`, schedX2 + 25, rowY + 82);
+
+    ctx.fillStyle = "#059669";
+    ctx.font = "900 42px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText(`${cleanTimeOnly(passData.jamKembali)} WIB`, schedX2 + 25, rowY + 138);
+
+    // 7. QR Code Security Box
+    rowY += schedH + 35;
+    const qrBoxH = 460;
+    const qrBoxY = rowY;
+
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.roundRect(cardX + 45, qrBoxY, cardW - 90, qrBoxH, 28);
+    ctx.fill();
+
+    // White QR Container in Center
+    const qrContainerW = 280;
+    const qrContainerH = 280;
+    const qrContainerX = cardX + ((cardW - qrContainerW) / 2);
+    const qrContainerY = qrBoxY + 35;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(qrContainerX, qrContainerY, qrContainerW, qrContainerH, 20);
+    ctx.fill();
+
+    // Embed QR from DOM or Draw high-contrast QR
+    const qrSvg = document.getElementById("pass-qrcode-svg") || document.querySelector("svg.qr-code-svg");
+    if (qrSvg) {
+      try {
+        const svgData = new XMLSerializer().serializeToString(qrSvg);
+        const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+        const DOMURL = window.URL || window.webkitURL || window;
+        const url = DOMURL.createObjectURL(svgBlob);
+        const img = new Image();
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            ctx.drawImage(img, qrContainerX + 15, qrContainerY + 15, qrContainerW - 30, qrContainerH - 30);
+            DOMURL.revokeObjectURL(url);
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = url;
+        });
+      } catch (err) {
+        console.warn("QR embed issue:", err);
+      }
+    }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("QR CODE VERIFIKASI RESMI SATPAM", w / 2, qrBoxY + 365);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "18px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText("Arahkan kamera smartphone atau scanner satpam untuk memverifikasi keabsahan surat", w / 2, qrBoxY + 405);
+    ctx.textAlign = "left";
+
+    // 8. Security Watermark & Sign-off Footer
+    ctx.fillStyle = "#64748b";
+    ctx.font = "600 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`Dokumen elektronik sah diterbitkan oleh Sistem Izin Sedayu • Kampus Asrama Mu'allimin Yogyakarta`, w / 2, cardY + cardH - 35);
+    ctx.textAlign = "left";
+
+    // Trigger Download PNG High Res
+    const dataUrl = canvas.toDataURL("image/png", 1.0);
     const link = document.createElement("a");
-    link.download = `Surat_Izin_${idIzin}_${(santriName || "santri").replace(/[^a-zA-Z0-9]/g, "_")}.png`;
+    link.download = `ePass_1080x1920_${passData.idIzin}_${(passData.namaSantri || "santri").replace(/[^a-zA-Z0-9]/g, "_")}.png`;
     link.href = dataUrl;
     document.body.appendChild(link);
     link.click();
     setTimeout(() => {
       document.body.removeChild(link);
     }, 500);
+
     toast.dismiss(tId);
-    toast.success("Kartu e-Pass berhasil disimpan ke galeri/unduhan!");
+    toast.success("Kartu e-Pass Full HD (1080x1920) berhasil diunduh!");
   } catch (err) {
-    console.error("Gagal memproses gambar kartu:", err);
+    console.error("Gagal membuat gambar e-Pass HD:", err);
     toast.dismiss(tId);
-    toast.error("Gagal memproses gambar kartu izin.");
+    toast.error("Gagal memproses gambar kartu e-Pass Full HD.");
   }
 }
 
@@ -1966,23 +2217,49 @@ function PagePass({ passData, setPage, currentUser }: {
   }
 
   const isApproved = passData.status === "APPROVED";
+  const isRejected = passData.status === "REJECTED";
+  const isReturned = passData.status === "RETURNED";
+  const isPending  = passData.status === "PENDING";
 
   return (
     <div className="max-w-sm mx-auto px-4 py-6">
 
-      {/* Success banner */}
+      {/* Status banner */}
       <div className={`mb-4 flex items-center gap-3 p-4 rounded-2xl scale-pop
-        ${isApproved ? "bg-emerald-50 border border-emerald-200" : "bg-amber-50 border border-amber-200"}`}>
+        ${isApproved ? "bg-emerald-50 border border-emerald-200" :
+          isRejected ? "bg-rose-50 border border-rose-200" :
+          isReturned ? "bg-blue-50 border border-blue-200" :
+          "bg-amber-50 border border-amber-200"}`}>
         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
-          ${isApproved ? "bg-emerald-100" : "bg-amber-100"}`}>
-          {isApproved ? <CheckCircle2 className="w-5 h-5 text-emerald-600"/> : <Clock className="w-5 h-5 text-amber-600"/>}
+          ${isApproved ? "bg-emerald-100" :
+            isRejected ? "bg-rose-100" :
+            isReturned ? "bg-blue-100" :
+            "bg-amber-100"}`}>
+          {isApproved ? <CheckCircle2 className="w-5 h-5 text-emerald-600"/> :
+           isRejected ? <XCircle className="w-5 h-5 text-rose-600"/> :
+           isReturned ? <Check className="w-5 h-5 text-blue-600"/> :
+           <Clock className="w-5 h-5 text-amber-600"/>}
         </div>
         <div>
-          <p className={`font-bold text-sm ${isApproved?"text-emerald-900":"text-amber-900"}`}>
-            {isApproved ? "Izin Disetujui!" : "Izin Terkirim"}
+          <p className={`font-bold text-sm ${
+            isApproved ? "text-emerald-900" :
+            isRejected ? "text-rose-900" :
+            isReturned ? "text-blue-900" :
+            "text-amber-900"}`}>
+            {isApproved ? "Izin Disetujui (e-Pass Resmi)" :
+             isRejected ? "Permohonan Izin Ditolak" :
+             isReturned ? "Santri Telah Kembali" :
+             "Pengajuan Terkirim (Menunggu ACC)"}
           </p>
-          <p className={`text-xs ${isApproved?"text-emerald-600":"text-amber-600"}`}>
-            {isApproved ? "Santri dapat keluar sesuai jadwal" : "Menunggu persetujuan ustadz"}
+          <p className={`text-xs ${
+            isApproved ? "text-emerald-600" :
+            isRejected ? "text-rose-600" :
+            isReturned ? "text-blue-600" :
+            "text-amber-600"}`}>
+            {isApproved ? "Santri dapat keluar sesuai jadwal" :
+             isRejected ? (passData.catatanAdmin || "Izin tidak disetujui oleh ustadz") :
+             isReturned ? "Telah tercatat kembali ke asrama" :
+             "Menunggu persetujuan Ustadz Musyrif/Pamong"}
           </p>
         </div>
       </div>
@@ -1995,7 +2272,7 @@ function PagePass({ passData, setPage, currentUser }: {
 
         {/* Card header */}
         <div className="relative px-5 py-4 overflow-hidden"
-          style={{background:"linear-gradient(135deg,#0f172a,#1e3a8a)"}}>
+          style={{background: isRejected ? "linear-gradient(135deg,#881337,#4c0519)" : isPending ? "linear-gradient(135deg,#78350f,#451a03)" : "linear-gradient(135deg,#0f172a,#1e3a8a)"}}>
           {/* Subtle pattern */}
           <div className="absolute inset-0 opacity-10"
             style={{backgroundImage:`url("data:image/svg+xml,%3Csvg width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='white'/%3E%3C/svg%3E")`}}/>
@@ -2006,7 +2283,9 @@ function PagePass({ passData, setPage, currentUser }: {
               </div>
               <div>
                 <p className="text-[9px] font-bold tracking-widest text-blue-300 uppercase">Madrasah Mu'allimin</p>
-                <p className="text-sm font-extrabold text-white tracking-tight">SURAT IZIN RESMI</p>
+                <p className="text-sm font-extrabold text-white tracking-tight">
+                  {isApproved ? "SURAT IZIN RESMI (e-PASS)" : isPending ? "BUKTI PENGAJUAN IZIN" : "SURAT PERIZINAN"}
+                </p>
               </div>
             </div>
             <StatusBadge status={passData.status} size="md"/>
@@ -2061,30 +2340,54 @@ function PagePass({ passData, setPage, currentUser }: {
             ))}
           </div>
 
-          {/* QR code */}
-          <div className="flex flex-col items-center gap-3 p-4 bg-slate-900 rounded-2xl">
-            <div className="p-3 bg-white rounded-2xl shadow-md flex items-center justify-center">
-              <QRCodeSVG 
-                value={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${encodeURIComponent(passData.idIzin)}` : passData.idIzin} 
-                size={140} 
-                level="M" 
-                bgColor="#ffffff" 
-                fgColor="#000000"
-                includeMargin={false}
-              />
+          {/* QR code OR Pending/Rejected Alert */}
+          {isApproved ? (
+            <div className="flex flex-col items-center gap-3 p-4 bg-slate-900 rounded-2xl">
+              <div className="p-3 bg-white rounded-2xl shadow-md flex items-center justify-center">
+                <QRCodeSVG 
+                  id="pass-qrcode-svg"
+                  className="qr-code-svg"
+                  value={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${encodeURIComponent(passData.idIzin)}` : passData.idIzin} 
+                  size={140} 
+                  level="M" 
+                  bgColor="#ffffff" 
+                  fgColor="#000000"
+                  includeMargin={false}
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-bold text-white">QR Verifikasi Satpam</p>
+                <p className="text-[10px] text-slate-300 mt-0.5">Arahkan kamera untuk memeriksa keabsahan surat</p>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-xs font-bold text-white">QR Verifikasi Satpam</p>
-              <p className="text-[10px] text-slate-300 mt-0.5">Arahkan kamera untuk memeriksa keabsahan surat</p>
+          ) : isPending ? (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-2">
+              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-amber-950">TIKET MASIH DALAM PROSES ACC</p>
+                <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                  Kartu Izin Keluar (e-Pass) beserta <strong>QR Code Satpam</strong> baru akan terbit dan dapat diunduh setelah disetujui (ACC) oleh Musyrif/Pamong.
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-center space-y-1">
+              <XCircle className="w-8 h-8 text-rose-500 mx-auto mb-1" />
+              <p className="text-xs font-bold text-rose-900">SURAT IZIN TIDAK BERLAKU</p>
+              <p className="text-[11px] text-rose-700">{passData.catatanAdmin || "Permohonan perizinan ditolak oleh Musyrif/Pamong."}</p>
+            </div>
+          )}
 
           {/* Pemberi izin / Penerbit Info */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="w-3.5 h-3.5 text-primary flex-shrink-0"/>
             <span>
-              {passData.status === "APPROVED" ? (
+              {isApproved ? (
                 <>Disetujui oleh: <strong className="text-foreground">{passData.pemberiIzin && passData.pemberiIzin !== "-" ? passData.pemberiIzin : (passData.catatanAdmin || "Ustadz Pembina")}</strong></>
+              ) : isRejected ? (
+                <>Ditolak: <strong className="text-rose-700">{passData.catatanAdmin || "Oleh Ustadz Pembina"}</strong></>
               ) : (
                 <>Diajukan oleh: <strong className="text-foreground">{passData.catatanAdmin || `Wali Santri (${passData.namaWali})`}</strong></>
               )}
@@ -2092,10 +2395,10 @@ function PagePass({ passData, setPage, currentUser }: {
           </div>
         </div>
 
-        {/* Multi-Musyrif WhatsApp Contact Badges if different classes */}
-        {passData.status === "PENDING" && findAllMusyrifByClass(passData.kelas).length > 1 && (
+        {/* Multi-Musyrif WhatsApp Contact Badges ONLY if PENDING */}
+        {isPending && findAllMusyrifByClass(passData.kelas).length > 1 && (
           <div className="px-5 pb-3 space-y-1.5">
-            <p className="text-[11px] font-semibold text-slate-600">Pilih Musyrif untuk Dikontak:</p>
+            <p className="text-[11px] font-semibold text-slate-600">Pilih Musyrif untuk Konfirmasi:</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {findAllMusyrifByClass(passData.kelas).map(m => (
                 <button
@@ -2116,25 +2419,59 @@ function PagePass({ passData, setPage, currentUser }: {
 
         {/* Actions (Digital Only) */}
         <div className="space-y-2 px-5 pb-5">
-          <div className="grid grid-cols-2 gap-2.5">
-            <button onClick={()=>sendWhatsAppMessage(passData, isPengurus)}
-              className="flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold hover:bg-emerald-700 transition-colors btn-press shadow-sm">
-              <Share2 className="w-4 h-4"/>
-              <span>{isPengurus && passData.status === "APPROVED" ? "Kirim ke Grup Satpam" : "WA ke Musyrif"}</span>
+          {isRejected ? (
+            <button onClick={()=>setPage("home")}
+              className="w-full py-3 bg-slate-800 text-white rounded-2xl text-xs font-bold hover:bg-slate-900 transition-colors btn-press">
+              Kembali ke Beranda
             </button>
-            <button onClick={()=>downloadPassImage("official-pass-card", passData.idIzin, passData.namaSantri)}
-              className="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-2xl text-xs font-bold hover:bg-blue-700 transition-colors btn-press shadow-sm">
-              <Download className="w-4 h-4"/> Simpan Gambar
-            </button>
-          </div>
-          <button onClick={()=>{
-            const url = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${passData.idIzin}` : passData.idIzin;
-            navigator.clipboard.writeText(url);
-            toast.success("Tautan verifikasi resmi berhasil disalin!");
-          }}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors btn-press">
-            <ShieldCheck className="w-3.5 h-3.5 text-blue-600"/> Salin Link Verifikasi
-          </button>
+          ) : isPending ? (
+            <div className="space-y-2">
+              <button onClick={()=>sendWhatsAppMessage(passData, false)}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold hover:bg-emerald-700 transition-colors btn-press shadow-sm">
+                <Share2 className="w-4 h-4"/>
+                <span>Hubungi / WA Musyrif Kelas untuk ACC</span>
+              </button>
+              <button onClick={()=>setPage("history")}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors btn-press">
+                <ClipboardList className="w-3.5 h-3.5 text-slate-600"/>
+                <span>Lihat Status di Riwayat Izin</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-2.5">
+                {isApproved && isPengurus ? (
+                  <button onClick={()=>sendWhatsAppMessage(passData, true)}
+                    className="flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold hover:bg-emerald-700 transition-colors btn-press shadow-sm">
+                    <Share2 className="w-4 h-4"/>
+                    <span>Kirim Grup Satpam</span>
+                  </button>
+                ) : (
+                  <button onClick={()=>{
+                    const url = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${passData.idIzin}` : passData.idIzin;
+                    navigator.clipboard.writeText(url);
+                    toast.success("Tautan verifikasi resmi berhasil disalin!");
+                  }}
+                    className="flex items-center justify-center gap-2 py-3 bg-slate-800 text-white rounded-2xl text-xs font-bold hover:bg-slate-700 transition-colors btn-press shadow-sm">
+                    <ShieldCheck className="w-4 h-4 text-blue-400"/>
+                    <span>Salin Link</span>
+                  </button>
+                )}
+                <button onClick={()=>downloadPassImage(passData)}
+                  className="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-2xl text-xs font-bold hover:bg-blue-700 transition-colors btn-press shadow-sm">
+                  <Download className="w-4 h-4"/> Simpan Gambar
+                </button>
+              </div>
+              <button onClick={()=>{
+                const url = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${passData.idIzin}` : passData.idIzin;
+                navigator.clipboard.writeText(url);
+                toast.success("Tautan verifikasi resmi berhasil disalin!");
+              }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors btn-press">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-600"/> Salin Link Verifikasi
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -2161,6 +2498,11 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn, onViewP
   const timeIn = fmtTime(item.jamKembali);
   const overdue = isOverdue(item);
 
+  const isApproved = item.status === "APPROVED";
+  const isRejected = item.status === "REJECTED";
+  const isReturned = item.status === "RETURNED";
+  const isPending  = item.status === "PENDING";
+
   return (
     <div className={`bg-white rounded-2xl border border-slate-200/90 border-l-[5px] ${leftColor[item.status as StatusType]||leftColor.PENDING} shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden`}>
       <div className="p-4 space-y-3">
@@ -2177,7 +2519,7 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn, onViewP
                   <span className="truncate max-w-[170px] sm:max-w-xs">{n}</span>
                 </div>
               ))}
-              {overdue && (
+              {overdue && isApproved && (
                 <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white font-extrabold text-[10px] animate-pulse flex items-center gap-1">
                   <AlertCircle className="w-3 h-3"/> Overdue
                 </span>
@@ -2209,7 +2551,7 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn, onViewP
           </div>
         </div>
 
-        {/* Schedule Box (Jadwal Keluar & Kembali yang Jelas & Rapi) */}
+        {/* Schedule Box */}
         <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50/90 rounded-xl border border-slate-200/80">
           <div className="min-w-0 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-blue-100/80 text-blue-700 flex items-center justify-center flex-shrink-0 font-bold text-[10px]">
@@ -2245,11 +2587,59 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn, onViewP
             <span className="text-slate-700 font-medium truncate">{item.tujuan || "-"}</span>
           </div>
         </div>
+
+        {/* Quick Access Action in Card */}
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+          {isApproved ? (
+            <button
+              onClick={() => onViewPass && onViewPass(item)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors btn-press shadow-sm"
+            >
+              <ScanLine className="w-3.5 h-3.5" />
+              <span>Lihat QR & e-Pass</span>
+            </button>
+          ) : isPending ? (
+            <span className="text-[11px] text-amber-700 font-medium flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-amber-600" /> Menunggu verifikasi
+            </span>
+          ) : isRejected ? (
+            <span className="text-[11px] text-rose-600 font-medium flex items-center gap-1">
+              <XCircle className="w-3.5 h-3.5 text-rose-500" /> Izin Ditolak
+            </span>
+          ) : (
+            <button
+              onClick={() => onViewPass && onViewPass(item)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors btn-press"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Lihat Surat</span>
+            </button>
+          )}
+
+          {/* Quick WA button ONLY when relevant */}
+          {isPending ? (
+            <button
+              onClick={() => sendWhatsAppMessage(item, false)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors btn-press shadow-sm"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>WA Musyrif</span>
+            </button>
+          ) : isApproved && isPengurus ? (
+            <button
+              onClick={() => sendWhatsAppMessage(item, true)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors btn-press shadow-sm"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Kirim Grup Satpam</span>
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {/* Accordion Details */}
       {expanded && (
-        <div className="px-4 py-3.5 border-t border-slate-100 bg-slate-50/70 space-y-2 text-xs fade-up">
+        <div className="px-4 py-3.5 border-t border-slate-100 bg-slate-50/70 space-y-3 text-xs fade-up">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 space-y-1">
               <span className="text-[10px] uppercase font-bold text-slate-400">Data Wali & Penjemput</span>
@@ -2265,9 +2655,13 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn, onViewP
               </p>
               <p className="text-slate-700">
                 <strong className="text-slate-900">Pemberi Izin / ACC:</strong> {
-                  item.status === "APPROVED"
+                  isApproved
                     ? (item.pemberiIzin && item.pemberiIzin !== "-" ? item.pemberiIzin : (item.catatanAdmin || "Ustadz Pembina"))
-                    : (item.status === "PENDING" ? "Menunggu ACC Ustadz" : (item.catatanAdmin || "-"))
+                    : isRejected
+                    ? (item.catatanAdmin || "Ditolak oleh Ustadz Pembina")
+                    : isPending
+                    ? "Menunggu ACC Ustadz"
+                    : (item.catatanAdmin || "-")
                 }
               </p>
               {item.catatanAdmin && !item.catatanAdmin.includes("Diajukan") && (
@@ -2276,27 +2670,49 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn, onViewP
             </div>
           </div>
 
-          {/* Quick WhatsApp Share from History */}
-          <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-            <span className="text-[11px] text-slate-500">
-              {isPengurus && item.status === "APPROVED" ? "Lapor ke Pos Keamanan:" : "Konfirmasi ke Musyrif:"}
-            </span>
-            <button
-              onClick={()=>sendWhatsAppMessage(item, isPengurus)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors btn-press shadow-sm"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{isPengurus && item.status === "APPROVED" ? "Kirim ke Grup Satpam" : "WA Musyrif Kelas"}</span>
-            </button>
-          </div>
+          {/* Embedded QR Code in History for Approved or Returned */}
+          {(isApproved || isReturned) && (
+            <div className="p-3 bg-slate-900 rounded-2xl flex items-center justify-between gap-3 text-white">
+              <div className="p-2 bg-white rounded-xl flex-shrink-0">
+                <QRCodeSVG
+                  value={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?verify=${encodeURIComponent(item.idIzin)}` : item.idIzin}
+                  size={64}
+                  level="M"
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-xs text-white">QR Tiket Perizinan</p>
+                <p className="text-[10px] text-slate-300">Scan untuk verifikasi di pos keamanan satpam</p>
+              </div>
+              <button
+                onClick={() => onViewPass && onViewPass(item)}
+                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors btn-press shadow-sm flex-shrink-0"
+              >
+                Buka e-Pass
+              </button>
+            </div>
+          )}
+
+          {/* Rejection Notice Banner */}
+          {isRejected && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 flex items-start gap-2">
+              <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Permohonan Izin Ditolak</p>
+                <p className="text-[11px] text-rose-700 mt-0.5">{item.catatanAdmin || "Izin tidak disetujui oleh Musyrif/Pamong Asrama."}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Admin Action Buttons with Permission Check */}
-      {currentUser && (
+      {currentUser && isPengurus && (
         <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center gap-2">
-          {item.status === "PENDING" && (
-            (currentUser ? canApprove(item, currentUser) : { allowed: false }).allowed ? (
+          {isPending && (
+            canApprove(item, currentUser).allowed ? (
               <>
                 <button onClick={onApprove}
                   className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors btn-press shadow-sm">
@@ -2309,17 +2725,17 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn, onViewP
               </>
             ) : (
               <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0"/> {(currentUser ? canApprove(item, currentUser) : { allowed: false }).reason}
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0"/> {canApprove(item, currentUser).reason}
               </span>
             )
           )}
-          {item.status === "APPROVED" && (
+          {isApproved && (
             <button onClick={onReturn}
               className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors btn-press shadow-sm">
               <RefreshCw className="w-3.5 h-3.5"/> Tandai Santri Kembali
             </button>
           )}
-          {(item.status === "REJECTED" || item.status === "RETURNED") && item.catatanAdmin && (
+          {(isRejected || isReturned) && item.catatanAdmin && (
             <span className="text-xs text-slate-500 italic py-1.5">{item.catatanAdmin}</span>
           )}
         </div>

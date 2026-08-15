@@ -62,7 +62,7 @@ input, select, textarea { font-family: inherit; }
 
 // ─── Types ─────────────────────────────────────────────────────
 type PageId       = "home" | "form" | "login" | "pass" | "history";
-type StatusType   = "PENDING" | "APPROVED" | "REJECTED" | "RETURNED";
+type StatusType   = "PENDING" | "APPROVED" | "CHECKED_OUT" | "RETURNED" | "REJECTED";
 type JenisIzinKey = "keluar-biasa" | "kesehatan" | "menginap" | "sakit";
 
 interface Student         { name: string; class: string; }
@@ -378,10 +378,27 @@ function getRole(user: UserSession | null): string {
   return "orangtua";
 }
 
+function isOverdue(item: IzinRecord): boolean {
+  if (item.status !== "CHECKED_OUT") return false;
+  if (!item.tanggalKembali || !item.jamKembali) return false;
+  try {
+    const tgl = item.tanggalKembali;
+    const d = new Date(tgl);
+    if (!isNaN(d.getTime())) {
+      const [hh, mm] = (item.jamKembali || "00:00").split(":").map(Number);
+      d.setHours(hh || 0, mm || 0, 0, 0);
+      return Date.now() > d.getTime();
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 function calcApproval(jenis: JenisIzinKey, role: string): { status: StatusType; text: string } {
   if (role === "pamong") {
     if (jenis === "sakit")
-      return { status:"APPROVED", text:"Disetujui Pamong — pastikan sudah koordinasi dengan Poskestren / Dokter terlebih dahulu." };
+      return { status:"APPROVED", text:"Disetujui Pamong — pastikan koordinasi dengan Poskestren / Dokter terlebih dahulu." };
     if (jenis === "menginap")
       return { status:"APPROVED", text:"Disetujui Pamong Asrama — wajib informasikan ke grup koordinasi PKM." };
     return { status:"APPROVED", text:"Disetujui langsung oleh Pamong Asrama." };
@@ -391,24 +408,33 @@ function calcApproval(jenis: JenisIzinKey, role: string): { status: StatusType; 
   }
   if (role === "musyrif") {
     if (jenis === "keluar-biasa")
-      return { status:"APPROVED", text:"Disetujui Musyrif Kelas — wajib informasikan ke grup PKM & catat jam keluar/kembali." };
+      return { status:"APPROVED", text:"Disetujui Musyrif Pembina — berlaku untuk perorangan maupun rombongan santri multi-kelas (ACC langsung)." };
     if (jenis === "kesehatan")
-      return { status:"APPROVED", text:"Disetujui Musyrif Kelas — catat nama penjemput dan pastikan koordinasi dengan wali." };
+      return { status:"APPROVED", text:"Disetujui Musyrif Pembina — kontrol kesehatan hari yang sama." };
     if (jenis === "menginap")
-      return { status:"PENDING", text:"Musyrif tidak berwenang untuk izin bermalam — harus disetujui Pamong Asrama atau Wadir." };
+      return { status:"PENDING", text:"SOP: Musyrif tidak berwenang untuk izin bermalam — wajib disetujui Pamong Asrama / Wadir IV." };
     if (jenis === "sakit")
-      return { status:"PENDING", text:"Musyrif tidak berwenang untuk izin sakit — koordinasikan dengan Poskestren & Pamong Asrama." };
+      return { status:"PENDING", text:"SOP: Izin pulang sakit wajib rekomendasi Poskestren & persetujuan Pamong Asrama." };
   }
   return { status:"PENDING", text:"Menunggu verifikasi Musyrif Kelas atau Pamong Asrama. Harap tunggu konfirmasi." };
 }
 
 // ─── StatusBadge ────────────────────────────────────────────────
-function StatusBadge({ status, size = "sm" }: { status: StatusType; size?: "sm" | "md" }) {
+function StatusBadge({ status, isOverdue = false, size = "sm" }: { status: StatusType; isOverdue?: boolean; size?: "sm" | "md" }) {
+  if (isOverdue && status === "CHECKED_OUT") {
+    return (
+      <span className={`inline-flex items-center gap-1.5 rounded-full font-bold border bg-rose-50 text-rose-700 border-rose-300 animate-pulse
+        ${size === "md" ? "px-3 py-1.5 text-sm" : "px-2.5 py-1 text-xs"}`}>
+        <AlertTriangle className="w-3.5 h-3.5"/>⚠️ Terlambat
+      </span>
+    );
+  }
   const map: Record<StatusType, { icon: React.ReactNode; cls: string; label: string }> = {
-    APPROVED: { icon:<CheckCircle2 className="w-3.5 h-3.5"/>, cls:"bg-emerald-50 text-emerald-700 border-emerald-200", label:"Disetujui" },
-    PENDING:  { icon:<Clock className="w-3.5 h-3.5"/>,        cls:"bg-amber-50 text-amber-700 border-amber-200",       label:"Menunggu"  },
-    REJECTED: { icon:<XCircle className="w-3.5 h-3.5"/>,      cls:"bg-rose-50 text-rose-700 border-rose-200",          label:"Ditolak"   },
-    RETURNED: { icon:<RefreshCw className="w-3.5 h-3.5"/>,    cls:"bg-blue-50 text-blue-700 border-blue-200",          label:"Kembali"   },
+    APPROVED:    { icon:<CheckCircle2 className="w-3.5 h-3.5"/>, cls:"bg-emerald-50 text-emerald-700 border-emerald-200", label:"Disetujui" },
+    PENDING:     { icon:<Clock className="w-3.5 h-3.5"/>,        cls:"bg-amber-50 text-amber-700 border-amber-200",       label:"Menunggu"  },
+    CHECKED_OUT: { icon:<LogOut className="w-3.5 h-3.5"/>,       cls:"bg-indigo-50 text-indigo-700 border-indigo-200",    label:"Di Luar Asrama" },
+    RETURNED:    { icon:<RefreshCw className="w-3.5 h-3.5"/>,    cls:"bg-blue-50 text-blue-700 border-blue-200",          label:"Sudah Kembali" },
+    REJECTED:    { icon:<XCircle className="w-3.5 h-3.5"/>,      cls:"bg-rose-50 text-rose-700 border-rose-200",          label:"Ditolak"   },
   };
   const c = map[status] || map.PENDING;
   return (
@@ -1617,24 +1643,27 @@ function PagePass({ passData, setPage }: { passData: IzinRecord | null; setPage:
 }
 
 // ─── History Card ───────────────────────────────────────────────
-function HistoryCard({ item, currentUser, onApprove, onReject, onReturn }: {
+function HistoryCard({ item, currentUser, onApprove, onReject, onCheckOut, onReturn }: {
   item: IzinRecord;
   currentUser: UserSession | null;
   onApprove: () => void;
   onReject: () => void;
+  onCheckOut: () => void;
   onReturn: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const overdue = isOverdue(item);
   const leftColor: Record<StatusType, string> = {
-    APPROVED: "border-l-emerald-500",
-    PENDING:  "border-l-amber-400",
-    REJECTED: "border-l-rose-500",
-    RETURNED: "border-l-blue-500",
+    APPROVED:    "border-l-emerald-500",
+    PENDING:     "border-l-amber-400",
+    CHECKED_OUT: overdue ? "border-l-rose-500 ring-1 ring-rose-300" : "border-l-indigo-500",
+    REJECTED:    "border-l-rose-500",
+    RETURNED:    "border-l-blue-500",
   };
   const names = item.namaSantri?.split(",").map(s => s.trim()) || [];
   const jOpt = JENIS_OPTIONS.find(o => JENIS_IZIN_LABELS[o.key] === item.jenisIzin);
 
-  // Role-based action rights
+  // Role-based action rights (Multi-santri musyrif direct approval)
   const role = getRole(currentUser);
   const jenisKey = Object.entries(JENIS_IZIN_LABELS).find(([, v]) => v === item.jenisIzin)?.[0] as JenisIzinKey | undefined;
   const canApprove = (() => {
@@ -1645,7 +1674,8 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn }: {
     }
     return false;
   })();
-  const canReturn = currentUser && item.status === "APPROVED" && (role === "pamong" || role === "musyrif" || role === "koordinator-musyrif");
+  const canCheckOut = currentUser && item.status === "APPROVED" && (role === "pamong" || role === "musyrif" || role === "koordinator-musyrif");
+  const canReturn = currentUser && (item.status === "CHECKED_OUT" || item.status === "APPROVED") && (role === "pamong" || role === "musyrif" || role === "koordinator-musyrif");
 
   return (
     <div className={`bg-white rounded-2xl border border-border border-l-4 ${leftColor[item.status as StatusType] || leftColor.PENDING} overflow-hidden transition-shadow hover:shadow-md`}>
@@ -1678,7 +1708,7 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn }: {
             <p className="text-xs text-muted-foreground">{fmtDate(item.tanggalKeluar)} &rarr; {fmtDate(item.tanggalKembali)}</p>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <StatusBadge status={item.status as StatusType}/>
+            <StatusBadge status={item.status as StatusType} isOverdue={overdue}/>
             <button onClick={() => setExpanded(o => !o)}
               className="w-7 h-7 rounded-xl bg-slate-50 border border-border flex items-center justify-center hover:bg-muted transition-colors">
               <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`}/>
@@ -1708,12 +1738,12 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn }: {
       )}
 
       {currentUser && (
-        <div className="px-4 py-3 border-t border-border flex flex-wrap gap-2">
+        <div className="px-4 py-3 border-t border-border flex flex-wrap gap-2 items-center">
           {item.status === "PENDING" && canApprove && (
             <>
               <button onClick={onApprove}
                 className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors btn-press">
-                <CheckCircle2 className="w-3.5 h-3.5"/> Setujui
+                <CheckCircle2 className="w-3.5 h-3.5"/> Setujui (ACC)
               </button>
               <button onClick={onReject}
                 className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors btn-press">
@@ -1723,10 +1753,22 @@ function HistoryCard({ item, currentUser, onApprove, onReject, onReturn }: {
           )}
           {item.status === "PENDING" && !canApprove && (
             <span className="text-xs text-muted-foreground italic py-1.5">
-              Jenis izin ini memerlukan persetujuan Pamong Asrama.
+              SOP: Izin bermalam/sakit memerlukan persetujuan Pamong Asrama / Wadir IV.
             </span>
           )}
-          {canReturn && (
+          {canCheckOut && (
+            <button onClick={onCheckOut}
+              className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors btn-press shadow-xs">
+              <LogOut className="w-3.5 h-3.5"/> Check-Out (Keluar)
+            </button>
+          )}
+          {item.status === "CHECKED_OUT" && canReturn && (
+            <button onClick={onReturn}
+              className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors btn-press shadow-xs">
+              <RefreshCw className="w-3.5 h-3.5"/> Check-In (Kembali)
+            </button>
+          )}
+          {item.status === "APPROVED" && !canCheckOut && canReturn && (
             <button onClick={onReturn}
               className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors btn-press">
               <RefreshCw className="w-3.5 h-3.5"/> Tandai Kembali
@@ -1767,7 +1809,7 @@ function PageHistory({ currentUser, setPage, onLoginRequest }: {
     if (!currentUser) { toast.error("Login diperlukan"); return; }
     updateStatus(id, "APPROVED", `Disetujui oleh ${currentUser.name}`, currentUser);
     setItems(getLocal());
-    toast.success("Izin disetujui.");
+    toast.success("Izin berhasil disetujui (ACC).");
   }
   function reject(id: string) {
     if (!currentUser) { toast.error("Login diperlukan"); return; }
@@ -1775,18 +1817,29 @@ function PageHistory({ currentUser, setPage, onLoginRequest }: {
     setItems(getLocal());
     toast.info("Izin ditolak.");
   }
+  function checkOut(id: string) {
+    if (!currentUser) { toast.error("Login diperlukan"); return; }
+    const jam = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    updateStatus(id, "CHECKED_OUT", `Santri keluar asrama via PKM — dicatat ${currentUser.name} (${jam} WIB)`, currentUser);
+    setItems(getLocal());
+    toast.success("Santri tercatat keluar asrama (Check-Out).");
+  }
   function returnItem(id: string) {
     if (!currentUser) return;
-    updateStatus(id, "RETURNED", `Santri kembali — dicatat ${currentUser.name}`, currentUser);
+    const jam = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    updateStatus(id, "RETURNED", `Santri kembali ke asrama — dicatat ${currentUser.name} (${jam} WIB)`, currentUser);
     setItems(getLocal());
-    toast.success("Status: Santri Kembali.");
+    toast.success("Status: Santri sudah kembali (Check-In).");
   }
 
   const counts = useMemo(() => ({
-    all:      items.length,
-    PENDING:  items.filter(i => i.status === "PENDING").length,
-    APPROVED: items.filter(i => i.status === "APPROVED").length,
-    REJECTED: items.filter(i => i.status === "REJECTED").length,
+    all:         items.length,
+    PENDING:     items.filter(i => i.status === "PENDING").length,
+    APPROVED:    items.filter(i => i.status === "APPROVED").length,
+    CHECKED_OUT: items.filter(i => i.status === "CHECKED_OUT").length,
+    RETURNED:    items.filter(i => i.status === "RETURNED").length,
+    REJECTED:    items.filter(i => i.status === "REJECTED").length,
+    overdue:     items.filter(i => isOverdue(i)).length,
   }), [items]);
 
   const filtered = useMemo(() => {
@@ -1809,10 +1862,12 @@ function PageHistory({ currentUser, setPage, onLoginRequest }: {
   }, [items, statusF, dateF, search]);
 
   const TAB_LABELS: { key: "all" | StatusType; label: string }[] = [
-    { key:"all",      label:"Semua" },
-    { key:"PENDING",  label:"Menunggu" },
-    { key:"APPROVED", label:"Disetujui" },
-    { key:"REJECTED", label:"Ditolak" },
+    { key:"all",         label:"Semua" },
+    { key:"PENDING",     label:"Menunggu" },
+    { key:"APPROVED",    label:"Disetujui" },
+    { key:"CHECKED_OUT", label:"Di Luar" },
+    { key:"RETURNED",    label:"Kembali" },
+    { key:"REJECTED",    label:"Ditolak" },
   ];
 
   return (
@@ -1944,6 +1999,7 @@ function PageHistory({ currentUser, setPage, onLoginRequest }: {
                   currentUser={currentUser}
                   onApprove={() => approve(item.idIzin)}
                   onReject={() => reject(item.idIzin)}
+                  onCheckOut={() => checkOut(item.idIzin)}
                   onReturn={() => returnItem(item.idIzin)}
                 />
               </div>
@@ -1954,15 +2010,16 @@ function PageHistory({ currentUser, setPage, onLoginRequest }: {
 
       {/* Stats summary */}
       {items.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {[
-            { label:"Total Izin",  value:counts.all,      icon:<TrendingUp className="w-4 h-4 text-blue-600"/>,   bg:"bg-blue-50 border-blue-200" },
-            { label:"Disetujui",   value:counts.APPROVED, icon:<CheckCircle2 className="w-4 h-4 text-emerald-600"/>, bg:"bg-emerald-50 border-emerald-200" },
-            { label:"Menunggu",    value:counts.PENDING,  icon:<Clock className="w-4 h-4 text-amber-600"/>,      bg:"bg-amber-50 border-amber-200" },
+            { label:"Total Izin",  value:counts.all,         icon:<TrendingUp className="w-4 h-4 text-blue-600"/>,      bg:"bg-blue-50 border-blue-200" },
+            { label:"Menunggu",    value:counts.PENDING,     icon:<Clock className="w-4 h-4 text-amber-600"/>,         bg:"bg-amber-50 border-amber-200" },
+            { label:"Di Luar",     value:counts.CHECKED_OUT, icon:<LogOut className="w-4 h-4 text-indigo-600"/>,       bg:"bg-indigo-50 border-indigo-200" },
+            { label:"Kembali",     value:counts.RETURNED,    icon:<RefreshCw className="w-4 h-4 text-emerald-600"/>,    bg:"bg-emerald-50 border-emerald-200" },
           ].map(s => (
-            <div key={s.label} className={`${s.bg} border rounded-2xl p-3.5 text-center`}>
-              <div className="flex justify-center mb-1.5">{s.icon}</div>
-              <p className="text-2xl font-extrabold text-foreground">{s.value}</p>
+            <div key={s.label} className={`${s.bg} border rounded-2xl p-3 text-center`}>
+              <div className="flex justify-center mb-1">{s.icon}</div>
+              <p className="text-xl font-extrabold text-foreground">{s.value}</p>
               <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{s.label}</p>
             </div>
           ))}

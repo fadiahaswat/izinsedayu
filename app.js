@@ -709,19 +709,19 @@ function calculateApprovalStatus(jenisIzinKey, rolePemohonKey, user) {
         };
     }
 
-    // Musyrif Kelas berwenang untuk Izin Keluar Biasa & Kesehatan
+    // Musyrif Pembina berwenang untuk Izin Keluar Biasa & Kesehatan (termasuk rombongan multi-santri/kakak-adik lintas kelas)
     if (role === 'musyrif') {
         if (jenisIzinKey === 'keluar-biasa' || jenisIzinKey === 'kesehatan') {
             return { 
                 status: 'APPROVED', 
                 authorized: true, 
-                reason: 'Disetujui Langsung (ACC) oleh Ustadz Musyrif Kelas' 
+                reason: 'Disetujui Langsung (ACC) oleh Ustadz Musyrif Pembina' 
             };
         } else {
             return { 
                 status: 'PENDING', 
                 authorized: false, 
-                reason: 'SOP: Izin Pulang/Menginap/Sakit Wajib Verifikasi & ACC Pamong Asrama / Wadir IV' 
+                reason: 'SOP: Izin Pulang/Menginap & Sakit Wajib Verifikasi & ACC Pamong Asrama / Wadir IV' 
             };
         }
     }
@@ -1660,6 +1660,7 @@ function renderHistoryCards(items) {
         const statusClass = {
             'PENDING': 'bg-amber-100 text-amber-700 border-amber-200',
             'APPROVED': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            'CHECKED_OUT': 'bg-indigo-100 text-indigo-700 border-indigo-200',
             'REJECTED': 'bg-rose-100 text-rose-700 border-rose-200',
             'RETURNED': 'bg-blue-100 text-blue-700 border-blue-200'
         }[item.status] || 'bg-slate-100 text-slate-700 border-slate-200';
@@ -1699,11 +1700,26 @@ function renderHistoryCards(items) {
             `;
         } else if (item.status === 'APPROVED' && currentUser) {
             actionsHTML = `
+                <div class="flex flex-wrap gap-2 pt-3 border-t border-slate-100 mt-3">
+                    <button onclick="window.updateStatusHandler('${item.idIzin}', 'CHECKED_OUT')"
+                        class="btn flex-1 min-w-[120px] px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-md text-xs flex items-center justify-center gap-2 shadow-sm transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        Check-Out (Keluar)
+                    </button>
+                    <button onclick="window.updateStatusHandler('${item.idIzin}', 'RETURNED')"
+                        class="btn flex-1 min-w-[120px] px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md text-xs flex items-center justify-center gap-2 shadow-sm transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        Tandai Kembali
+                    </button>
+                </div>
+            `;
+        } else if (item.status === 'CHECKED_OUT' && currentUser) {
+            actionsHTML = `
                 <div class="pt-3 border-t border-slate-100 mt-3">
                     <button onclick="window.updateStatusHandler('${item.idIzin}', 'RETURNED')"
                         class="btn w-full px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md text-xs flex items-center justify-center gap-2 shadow-sm transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                        Tandai Sudah Kembali
+                        Check-In (Tandai Sudah Kembali)
                     </button>
                 </div>
             `;

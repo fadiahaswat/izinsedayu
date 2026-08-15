@@ -399,9 +399,9 @@ function validateInput(data, action) {
     if (!data.status) {
       errors.push('Status baru wajib diisi');
     }
-    const validStatuses = ['PENDING', 'APPROVED', 'REJECTED', 'RETURNED'];
+    const validStatuses = ['PENDING', 'APPROVED', 'CHECKED_OUT', 'REJECTED', 'RETURNED'];
     if (data.status && !validStatuses.includes(data.status.toUpperCase())) {
-      errors.push('Status tidak valid. Gunakan: PENDING, APPROVED, REJECTED, atau RETURNED');
+      errors.push('Status tidak valid. Gunakan: PENDING, APPROVED, CHECKED_OUT, REJECTED, atau RETURNED');
     }
   }
 
