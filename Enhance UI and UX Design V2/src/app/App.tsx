@@ -3,6 +3,7 @@ import { toast, Toaster } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
 import { Html5Qrcode } from "html5-qrcode";
+import html2canvas from "html2canvas";
 import logoBlue from "../assets/logo-muallimin-blue.png";
 import logoWhite from "../assets/logo-muallimin-white.png";
 import { santriData, musyrifData, koordinatorMusyrif, pamongList, pamongData, GOOGLE_CLIENT_ID, REGISTERED_EMAILS } from "../data";
@@ -616,31 +617,37 @@ function Accordion({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-// Helper unduh kartu izin sebagai gambar PNG (e-Pass)
+// Helper unduh kartu izin sebagai gambar PNG (e-Pass) menggunakan html2canvas
 async function downloadPassImage(cardElementId: string, idIzin: string, santriName: string) {
   const node = document.getElementById(cardElementId);
   if (!node) {
     toast.error("Elemen kartu izin tidak ditemukan.");
     return;
   }
-  const tId = toast.loading("Membuat gambar kartu e-Pass...");
+  const tId = toast.loading("Sedang membuat gambar kartu e-Pass...");
   try {
-    const dataUrl = await toPng(node, {
-      cacheBust: true,
-      quality: 0.95,
-      pixelRatio: 2,
+    const canvas = await html2canvas(node, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
       backgroundColor: "#ffffff",
+      logging: false,
+      ignoreElements: (element) => element.classList.contains("no-export"),
     });
+
+    const dataUrl = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.download = `ePass_${idIzin}_${(santriName || "santri").replace(/[^a-zA-Z0-9]/g, "_")}.png`;
     link.href = dataUrl;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
     toast.dismiss(tId);
     toast.success("Kartu e-Pass berhasil disimpan ke galeri/unduhan!");
   } catch (err) {
-    console.error("Gagal mengunduh gambar kartu izin:", err);
+    console.error("Gagal memproses gambar kartu:", err);
     toast.dismiss(tId);
-    toast.error("Gagal memproses gambar. Coba lagi.");
+    toast.error("Gagal memproses gambar kartu izin.");
   }
 }
 
@@ -651,10 +658,42 @@ function QRScannerModal({ isOpen, onClose, onScanSuccess }: {
   onScanSuccess: (scannedId: string) => void;
 }) {
   const [error, setError] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"camera" | "file">("camera");
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleDecoded = useCallback((decodedText: string) => {
+    let id = decodedText.trim();
+    if (id.includes("verify=")) {
+      try {
+        const url = new URL(id);
+        id = url.searchParams.get("verify") || id;
+      } catch {
+        const match = id.match(/verify=([^&]+)/);
+        if (match) id = match[1];
+      }
+    }
+
+    // Haptic / Sound feedback
+    try {
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
+    } catch {}
+
+    // Stop scanner async
+    if (scannerRef.current) {
+      try {
+        scannerRef.current.stop().catch(() => {});
+      } catch {}
+      scannerRef.current = null;
+    }
+
+    onScanSuccess(id);
+  }, [onScanSuccess]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || activeTab !== "camera") return;
     let isMounted = true;
     const qrElementId = "qr-camera-stream";
 
@@ -663,56 +702,76 @@ function QRScannerModal({ isOpen, onClose, onScanSuccess }: {
         const scanner = new Html5Qrcode(qrElementId);
         scannerRef.current = scanner;
 
+        // Try back camera first, fallback to any camera
         scanner.start(
           { facingMode: "environment" },
           {
             fps: 10,
-            qrbox: { width: 240, height: 240 },
+            qrbox: (viewfinderWidth, viewfinderHeight) => {
+              const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+              return { width: Math.floor(minEdge * 0.75), height: Math.floor(minEdge * 0.75) };
+            },
           },
           (decodedText) => {
-            let id = decodedText.trim();
-            if (id.includes("verify=")) {
-              try {
-                const url = new URL(id);
-                id = url.searchParams.get("verify") || id;
-              } catch {
-                const match = id.match(/verify=([^&]+)/);
-                if (match) id = match[1];
-              }
-            }
-
             if (isMounted) {
-              scanner.stop().catch(() => {}).finally(() => {
-                onScanSuccess(id);
-              });
+              handleDecoded(decodedText);
             }
           },
           () => {}
         ).catch((err) => {
-          console.warn("Camera start error:", err);
-          setError("Gagal mengakses kamera. Pastikan izin kamera telah diizinkan pada browser.");
+          console.warn("Camera back failed, trying any camera:", err);
+          // Fallback to any user camera
+          scanner.start(
+            { facingMode: "user" },
+            { fps: 10, qrbox: { width: 220, height: 220 } },
+            (decodedText) => {
+              if (isMounted) handleDecoded(decodedText);
+            },
+            () => {}
+          ).catch((err2) => {
+            console.warn("All camera start error:", err2);
+            setError("Kamera tidak dapat diakses atau izin ditolak. Silakan gunakan opsi 'Unggah Foto QR'.");
+          });
         });
       } catch (e) {
         console.warn("QR init error:", e);
         setError("Inisialisasi pemindai kamera gagal.");
       }
-    }, 250);
+    }, 200);
 
     return () => {
       isMounted = false;
       clearTimeout(timer);
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {}).finally(() => {
-          scannerRef.current = null;
-        });
+        try {
+          scannerRef.current.stop().catch(() => {});
+        } catch {}
+        scannerRef.current = null;
       }
     };
-  }, [isOpen, onScanSuccess]);
+  }, [isOpen, activeTab, handleDecoded]);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const tId = toast.loading("Memindai file gambar QR...");
+    try {
+      const html5QrCode = new Html5Qrcode("qr-file-processor");
+      const decodedResult = await html5QrCode.scanFile(file, true);
+      toast.dismiss(tId);
+      handleDecoded(decodedResult);
+    } catch (err) {
+      console.error("Gagal membaca QR dari file:", err);
+      toast.dismiss(tId);
+      toast.error("Tidak ditemukan QR Code yang valid pada gambar tersebut.");
+    }
+  }
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm fade-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm fade-up">
       <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden max-w-sm w-full shadow-2xl">
         <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -724,25 +783,74 @@ function QRScannerModal({ isOpen, onClose, onScanSuccess }: {
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
-          <div className="relative rounded-2xl overflow-hidden bg-slate-950 min-h-[260px] flex items-center justify-center border border-slate-800">
-            <div id="qr-camera-stream" className="w-full" />
-            {error && (
-              <div className="absolute inset-0 p-6 bg-slate-900/95 text-white flex flex-col items-center justify-center text-center space-y-2">
-                <AlertCircle className="w-8 h-8 text-rose-400" />
-                <p className="text-xs text-rose-200">{error}</p>
-                <button
-                  onClick={onClose}
-                  className="mt-2 text-xs font-bold px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors"
-                >
-                  Tutup
-                </button>
-              </div>
-            )}
-          </div>
+        {/* Tab switch */}
+        <div className="p-2 bg-slate-100 flex gap-1 border-b border-slate-200">
+          <button
+            onClick={() => { setActiveTab("camera"); setError(""); }}
+            className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === "camera" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+          >
+            <Camera className="w-3.5 h-3.5 text-emerald-600" /> Kamera Live
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("file");
+              if (scannerRef.current) {
+                try { scannerRef.current.stop().catch(() => {}); } catch {}
+                scannerRef.current = null;
+              }
+            }}
+            className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === "file" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-600" /> Unggah Foto QR
+          </button>
+        </div>
 
-          <p className="text-center text-xs text-slate-500 font-medium">
-            Arahkan kamera HP ke QR Code pada kartu izin santri untuk memverifikasi secara otomatis.
+        <div className="p-5 space-y-4">
+          {activeTab === "camera" ? (
+            <div className="relative rounded-2xl overflow-hidden bg-slate-950 min-h-[260px] flex items-center justify-center border border-slate-800">
+              <div id="qr-camera-stream" className="w-full" />
+              {error && (
+                <div className="absolute inset-0 p-6 bg-slate-900/95 text-white flex flex-col items-center justify-center text-center space-y-2">
+                  <AlertCircle className="w-8 h-8 text-rose-400" />
+                  <p className="text-xs text-rose-200">{error}</p>
+                  <button
+                    onClick={() => setActiveTab("file")}
+                    className="mt-2 text-xs font-bold px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors"
+                  >
+                    Gunakan Unggah Foto QR
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-6 border-2 border-dashed border-slate-300 rounded-2xl text-center space-y-3 bg-slate-50">
+              <div id="qr-file-processor" className="hidden" />
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mx-auto">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-800">Pilih Foto / Screenshot QR Code</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">Mendukung format JPG, PNG, WebP</p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors btn-press shadow-sm inline-flex items-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5 rotate-180" /> Pilih File Gambar
+              </button>
+            </div>
+          )}
+
+          <p className="text-center text-[11px] text-slate-500 font-medium">
+            Arahkan kamera ke QR Code pada surat izin santri untuk memverifikasi secara instan.
           </p>
         </div>
       </div>
