@@ -18,20 +18,20 @@
 // Ambil dari environment atau use default
 (function() {
     // Check for window.CONFIG first (can be set by server-side include)
-    if (typeof window !== 'undefined' && window.APP_CONFIG) {
-        window.GAS_WEB_APP_URL = window.APP_CONFIG.GAS_WEB_APP_URL || '';
+    if (typeof window !== 'undefined' && window.APP_CONFIG && window.APP_CONFIG.GAS_WEB_APP_URL) {
+        window.GAS_WEB_APP_URL = window.APP_CONFIG.GAS_WEB_APP_URL;
         window.GOOGLE_CLIENT_ID = window.APP_CONFIG.GOOGLE_CLIENT_ID || '';
         window.REGISTERED_EMAILS = window.APP_CONFIG.REGISTERED_EMAILS || [];
     } else {
-        // Fallback: kosong, app.js akan handle
-        window.GAS_WEB_APP_URL = '';
+        // Production Google Apps Script Web App URL
+        window.GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxpzJytGmjv6lcPzb6fzSoZeYdQCuJfC9ZE-xfo87JUoKRWCq4G7lC5uIDQDKlSQIGK/exec';
         window.GOOGLE_CLIENT_ID = '';
         window.REGISTERED_EMAILS = [];
     }
 })();
 
 // Alias untuk kompatibilitas
-const GAS_WEB_APP_URL = window.GAS_WEB_APP_URL || '';
+const GAS_WEB_APP_URL = window.GAS_WEB_APP_URL || 'https://script.google.com/macros/s/AKfycbxpzJytGmjv6lcPzb6fzSoZeYdQCuJfC9ZE-xfo87JUoKRWCq4G7lC5uIDQDKlSQIGK/exec';
 const GOOGLE_CLIENT_ID = window.GOOGLE_CLIENT_ID || '';
 const REGISTERED_EMAILS = window.REGISTERED_EMAILS || [];
 
@@ -6031,63 +6031,63 @@ const santriData = [
     }
 ];
 
-// Data kontak Musyrif per kelas (Resmi & Terkini 2026)
+// Data kontak Musyrif per kelas (Resmi 2026)
 const musyrifData = {
     // Kelas 1
-    '1A': { name: 'Ustadz Wahyu Dermawan', email: 'wahyudermawan1212@gmail.com', number: '6282180998704', waliKelas: 'Dwi Pembangun Ari Yuwono, S.Pd.' },
-    '1B': { name: 'Ustadz Muhammad Farras Mamduh', email: 'farrasmdh@gmail.com', number: '6285117104411', waliKelas: 'Muhammad Irfan Syihab, S.Hum.' },
-    '1C': { name: 'Ustadz Leo Fernando Adnan Muzaki', email: 'leodrfernandofelix@gmail.com', number: '6285701209925', waliKelas: 'Drs. Supriyono' },
-    '1D': { name: 'Ustadz Husein Nur Alwany', email: 'husennur085@gmail.com', number: '6285157379443', waliKelas: 'Ahmad Suryani, S.Ag, M.S.I.' },
-    '1E': { name: 'Ustadz Arif Rahman, S.s.', email: 'nitikan3321@gmail.com', number: '6285129334523', waliKelas: 'Ahmad Afifuddin Syarif, S.Pd' },
-    '1F': { name: 'Ustadz M. Fajri', email: '', number: '6285189076745', waliKelas: 'Fajar Nurahman, S.Pd.' },
-    '1G': { name: 'Ustadz Ajie Saptian Hardiyanto', email: 'saptianaji07@gmail.com', number: '6285198234739', waliKelas: 'Hery Nugroho, S.Pd.' },
-    '1LOWERA': { name: 'Ustadz Muhammad Maliq Hakeem', email: 'muhammadmaliqhkm@gmail.com', number: '6282342754336', waliKelas: 'Syahda Agustian Supriyanto, S.Pd.' },
-    '1LOWERB': { name: 'Ustadz Bryan Mahir Muharram', email: 'bryanmuharram06@gmail.com', number: '6282140095932', waliKelas: 'Yusup Siradz, S.Pd.I, M.S.I.' },
-    '1LOWERC': { name: 'Ustadz Auzia Difa Mubarok', email: 'difaamubaarak@gmail.com', number: '6289526256385', waliKelas: 'Imam Rosyidi, S.Ag.' },
+    '1A': { name: 'Ustadz Wahyu Dermawan', email: 'wahyudermawan1212@gmail.com', number: '6282180998704' },
+    '1B': { name: 'Ustadz Muhammad Farras Mamduh', email: 'farrasmdh@gmail.com', number: '6285117104411' },
+    '1C': { name: 'Ustadz Leo Fernando Adnan Muzaki', email: 'leodrfernandofelix@gmail.com', number: '6285701209925' },
+    '1D': { name: 'Ustadz Husein Nur Alwany', email: 'husennur085@gmail.com', number: '6285157379443' },
+    '1E': { name: 'Ustadz Arif Rahman, S.s.', email: 'nitikan3321@gmail.com', number: '6285129334523' },
+    '1F': { name: 'Ustadz M. Fajri', email: '', number: '6285189076745' },
+    '1G': { name: 'Ustadz Ajie Saptian Hardiyanto', email: 'saptianaji07@gmail.com', number: '6285198234739' },
+    '1LOWERA': { name: 'Ustadz Muhammad Maliq Hakeem', email: 'muhammadmaliqhkm@gmail.com', number: '6282342754336' },
+    '1LOWERB': { name: 'Ustadz Bryan Mahir Muharram', email: 'bryanmuharram06@gmail.com', number: '6282140095932' },
+    '1LOWERC': { name: 'Ustadz Auzia Difa Mubarok', email: 'difaamubaarak@gmail.com', number: '6289526256385' },
 
     // Kelas 2
-    '2A': { name: 'Ustadz Arhab Syamil Asy Syatori', email: 'arhab.syamil4@gmail.com', number: '6282145765850', waliKelas: 'Husnan Wadi. S.H.I. M.P.I.' },
-    '2B': { name: 'Ustadz Muhammad Dhaim Aruna', email: 'dhaimaruna@gmail.com', number: '628156554524', waliKelas: 'Agus Widodo, S.Pd.' },
-    '2C': { name: 'Ustadz Ivan Nur Adrian Pratama', email: 'ivannur224@gmail.com', number: '6288983127506', waliKelas: 'Solehuddin, S.Pd.' },
-    '2D': { name: 'Ustadz Muhammad Atqonuddinillah', email: 'muhammadatqonuddinnilah@gmail.com', number: '6281225054570', waliKelas: 'Sofyan Pradivatno, S.Pd.' },
-    '2E': { name: 'Ustadz Nur Affan Muarif, S.Sos.', email: 'affanmuarif99@gmail.com', number: '6282216678182', waliKelas: 'Samsu Widayat, S.Pd.' },
-    '2F': { name: 'Ustadz Muhammad Rafi Umar Rais', email: 'rafiumar420@gmail.com', number: '6285854312222', waliKelas: 'Lilik Wijayanto, S.Pd.' },
-    '2G': { name: 'Ustadz Muhammad Arfa Burhanuddin Rafif', email: 'arfaburhan2008@gmail.com', number: '6281233795288', waliKelas: 'Aswin Prayogi Wijaya, S.H.' },
-    '2H': { name: 'Ustadz Imam Tunisi', email: 'mamtun17@gmail.com', number: '62895635128151', waliKelas: 'Yunus Nur Hidayat, M.Pd.' },
-    '2LOWERA': { name: 'Ustadz Muhammad Adhwa Janitra Handoko', email: 'handokohowareyou@gmail.com', number: '6287786969082', waliKelas: 'Yudhi Wiyoko, S.Si.' },
-    '2LOWERB': { name: 'Ustadz Zaky Risky Kurniawan', email: 'zakyrisky182@gmail.com', number: '6288983445038', waliKelas: 'Muhammad Faisal Fakhrurozi, S.Pd.' },
-    '2LOWERC': { name: 'Ustadz Farrel Izham Prayitno, Lc., S.Pd.', email: 'itsmefarrelizhamp@gmail.com', number: '6285217017024', waliKelas: 'M. Afdhol Mufti Alhakiki, S.Pd.' },
+    '2A': { name: 'Ustadz Arhab Syamil Asy Syatori', email: 'arhab.syamil4@gmail.com', number: '6282145765850' },
+    '2B': { name: 'Ustadz Muhammad Dhaim Aruna', email: 'dhaimaruna@gmail.com', number: '628156554524' },
+    '2C': { name: 'Ustadz Ivan Nur Adrian Pratama', email: 'ivannur224@gmail.com', number: '6288983127506' },
+    '2D': { name: 'Ustadz Muhammad Atqonuddinillah', email: 'muhammadatqonuddinnilah@gmail.com', number: '6281225054570' },
+    '2E': { name: 'Ustadz Nur Affan Muarif, S.Sos.', email: 'affanmuarif99@gmail.com', number: '6282216678182' },
+    '2F': { name: 'Ustadz Muhammad Rafi Umar Rais', email: 'rafiumar420@gmail.com', number: '6285854312222' },
+    '2G': { name: 'Ustadz Muhammad Arfa Burhanuddin Rafif', email: 'arfaburhan2008@gmail.com', number: '6281233795288' },
+    '2H': { name: 'Ustadz Imam Tunisi', email: 'mamtun17@gmail.com', number: '62895635128151' },
+    '2LOWERA': { name: 'Ustadz Muhammad Adhwa Janitra Handoko', email: 'handokohowareyou@gmail.com', number: '6287786969082' },
+    '2LOWERB': { name: 'Ustadz Zaky Risky Kurniawan', email: 'zakyrisky182@gmail.com', number: '6288983445038' },
+    '2LOWERC': { name: 'Ustadz Farrel Izham Prayitno, Lc., S.Pd.', email: 'itsmefarrelizhamp@gmail.com', number: '6285217017024' },
 
     // Kelas 3
-    '3A': { name: 'Ustadz Abdullah, S.Pd.', email: 'abdullahmuallimin@muallimin.sch.id', number: '62881025916368', waliKelas: 'H. Muhammad Munawir, S.Pd.' },
-    '3B': { name: 'Ustadz Mukti Abdul Ghofar', email: 'muktighofar705@gmail.com', number: '6282241379820', waliKelas: 'Navif Fairuza, M.Hum.' },
-    '3C': { name: 'Ustadz Fadhl Maula Fawwas', email: 'maulafawas@gmail.com', number: '6281228679325', waliKelas: 'Agus Mianta, S.Si., M.Pd.' },
-    '3D': { name: 'Ustadz Fauzan Tasykurun Akmal', email: 'fauzanakmaal15@gmail.com', number: '6287833527289', waliKelas: 'Purwanto, S.Ag.' },
-    '3E': { name: 'Ustadz Muhammad Syaqib Ridho Asy Syafiq', email: 'idoosakippp@gmail.com', number: '628988158493', waliKelas: 'Banar Widayat, S.Pd.' },
-    '3F': { name: 'Ustadz Muhammad Islam Al Ghozy', email: 'muhammadislamalghozy2801@gmail.com', number: '6281233421108', waliKelas: 'Yohan Yulianto, S.Pd.' },
-    '3G': { name: 'Ustadz Ahmad Arif Kurniawan', email: 'ahmadarifkurniawan1809@gmail.com', number: '6282233624304', waliKelas: 'Farid Imron, S.Pd.I.' },
-    '3H': { name: 'Ustadz Hasan', email: '', number: '6289509904184', waliKelas: 'Supriantara, S.T, S.Kom., M.Kom.' },
-    '3UPPERA': { name: 'Ustadz Naufal Muzakki', email: 'naufalmuzakki.idn@gmail.com', number: '6287844185012', waliKelas: 'Zulkifli, S.Pd.I., M.Pd.I.' },
-    '3UPPERB': { name: 'Ustadz Mouldy Mohammad Zayyed', email: 'mouldymaz@gmail.com', number: '6285155347353', waliKelas: 'Andi Mujahid, S.E.I' },
+    '3A': { name: 'Ustadz Abdullah, S.Pd.', email: 'abdullahmuallimin@muallimin.sch.id', number: '62881025916368' },
+    '3B': { name: 'Ustadz Mukti Abdul Ghofar', email: 'muktighofar705@gmail.com', number: '6282241379820' },
+    '3C': { name: 'Ustadz Fadhl Maula Fawwas', email: 'maulafawas@gmail.com', number: '6281228679325' },
+    '3D': { name: 'Ustadz Fauzan Tasykurun Akmal', email: 'fauzanakmaal15@gmail.com', number: '6287833527289' },
+    '3E': { name: 'Ustadz Muhammad Syaqib Ridho Asy Syafiq', email: 'idoosakippp@gmail.com', number: '628988158493' },
+    '3F': { name: 'Ustadz Muhammad Islam Al Ghozy', email: 'muhammadislamalghozy2801@gmail.com', number: '6281233421108' },
+    '3G': { name: 'Ustadz Ahmad Arif Kurniawan', email: 'ahmadarifkurniawan1809@gmail.com', number: '6282233624304' },
+    '3H': { name: 'Ustadz Ananda Hasan Putra Rahman', email: '', number: '6289509904184' },
+    '3UPPERA': { name: 'Ustadz Naufal Muzakki', email: 'naufalmuzakki.idn@gmail.com', number: '6287844185012' },
+    '3UPPERB': { name: 'Ustadz Mouldy Mohammad Zayyed', email: 'mouldymaz@gmail.com', number: '6285155347353' },
 
     // Kelas 4
-    '4A': { name: 'Ustadz Mukti Abdul Ghofur', email: 'muktighofur75@gmail.com', number: '6282322272355', waliKelas: 'Mohammad Sanusi, S.H.I.' },
-    '4B': { name: 'Ustadz Rayhan Bachtiar Dwi Bayu Baskara', email: 'rayhan.baskara68@gmail.com', number: '6281225841078', waliKelas: 'Rizki Ridho Pratama, S.Pd.' },
-    '4C': { name: 'Ustadz Zahdal Aisy Rahman Averusy', email: 'zedzuhaid@gmail.com', number: '6282132910079', waliKelas: 'Masrur Ridwan, M.Pd.' },
-    '4D': { name: 'Ustadz Rifqi Adha Pradipa', email: 'rifqipradipa62@gmail.com', number: '6287769943357', waliKelas: 'Muh. Taffani Kusuma Wardana, S.Si.' },
-    '4E': { name: 'Ustadz Rasya Adhar Al Islam', email: 'rasyaadhar3012@gmail.com', number: '62895402680315', waliKelas: 'Cresna Anguila Sidiq, S.S.' },
-    '4F': { name: 'Ustadz Moh. Rival Aldiyansah', email: 'rivalaldiyansyah@muallimin.sch.id', number: '6285706095527', waliKelas: 'Syaifullah K. Boli, S.Pd.' },
-    '4UPPERA': { name: 'Ustadz Ayyasy Kaizen Birruna', email: 'catatankaizen@gmail.com', number: '6285930404552', waliKelas: 'Dhimas Ardya Riadus Sholikhin, S.Pd.' },
-    '4UPPERB': { name: 'Ustadz Hafidz Nawaf Fauzil Adhim, S.Pd.', email: 'fauziladhim2001@gmail.com', number: '6282241935414', waliKelas: 'Muhammad Fikri Noor Fajri, S.Hum.' },
+    '4A': { name: 'Ustadz Mukti Abdul Ghofur', email: 'muktighofur75@gmail.com', number: '6282322272355' },
+    '4B': { name: 'Ustadz Rayhan Bachtiar Dwi Bayu Baskara', email: 'rayhan.baskara68@gmail.com', number: '6281225841078' },
+    '4C': { name: 'Ustadz Zahdal Aisy Rahman Averusy', email: 'zedzuhaid@gmail.com', number: '6282132910079' },
+    '4D': { name: 'Ustadz Rifqi Adha Pradipa', email: 'rifqipradipa62@gmail.com', number: '6287769943357' },
+    '4E': { name: 'Ustadz Rasya Adhar Al Islam', email: 'rasyaadhar3012@gmail.com', number: '62895402680315' },
+    '4F': { name: 'Ustadz Moh. Rival Aldiyansah', email: 'rivalaldiyansyah@muallimin.sch.id', number: '6285706095527' },
+    '4UPPERA': { name: 'Ustadz Ayyasy Kaizen Birruna', email: 'catatankaizen@gmail.com', number: '6285930404552' },
+    '4UPPERB': { name: 'Ustadz Hafidz Nawaf Fauzil Adhim, S.Pd.', email: 'fauziladhim2001@gmail.com', number: '6282241935414' },
 
     // Kelas 5
-    '5A': { name: 'Ustadz Wildan Faalul Abror', email: 'wildanabror00@gmail.com', number: '6281233318388', waliKelas: 'H. Misbachul Munir, Lc.' },
-    '5B': { name: 'Ustadz Rahmat Khoirul Anwar, S.Psi.', email: 'rahmatkhoirulanwar23@gmail.com', number: '6285335241954', waliKelas: 'Arif Al Fatah, M.Sc.' },
-    '5C': { name: 'Ustadz Muhammad Rafi Feriansyah', email: '', number: '62881025797090', waliKelas: 'Rohandi Yusuf Batubara, S.Hum.' },
-    '5D': { name: 'Ustadz Muhammad Syahrul Mubarok', email: 'm.syahrulmobar06@gmail.com', number: '6285236300512', waliKelas: 'Lutfi Ariyanto, S.Pd.' },
-    '5E': { name: 'Ustadz Dymas Naufal El Fawaz', email: 'dymasn@muallimin.sch.id', number: '6285117732302', waliKelas: 'Munzilin, S.H.I., M.Pd.' },
-    '5F': { name: 'Ustadz Layllan Dzikri Firmansyah', email: 'dzikrilayllan@gmail.com', number: '6285728503309', waliKelas: 'Ikhwanuddin, S.H.I., M.S.I.' },
-    '5UPPERA': { name: 'Ustadz Muhammad Rafi', email: 'muhammadrafi2246@gmail.com', number: '6287894970695', waliKelas: 'Galang Putra Muhammady, S.Pd.' },
+    '5A': { name: 'Ustadz Wildan Faalul Abror', email: 'wildanabror00@gmail.com', number: '6281233318388' },
+    '5B': { name: 'Ustadz Rahmat Khoirul Anwar, S.Psi.', email: 'rahmatkhoirulanwar23@gmail.com', number: '6285335241954' },
+    '5C': { name: 'Ustadz Muhammad Rafi Feriansyah', email: '', number: '62881025797090' },
+    '5D': { name: 'Ustadz Muhammad Syahrul Mubarok', email: 'm.syahrulmobar06@gmail.com', number: '62882003685998' },
+    '5E': { name: 'Ustadz Dymas Naufal El Fawaz', email: 'dymasn@muallimin.sch.id', number: '6285117732302' },
+    '5F': { name: 'Ustadz Layllan Dzikri Firmansyah', email: 'dzikrilayllan@gmail.com', number: '6285728503309' },
+    '5UPPERA': { name: 'Ustadz Muhammad Rafi', email: 'muhammadrafi2246@gmail.com', number: '6287894970695' },
     '5UPPERB': { name: 'Ustadz Ammar Ghozi Al Farisi', email: 'ammarghozi12@gmail.com', number: '6285725915157' },
     '5UPPERC': { name: 'Ustadz Ubaidillah Syafiq Atqiya', email: 'ubay.syafiq03@gmail.com', number: '6281284985750' },
 
@@ -6096,8 +6096,8 @@ const musyrifData = {
     '6A': { name: 'Ustadz Habib Fajar Rohman', email: 'fajarrohman116@gmail.com', number: '6281246112790' },
     '6B': { name: 'Ustadz Muhammad Rafif Said, S.Pd.', email: 'rafifsaid77@gmail.com', number: '62895413221010' },
     '6C': { name: 'Ustadz Gilang Cahya Ghufroni', email: 'gilangcahya@muallimin.sch.id', number: '6285725379068' },
-    '6D': { name: 'Ustadz Hilmy Muwafaq Adman', email: 'hilmyadman97@gmail.com', number: '6281217904326' },
-    '6E': { name: 'Ustadz Aflah Naufal Nabiih', email: '', number: '6281952116819' },
+    '6D': { name: 'Ustadz Hilmy Muwafaq \'Adman', email: 'hilmyadman97@gmail.com', number: '6281217904326' },
+    '6E': { name: 'Ustadz Aflah Naufal Nabiih', email: 'aflahnaufal07@gmail.com', number: '6281952116819' },
     '6F': { name: 'Ustadz Muhammad Ilman Khanafi', email: 'ilmankhanafi@muallimin.sch.id', number: '62895706160907' },
     '6G': { name: 'Ustadz Tajulqayyim Royyan', email: 'tajulqayyim@muallimin.sch.id', number: '6281334991879' }
 };
@@ -6108,13 +6108,18 @@ const koordinatorMusyrif = [
     { name: 'Ustadz Akmal Wildan Syifauddin, S.Pd.', email: 'akmalws@muallimin.sch.id', number: '6287788451221' }
 ];
 
-// Data kontak Pamong Asrama (Resmi & Terkini 2026)
+// Data kontak Pamong Asrama (Resmi 2026)
 const pamongList = [
-    { name: 'Ustadz M. Ismail Marzuq, S.Sos.', email: 'izmaelpoenya04@gmail.com', number: '6285326693918' },
-    { name: 'Ustadz Ariel Amarta Dzikrillah, S.Sos.', email: 'arilamarta@gmail.com', number: '6285848589328' },
-    { name: 'Ustadz Rais Yudhistira, Lc.', email: 'raiscutis@gmail.com', altEmail: 'cutisrais@gmail.com', number: '6281399548580' },
-    { name: 'Ustadz Muh. Ahnaf Lubab, M.Pd.', email: 'ahnaflubab@muallimin.sch.id', number: '6285779006160' }
+    { name: 'Ustadz Galang Putra Muhammady, S.Pd.', asrama: 'Pamong Asrama 1', number: '6287711559827' },
+    { name: 'Ustadz Aulia Abdan Idza Shalla, S. Th. I.', asrama: 'Pamong Asrama 8A dan 8C Kelas 6', number: '6285725891945' },
+    { name: 'Ustadz Anang Fathurrahman, Lc.', asrama: 'Pamong Asrama 8B dan 8C Kelas 5', number: '6281804181182' },
+    { name: 'Ustadz Inggit Prabowo, S.Pd.', asrama: 'Pamong Asrama 10', number: '6285377407742' },
+    { name: 'Ustadz Rais Yudhistira, Lc.', asrama: 'Pamong Asrama Sedayu Gedung A', email: 'raiscutis@gmail.com', number: '6281399548580' },
+    { name: 'Ustadz Muh. Ahnaf Lubab, M.Pd.', asrama: 'Pamong Asrama Sedayu Gedung B', email: 'ahnaflubab@muallimin.sch.id', number: '6285779006160' },
+    { name: 'Ustadz M. Ismail Marzuq, S.Sos.', asrama: 'Pamong Asrama Sedayu Gedung C', email: 'izmaelpoenya04@gmail.com', number: '6285326693918' },
+    { name: 'Ustadz Ariel Amarta Dzikrillah, S.Sos.', asrama: 'Pamong Asrama Sedayu Gedung D', email: 'arilamarta@gmail.com', number: '6285848589328' }
 ];
 
 // Default Pamong Asrama Rujukan
-const pamongData = pamongList[3]; // Ustadz Muh. Ahnaf Lubab, M.Pd.
+const pamongData = pamongList[5]; // Ustadz Muh. Ahnaf Lubab, M.Pd.
+

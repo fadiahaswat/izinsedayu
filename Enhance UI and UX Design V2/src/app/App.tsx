@@ -6,6 +6,11 @@ import { Html5Qrcode } from "html5-qrcode";
 import html2canvas from "html2canvas";
 import logoBlue from "../assets/logo-muallimin-blue.png";
 import logoWhite from "../assets/logo-muallimin-white.png";
+import logoMualliminResmi from "../assets/LOGO MUALLIMIN RESMI.png";
+import logoMualliminHijauKuning from "../assets/Mu'allimin Hijau Kuning - Latar Terang.png";
+import logoSekolahPemimpinBangsaPutih from "../assets/LOGO SEKOLAH PEMIMPIN BANGSA PUTIH.png";
+import headerKiriKartu from "../assets/HEADER KIRI KARTU.png";
+import templateHeaderFooterKartu from "../assets/Template Header dan Footer Kartu.png";
 import { santriData, musyrifData, koordinatorMusyrif, pamongList, pamongData, GOOGLE_CLIENT_ID, REGISTERED_EMAILS } from "../data";
 import {
   Building2, Plus, BarChart2, LogOut, Search, X, Check,
@@ -14,7 +19,8 @@ import {
   UserCheck, AlertCircle, ShieldCheck, Users, Send,
   Calendar, MapPin, User, Heart, Stethoscope, Moon,
   Sparkles, TrendingUp, ClipboardList, Shield, Download,
-  ScanLine, Camera, CreditCard, AlertTriangle, Info
+  ScanLine, Camera, CreditCard, AlertTriangle, Info,
+  Maximize2, RotateCw
 } from "lucide-react";
 
 // ─── Styles injected once ──────────────────────────────────────
@@ -1334,36 +1340,24 @@ function PageHome({ setPage, setInitialJenis }: {
     setPage("form");
   }
 
-  // Dot-grid SVG pattern
-  const dotGrid = `url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1.5' cy='1.5' r='1.5' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E")`;
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
 
-      {/* Hero */}
-      <section className="relative rounded-3xl overflow-hidden text-white"
-        style={{background:"linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#312e81 100%)"}}>
-        <div className="absolute inset-0" style={{backgroundImage:dotGrid}}/>
-        {/* glow blobs */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-20 blur-3xl"
-          style={{background:"radial-gradient(circle,#60a5fa,transparent)"}}/>
-        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-15 blur-3xl"
-          style={{background:"radial-gradient(circle,#818cf8,transparent)"}}/>
-
-        <div className="relative z-10 p-6 sm:p-8 space-y-5">
+      {/* Hero Header Banner */}
+      <section className="relative rounded-2xl overflow-hidden bg-slate-900 text-white shadow-sm">
+        <div className="p-6 sm:p-7 space-y-5">
           <div>
-            <div className="flex items-start justify-between mb-3">
-              <div className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-blue-300 uppercase">
+            <div className="flex items-center justify-between mb-3">
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-blue-400 uppercase">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"/>
-                Sistem Perizinan Resmi
+                Sistem Perizinan Santri
               </div>
-              <img src={logoWhite} alt="Logo Mu'allimin" className="h-8 w-auto object-contain opacity-90 flex-shrink-0"/>
+              <img src={logoWhite} alt="Logo Mu'allimin" className="h-7 w-auto object-contain opacity-90 flex-shrink-0"/>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-              Izin Keluar &amp; Pulang<br/>
-              <span className="text-blue-300">Santri Asrama</span>
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">
+              Layanan Perizinan &amp; Dispensasi Santri
             </h1>
-            <p className="mt-2 text-sm text-slate-300 max-w-xs">
+            <p className="mt-1.5 text-xs text-slate-300 max-w-md leading-relaxed">
               Madrasah Mu'allimin Muhammadiyah Yogyakarta — Kampus Sedayu
             </p>
           </div>
@@ -1372,154 +1366,277 @@ function PageHome({ setPage, setInitialJenis }: {
           {stats.total > 0 && (
             <div className="grid grid-cols-4 gap-2">
               {[
-                { label:"Total",    val:stats.total,    icon:<ClipboardList className="w-3.5 h-3.5"/>, color:"text-blue-300" },
-                { label:"Menunggu", val:stats.pending,  icon:<Clock className="w-3.5 h-3.5"/>,         color:"text-amber-300" },
-                { label:"Disetujui",val:stats.approved, icon:<CheckCircle2 className="w-3.5 h-3.5"/>, color:"text-emerald-300" },
-                { label:"Hari Ini", val:stats.today,    icon:<TrendingUp className="w-3.5 h-3.5"/>,    color:"text-indigo-300" },
+                { label:"Total Izin", val:stats.total,    color:"text-blue-300" },
+                { label:"Menunggu",   val:stats.pending,  color:"text-amber-300" },
+                { label:"Disetujui",  val:stats.approved, color:"text-emerald-300" },
+                { label:"Hari Ini",   val:stats.today,    color:"text-slate-200" },
               ].map(s=>(
-                <div key={s.label} className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
-                  <span className={s.color}>{s.icon}</span>
-                  <span className="text-lg font-extrabold leading-none">{s.val}</span>
-                  <span className="text-[9px] text-white/60 font-medium">{s.label}</span>
+                <div key={s.label} className="flex flex-col items-center gap-0.5 py-2 px-1 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10">
+                  <span className={`text-base font-extrabold font-mono ${s.color}`}>{s.val}</span>
+                  <span className="text-[9px] text-slate-300 font-medium">{s.label}</span>
                 </div>
               ))}
             </div>
           )}
 
-          <div className="flex gap-3">
+          {/* Primary & Secondary CTA */}
+          <div className="flex gap-2.5 pt-1">
             <button onClick={()=>setPage("form")}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors btn-press shadow-lg">
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-white font-bold text-xs hover:bg-blue-700 transition-all btn-press shadow-sm">
               <Plus className="w-4 h-4"/> Ajukan Izin Baru
             </button>
             <button onClick={()=>setPage("history")}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold text-sm hover:bg-white/20 transition-colors btn-press">
-              <BarChart2 className="w-4 h-4 text-blue-300"/> Cek Status
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/10 border border-white/15 text-white font-semibold text-xs hover:bg-white/20 transition-colors btn-press">
+              <BarChart2 className="w-4 h-4 text-blue-300"/> Cek Status Izin
             </button>
           </div>
         </div>
       </section>
 
-      {/* 4 Jenis Izin — tap to open form with pre-selected type */}
-      <section className="space-y-2">
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Pilih Jenis Izin Non-Rutin</p>
-        <div className="grid grid-cols-2 gap-3">
-          {JENIS_OPTIONS.map((j,i)=>(
-            <button key={j.key} onClick={()=>goForm(j.key)}
-              style={{"--delay":`${i*0.05}s`} as React.CSSProperties}
-              className={`group relative flex items-start gap-3 p-4 rounded-2xl border-2 ${j.bg} ${j.border}
-                text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.97]
-                fade-up`}
-              >
-              <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${j.gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                <span className="text-white">{j.icon}</span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className={`font-bold text-sm ${j.color}`}>{j.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{j.subtitle}</p>
-              </div>
-              <ChevronRight className={`w-4 h-4 ${j.color} opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-0.5`}/>
-            </button>
-          ))}
+      {/* 4 Jenis Izin — Harmonized Category Cards */}
+      <section className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Kategori Perizinan Khusus</p>
+          <span className="text-[11px] text-slate-400">Pilih untuk mengajukan</span>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {JENIS_OPTIONS.map((j)=>{
+            return (
+              <button key={j.key} onClick={()=>goForm(j.key)}
+                className="group flex items-center justify-between p-3.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all btn-press shadow-xs text-left">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${j.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-xs`}>
+                    {j.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-xs text-slate-900 group-hover:text-primary transition-colors truncate">{j.title}</p>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">{j.subtitle}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-primary group-hover:translate-x-0.5 transition-all flex-shrink-0 ml-2"/>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      {/* Routine Weekend Free Pass Section (Sabtu 15-17 & Ahad 07-11) */}
-      <section className="bg-gradient-to-r from-emerald-950/90 via-teal-950/80 to-slate-900 p-5 rounded-3xl border border-emerald-500/30 text-white space-y-3.5 shadow-md">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-extrabold text-xs shadow-sm">
+      {/* Routine Weekend Free Pass Section */}
+      <section className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs">
               QR
             </div>
             <div>
-              <h2 className="text-sm font-extrabold text-white">Izin Rutin Bebas Akhir Pekan (Tanpa Pengajuan)</h2>
-              <p className="text-[11px] text-emerald-300">Sabtu: 15.00 – 17.00 • Ahad: 07.00 – 11.00</p>
+              <h2 className="text-xs font-bold text-slate-900">Izin Rutin Akhir Pekan (Tanpa Form)</h2>
+              <p className="text-[11px] text-slate-500">Sabtu 15.00–17.00 &bull; Ahad 07.00–11.00 WIB</p>
             </div>
           </div>
-          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-            Wajib Kartu QR
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+            Wajib Scan QR
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button onClick={() => setPage("scanner")}
-            className="p-3.5 bg-slate-900/90 hover:bg-slate-800 rounded-2xl border border-emerald-500/40 text-left transition-all btn-press flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600/30 text-emerald-400 flex items-center justify-center font-bold text-lg flex-shrink-0">
-              <Camera className="w-5 h-5"/>
+            className="p-3 bg-slate-50 hover:bg-slate-100/90 rounded-xl border border-slate-200 text-left transition-colors btn-press flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100/80 text-emerald-700 flex items-center justify-center flex-shrink-0">
+              <Camera className="w-4 h-4"/>
             </div>
-            <div>
-              <p className="text-xs font-bold text-white flex items-center gap-1">
-                <span>Buka Scanner Pos Satpam</span>
-                <span className="text-emerald-400">&rarr;</span>
-              </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Scan kartu santri saat keluar &amp; kembali gerbang</p>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-slate-900 truncate">Scanner Pos Satpam</p>
+              <p className="text-[10px] text-slate-500 truncate">Pemindai keluar/masuk gerbang</p>
             </div>
           </button>
 
           <button onClick={() => setPage("cards")}
-            className="p-3.5 bg-slate-900/90 hover:bg-slate-800 rounded-2xl border border-amber-500/40 text-left transition-all btn-press flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-600/30 text-amber-400 flex items-center justify-center font-bold text-lg flex-shrink-0">
-              <CreditCard className="w-5 h-5"/>
+            className="p-3 bg-slate-50 hover:bg-slate-100/90 rounded-xl border border-slate-200 text-left transition-colors btn-press flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-100/80 text-amber-700 flex items-center justify-center flex-shrink-0">
+              <CreditCard className="w-4 h-4"/>
             </div>
-            <div>
-              <p className="text-xs font-bold text-white flex items-center gap-1">
-                <span>Cetak Kartu Santri QR</span>
-                <span className="text-amber-400">&rarr;</span>
-              </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Ukuran KTP/ATM (85.6 &times; 54 mm) siap print A4</p>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-slate-900 truncate">Cetak Kartu QR Santri</p>
+              <p className="text-[10px] text-slate-500 truncate">Format ID-1 (85.6 &times; 54 mm)</p>
             </div>
           </button>
         </div>
       </section>
 
-      {/* Info cards row */}
-      <section className="grid grid-cols-3 gap-3">
-        {[
-          { icon:<Users className="w-5 h-5 text-blue-500"/>, val:`${santriData.length}+`, label:"Total Santri" },
-          { icon:<Shield className="w-5 h-5 text-indigo-500"/>, val:"4 SOP", label:"Jenis Izin" },
-          { icon:<Sparkles className="w-5 h-5 text-emerald-500"/>, val:"Resmi", label:"Terverifikasi" },
-        ].map(s=>(
-          <div key={s.label} className="bg-white rounded-2xl border border-border p-4 flex flex-col items-center gap-2 text-center shadow-sm">
-            <div className="w-9 h-9 rounded-xl bg-slate-50 border border-border flex items-center justify-center">{s.icon}</div>
-            <span className="text-base font-extrabold text-foreground">{s.val}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">{s.label}</span>
-          </div>
-        ))}
-      </section>
+      {/* Accordions SOP - Lengkap Berdasarkan Dokumen Resmi */}
+      <section className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Ketentuan &amp; SOP Perizinan</p>
+          <span className="text-[11px] text-slate-400">Pedoman Resmi</span>
+        </div>
 
-      {/* Accordions */}
-      <section className="space-y-2">
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Informasi SOP</p>
-        <Accordion title="Kewenangan Persetujuan Izin">
-          <ul className="space-y-2">
-            <li className="flex items-start gap-2.5">
-              <span className="mt-0.5 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">M</span>
-              <div><strong className="text-foreground">Musyrif Kelas:</strong> ACC izin keluar biasa &amp; pemeriksaan kesehatan</div>
+        {/* 1. Matriks Kewenangan */}
+        <Accordion title="1. Matriks &amp; Wewenang Persetujuan Izin">
+          <div className="space-y-3 text-xs">
+            <p className="text-slate-600 leading-relaxed">
+              Pemberian izin wajib sesuai dengan batasan wewenang jabatan sebagai berikut:
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs border-collapse bg-white">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] text-slate-500 font-bold uppercase">
+                    <th className="py-2.5 px-3">Jenis Izin</th>
+                    <th className="py-2.5 px-2 text-center">Musyrif</th>
+                    <th className="py-2.5 px-2 text-center">Pamong</th>
+                    <th className="py-2.5 px-2 text-center">Wadir</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  <tr>
+                    <td className="py-2 px-3 font-semibold">Izin Rutin Akhir Pekan</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-3 font-semibold">Izin Keluar Biasa (1 Hari)</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-3 font-semibold">Izin Periksa Kesehatan</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                  </tr>
+                  <tr className="bg-rose-50/40">
+                    <td className="py-2 px-3 font-semibold text-rose-950">Izin Pulang / Menginap</td>
+                    <td className="py-2 px-2 text-center text-rose-500 font-extrabold">✕</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-3 font-semibold">Izin Pulang Sakit (Poskestren)</td>
+                    <td className="py-2 px-2 text-center text-slate-400 text-[10px]">Poskestren</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                    <td className="py-2 px-2 text-center text-emerald-600 font-bold">✓</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-[11px] text-rose-600 font-medium">
+              * Musyrif <strong>tidak berwenang</strong> memberikan Izin Pulang/Menginap. Izin menginap wajib melalui Pamong Asrama atau Wadir.
+            </p>
+          </div>
+        </Accordion>
+
+        {/* 2. Alur Pengajuan oleh Wali Santri */}
+        <Accordion title="2. Alur Pengajuan Izin oleh Wali Santri">
+          <div className="space-y-3 text-xs text-slate-700 leading-relaxed">
+            <p className="text-slate-600">
+              Berikut tahapan praktis bagi orang tua / wali santri saat mengajukan perizinan:
+            </p>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-extrabold text-xs flex items-center justify-center flex-shrink-0">1</div>
+                <div>
+                  <strong className="text-slate-900 block">Mengisi Formulir Izin Online</strong>
+                  <span className="text-slate-600 text-[11px]">Buka website Izin Sedayu &rarr; pilih <em>Ajukan Izin Baru</em> &rarr; cari nama santri &rarr; pilih jenis izin, waktu, keperluan, dan data penjemput.</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-extrabold text-xs flex items-center justify-center flex-shrink-0">2</div>
+                <div>
+                  <strong className="text-slate-900 block">Kirim Notifikasi WhatsApp ke Ustadz</strong>
+                  <span className="text-slate-600 text-[11px]">Setelah submit, klik tombol <em>Kirim WhatsApp ke Musyrif/Pamong</em> agar permohonan segera diperiksa.</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-extrabold text-xs flex items-center justify-center flex-shrink-0">3</div>
+                <div>
+                  <strong className="text-slate-900 block">Pemeriksaan &amp; Persetujuan (ACC)</strong>
+                  <span className="text-slate-600 text-[11px]">Musyrif (izin harian) atau Pamong (izin menginap) memverifikasi urgensi dan memberikan persetujuan resmi.</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-extrabold text-xs flex items-center justify-center flex-shrink-0">4</div>
+                <div>
+                  <strong className="text-slate-900 block">Terbit Surat Izin Digital (e-Pass QR)</strong>
+                  <span className="text-slate-600 text-[11px]">Wali dapat melihat status di menu <em>Riwayat</em> dan mengunduh / membagikan e-Pass QR kepada santri atau penjemput.</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-extrabold text-xs flex items-center justify-center flex-shrink-0">5</div>
+                <div>
+                  <strong className="text-slate-900 block">Verifikasi Gerbang Satpam (PKM)</strong>
+                  <span className="text-slate-600 text-[11px]">Santri menunjukkan QR Code e-Pass di Pos Satpam saat keluar dan kembali ke kampus madrasah.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Accordion>
+
+        {/* 3. Prosedur & Alur Pengajuan Umum */}
+        <Accordion title="3. Alur Verifikasi di Pos Keamanan Gerbang (PKM)">
+          <ol className="space-y-2 text-xs list-decimal list-inside text-slate-700 leading-relaxed">
+            <li><strong>Pemeriksaan QR Code:</strong> Petugas PKM memindai QR Code e-Pass santri.</li>
+            <li><strong>Pencocokan Identitas:</strong> PKM memeriksa kesesuaian nama santri, kelas, jenis izin, nama penjemput, dan jam kembali.</li>
+            <li><strong>Izin Keluar Sah:</strong> Santri diizinkan meninggalkan gerbang setelah data tervalidasi.</li>
+            <li><strong>Lapor Kembali:</strong> Santri wajib melapor dan scan kembali di Pos Satpam saat tiba di asrama.</li>
+          </ol>
+        </Accordion>
+
+        {/* 4. Ketentuan Izin Keluar Biasa */}
+        <Accordion title="4. Ketentuan Izin Keluar Biasa (Hari yang Sama)">
+          <div className="space-y-2 text-xs text-slate-700 leading-relaxed">
+            <p>Izin Keluar Biasa merupakan <strong>pengecualian</strong> dan hanya diberikan untuk keperluan urgent, mendesak, atau kegiatan madrasah yang tidak bisa ditunda.</p>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+              <span className="font-bold text-slate-900 text-[11px] uppercase block">Contoh yang TIDAK diperbolehkan:</span>
+              <p className="text-slate-600">Membeli perlengkapan pribadi, potong rambut, fotokopi biasa, atau bertemu teman. Keperluan ini wajib dilakukan pada jadwal rutin Sabtu sore / Ahad pagi.</p>
+            </div>
+          </div>
+        </Accordion>
+
+        {/* 4. Ketentuan Izin Pulang / Menginap */}
+        <Accordion title="4. Ketentuan Izin Pulang &amp; Menginap">
+          <ul className="space-y-1.5 text-xs text-slate-700">
+            <li className="flex items-start gap-1.5">
+              <span className="text-blue-600 font-bold">&bull;</span>
+              <span><strong>Wewenang Khusus:</strong> Hanya dapat disetujui oleh Pamong Asrama atau Wakil Direktur.</span>
             </li>
-            <li className="flex items-start gap-2.5">
-              <span className="mt-0.5 w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center flex-shrink-0">P</span>
-              <div><strong className="text-foreground">Pamong Asrama:</strong> ACC semua jenis perizinan termasuk menginap</div>
+            <li className="flex items-start gap-1.5">
+              <span className="text-blue-600 font-bold">&bull;</span>
+              <span><strong>Identitas Penjemput:</strong> Wajib mencantumkan nama penjemput dan hubungan keluarga yang jelas.</span>
             </li>
-            <li className="flex items-start gap-2.5">
-              <span className="mt-0.5 w-5 h-5 rounded-full bg-slate-100 text-slate-500 text-xs font-bold flex items-center justify-center flex-shrink-0">W</span>
-              <div><strong className="text-foreground">Wali Santri:</strong> Dapat mengajukan — status menunggu persetujuan ustadz</div>
+            <li className="flex items-start gap-1.5">
+              <span className="text-blue-600 font-bold">&bull;</span>
+              <span><strong>Lokasi Menginap:</strong> Jika menginap di luar rumah orang tua/wali, alamat wajib dicantumkan lengkap.</span>
             </li>
           </ul>
         </Accordion>
-        <Accordion title="Jadwal Bebas Pekanan">
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium">
-            <strong>Sabtu Sore:</strong> 15.30–17.00 &bull; <strong>Ahad Pagi:</strong> 06.30–11.00
+
+        {/* 5. Izin Sakit & Pemeriksaan Medis */}
+        <Accordion title="5. Izin Sakit &amp; Pemeriksaan Medis (Poskestren)">
+          <div className="space-y-2 text-xs text-slate-700 leading-relaxed">
+            <p>Pemulangan santri karena sakit <strong>wajib berkoordinasi dengan Poskestren</strong> dan atas rekomendasi Dokter Poskestren / Umi Lia.</p>
+            <p className="text-slate-600">Untuk kontrol atau jadwal dokter di luar asrama yang kembali pada hari yang sama, gunakan kategori <em>Pemeriksaan Kesehatan</em> dengan melampirkan bukti jadwal klinik/RS.</p>
           </div>
-          <p>Santri boleh keluar tanpa surat izin pada jadwal rutin di atas.</p>
         </Accordion>
-        <Accordion title="Ketentuan Izin Menginap">
-          <p><strong className="text-foreground">1 Malam:</strong> Ajukan melalui form ini ke Pamong Asrama.</p>
-          <p><strong className="text-foreground">2–3 Hari:</strong> Lampirkan surat permohonan resmi.</p>
-          <p><strong className="text-foreground">&gt; 3 Hari:</strong> Surat kepada Direktur Madrasah diperlukan.</p>
+
+        {/* 6. Jadwal Rutin Akhir Pekan */}
+        <Accordion title="6. Jadwal Izin Rutin Akhir Pekan (Bebas Pekanan)">
+          <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-1 text-xs text-emerald-950">
+            <p><strong>Sabtu Sore:</strong> Pukul 15.30 – 17.00 WIB</p>
+            <p><strong>Ahad Pagi:</strong> Pukul 06.30 – 11.00 WIB</p>
+            <p className="text-[11px] text-emerald-800 pt-1">
+              Santri keluar tanpa surat izin manual, cukup memindai <strong>Kartu Santri QR</strong> di Pos Keamanan Satpam saat keluar dan kembali.
+            </p>
+          </div>
         </Accordion>
       </section>
 
-      <footer className="text-center pt-2 pb-4 text-xs text-muted-foreground">
-        &copy; 2026 Madrasah Mu'allimin Muhammadiyah Yogyakarta
+      <footer className="text-center pt-2 pb-4 text-[11px] text-slate-400">
+        &copy; 2026 Madrasah Mu'allimin Muhammadiyah Yogyakarta &bull; Kampus Sedayu
       </footer>
     </div>
   );
@@ -2876,8 +2993,8 @@ function PageHistory({ currentUser, setPage, onLoginRequest, setPassData }: {
   setPassData: (r: IzinRecord) => void;
 }) {
   const [items,      setItems]      = useState<IzinRecord[]>(() => getLocal());
-  const [statusF,    setStatusF]    = useState<"all"|StatusType>("all");
-  const [dateF,      setDateF]      = useState<"today"|"all">("all");
+  const [statusF,    setStatusF]    = useState<"all"|StatusType>("APPROVED"); // Default: Disetujui
+  const [dateF,      setDateF]      = useState<"today"|"all">("today"); // Default: Hari Ini
   const [search,     setSearch]     = useState("");
   const [loading,    setLoading]    = useState(false);
 
@@ -2910,37 +3027,41 @@ function PageHistory({ currentUser, setPage, onLoginRequest, setPassData }: {
     setItems(getLocal()); toast.success("Status: Santri Telah Kembali");
   }
 
-  // Filter khusus: jika login sebagai Wali Santri, hanya tampilkan perizinan santri anaknya
-  const filtered = useMemo(()=>{
+  // Base list filtered by role & search & date for tab counts
+  const baseDateFiltered = useMemo(() => {
     let r = items;
     if (currentUser?.role === "wali" && currentUser.santriName) {
       const sName = currentUser.santriName.toLowerCase();
       r = r.filter(i => i.namaSantri?.toLowerCase().includes(sName));
     }
-    if(statusF!=="all") r=r.filter(i=>i.status===statusF);
-    if(dateF==="today"){
-      const t=r.filter(i=>isToday(i.tanggalKeluar)||isToday(i.tanggalKembali)||isToday(i.createdAt||""));
-      if(t.length>0||r.length===0) r=t;
+    if (dateF === "today") {
+      r = r.filter(i => isToday(i.tanggalKeluar) || isToday(i.tanggalKembali) || isToday(i.createdAt || ""));
     }
-    if(search.trim()){
-      const q=search.toLowerCase();
-      r=r.filter(i=>i.namaSantri?.toLowerCase().includes(q)||i.kelas?.toLowerCase().includes(q)||i.idIzin?.toLowerCase().includes(q));
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      r = r.filter(i => i.namaSantri?.toLowerCase().includes(q) || i.kelas?.toLowerCase().includes(q) || i.idIzin?.toLowerCase().includes(q));
     }
     return r;
-  },[items,statusF,dateF,search,currentUser]);
+  }, [items, dateF, search, currentUser]);
 
-  // Counts per status for badge
-  const counts = useMemo(()=>({
-    all:      filtered.length,
-    PENDING:  filtered.filter(i=>i.status==="PENDING").length,
-    APPROVED: filtered.filter(i=>i.status==="APPROVED").length,
-    REJECTED: filtered.filter(i=>i.status==="REJECTED").length,
-  }),[filtered]);
+  // Counts per status based on the selected date scope
+  const counts = useMemo(() => ({
+    all:      baseDateFiltered.length,
+    PENDING:  baseDateFiltered.filter(i => i.status === "PENDING").length,
+    APPROVED: baseDateFiltered.filter(i => i.status === "APPROVED").length,
+    REJECTED: baseDateFiltered.filter(i => i.status === "REJECTED").length,
+  }), [baseDateFiltered]);
+
+  // Final filtered list
+  const filtered = useMemo(() => {
+    if (statusF === "all") return baseDateFiltered;
+    return baseDateFiltered.filter(i => i.status === statusF);
+  }, [baseDateFiltered, statusF]);
 
   const TAB_LABELS: {key:"all"|StatusType; label:string}[] = [
-    {key:"all",      label:"Semua"},
-    {key:"PENDING",  label:"Menunggu"},
     {key:"APPROVED", label:"Disetujui"},
+    {key:"PENDING",  label:"Menunggu"},
+    {key:"all",      label:"Semua"},
     {key:"REJECTED", label:"Ditolak"},
   ];
 
@@ -3737,30 +3858,61 @@ function PageScanner({ setPage }: { setPage: (p: PageId) => void }) {
             </div>
           </div>
 
-          {/* Scanned Result Banner */}
+          {/* Scanned Result Banner - Modernized & High Contrast */}
           {lastScanned && (
-            <div className={`p-3.5 rounded-xl border space-y-2 scale-pop
-              ${lastScanned.status === "DI_LUAR" ? "bg-amber-50 border-amber-300" : lastScanned.status === "TERLAMBAT" ? "bg-rose-50 border-rose-300" : "bg-emerald-50 border-emerald-300"}`}>
-              <div className="flex justify-between items-center pb-1.5 border-b border-black/5">
-                <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-extrabold
-                  ${lastScanned.status === "DI_LUAR" ? "bg-amber-500 text-slate-950" : lastScanned.status === "TERLAMBAT" ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"}`}>
-                  {lastScanned.status === "DI_LUAR" ? "IZIN KELUAR (CHECK-OUT)" : lastScanned.status === "TERLAMBAT" ? `TERLAMBAT ${lastScanned.lateMinutes} MENIT` : "KEMBALI TEPAT WAKTU"}
+            <div className={`p-4 rounded-2xl border transition-all scale-pop ${
+              lastScanned.status === "DI_LUAR" 
+                ? "bg-amber-50/90 border-amber-300/90 shadow-xs" 
+                : lastScanned.status === "TERLAMBAT" 
+                ? "bg-rose-50/90 border-rose-300/90 shadow-xs" 
+                : "bg-emerald-50/90 border-emerald-300/90 shadow-xs"
+            }`}>
+              <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-black/5">
+                <span className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-wide inline-flex items-center gap-1.5 ${
+                  lastScanned.status === "DI_LUAR" 
+                    ? "bg-amber-500 text-slate-950 shadow-xs" 
+                    : lastScanned.status === "TERLAMBAT" 
+                    ? "bg-rose-600 text-white shadow-xs" 
+                    : "bg-emerald-600 text-white shadow-xs"
+                }`}>
+                  {lastScanned.status === "DI_LUAR" ? (
+                    <><span>↗</span> IZIN KELUAR (CHECK-OUT)</>
+                  ) : lastScanned.status === "TERLAMBAT" ? (
+                    <><span>⚠</span> TERLAMBAT {lastScanned.lateMinutes} MENIT</>
+                  ) : (
+                    <><span>✓</span> KEMBALI TEPAT WAKTU</>
+                  )}
                 </span>
-                <span className="text-xs font-mono font-bold text-slate-700">
+                <span className="text-xs font-mono font-bold text-slate-700 bg-white/70 px-2 py-0.5 rounded-md border border-black/5">
                   {lastScanned.status === "DI_LUAR" ? lastScanned.exitTime : lastScanned.returnTime} WIB
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center font-extrabold text-sm flex-shrink-0 shadow-xs">
                   {lastScanned.santriName.substring(0, 2).toUpperCase()}
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-extrabold text-xs text-slate-900 truncate">{lastScanned.santriName}</h3>
-                  <p className="text-[11px] text-slate-600">
-                    <span className="text-emerald-700 font-bold">KELAS {lastScanned.santriClass}</span> &bull; {lastScanned.santriId}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-extrabold text-sm text-slate-900 truncate leading-tight">{lastScanned.santriName}</h3>
+                  <p className="text-xs text-slate-600 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <span className="px-1.5 py-0.2 rounded bg-white text-blue-700 font-bold border border-blue-200/80 text-[10px]">
+                      Kelas {lastScanned.santriClass}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono font-medium">{lastScanned.santriId}</span>
                   </p>
-                  <p className={`text-[11px] font-bold mt-0.5 ${lastScanned.status === "TERLAMBAT" ? "text-rose-700" : "text-amber-800"}`}>
-                    {lastScanned.status === "DI_LUAR" ? `Batas Waktu Masuk: ${lastScanned.deadline} WIB` : lastScanned.status === "TERLAMBAT" ? "Melewati batas waktu!" : "Santri telah kembali ke asrama."}
+                  <p className={`text-xs font-bold mt-1 ${
+                    lastScanned.status === "TERLAMBAT" 
+                      ? "text-rose-700 font-extrabold" 
+                      : lastScanned.status === "DI_LUAR"
+                      ? "text-amber-900"
+                      : "text-emerald-800"
+                  }`}>
+                    {lastScanned.status === "DI_LUAR" ? (
+                      <>Batas Waktu Masuk: <span className="underline font-extrabold">{lastScanned.deadline} WIB</span></>
+                    ) : lastScanned.status === "TERLAMBAT" ? (
+                      "Melewati batas waktu sesi! Wajib lapor ke Musyrif Asrama."
+                    ) : (
+                      "Santri telah diverifikasi dan berada di dalam asrama."
+                    )}
                   </p>
                 </div>
               </div>
@@ -3772,57 +3924,109 @@ function PageScanner({ setPage }: { setPage: (p: PageId) => void }) {
         <div className="lg:col-span-5 space-y-4">
           
           {/* Counters */}
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Keluar</span>
-              <span className="text-xl font-extrabold text-slate-900 font-mono">{totalOut}</span>
+          <div className="grid grid-cols-3 gap-2.5 text-center">
+            <div className="bg-white border border-slate-200 p-3 rounded-2xl shadow-xs hover:border-slate-300 transition-colors">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Keluar</span>
+              <span className="text-xl font-extrabold text-slate-900 font-mono mt-0.5 block">{totalOut}</span>
             </div>
-            <div className="bg-emerald-50/70 border border-emerald-200 p-3 rounded-xl shadow-xs">
-              <span className="text-[10px] text-emerald-700 font-bold uppercase block">Kembali</span>
-              <span className="text-xl font-extrabold text-emerald-900 font-mono">{totalIn}</span>
+            <div className="bg-emerald-50/80 border border-emerald-200 p-3 rounded-2xl shadow-xs hover:border-emerald-300 transition-colors">
+              <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider block">Kembali</span>
+              <span className="text-xl font-extrabold text-emerald-900 font-mono mt-0.5 block">{totalIn}</span>
             </div>
-            <div className="bg-amber-50/70 border border-amber-200 p-3 rounded-xl shadow-xs">
-              <span className="text-[10px] text-amber-700 font-bold uppercase block">Di Luar</span>
-              <span className="text-xl font-extrabold text-amber-900 font-mono">{stillOut.length}</span>
+            <div className="bg-amber-50/80 border border-amber-200 p-3 rounded-2xl shadow-xs hover:border-amber-300 transition-colors">
+              <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wider block">Di Luar</span>
+              <span className="text-xl font-extrabold text-amber-900 font-mono mt-0.5 block">{stillOut.length}</span>
             </div>
           </div>
 
-          {/* Outside List */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+          {/* Outside List Card */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-3.5 shadow-sm">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-xs font-extrabold text-slate-900">Santri Sedang di Luar</h3>
-                <p className="text-[10px] text-slate-400">Total: {stillOut.length} santri</p>
+                <p className="text-[11px] text-slate-400">Total: <strong className="text-slate-700 font-bold">{stillOut.length}</strong> santri aktif</p>
               </div>
-              <button onClick={() => setPage("cards")} className="text-[11px] bg-slate-100 text-slate-800 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-bold border border-slate-200 transition-colors btn-press">
+              <button onClick={() => setPage("cards")} className="text-xs bg-slate-100 text-slate-800 hover:bg-slate-200 px-3 py-1.5 rounded-xl font-bold border border-slate-200 transition-colors btn-press">
                 Cetak Kartu
               </button>
             </div>
 
-            <div className="overflow-y-auto max-h-[340px] space-y-2 pr-1">
+            {/* Quick Filter for outside list */}
+            {stillOut.length > 3 && (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Ketik nama santri..."
+                  onChange={(e) => {
+                    const term = e.target.value.toLowerCase();
+                    const elms = document.querySelectorAll(".santri-outside-item");
+                    elms.forEach((el) => {
+                      const name = el.getAttribute("data-name") || "";
+                      (el as HTMLElement).style.display = name.includes(term) ? "flex" : "none";
+                    });
+                  }}
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary font-medium placeholder:text-slate-400"
+                />
+              </div>
+            )}
+
+            {/* List */}
+            <div className="overflow-y-auto max-h-[350px] space-y-2 pr-0.5">
               {stillOut.length === 0 ? (
                 <div className="text-center py-10 space-y-2">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-5 h-5"/>
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+                    <CheckCircle2 className="w-6 h-6"/>
                   </div>
-                  <p className="text-xs font-semibold text-slate-600">Semua santri sudah berada di dalam asrama.</p>
+                  <p className="text-xs font-bold text-slate-800">Semua santri sudah berada di asrama.</p>
+                  <p className="text-[11px] text-slate-400 max-w-xs mx-auto">Tidak ada santri yang sedang berada di luar lingkungan asrama.</p>
                 </div>
               ) : (
-                stillOut.map(s => (
-                  <div key={s.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 hover:bg-slate-100 transition-colors">
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-900 truncate">{s.santriName}</p>
-                      <p className="text-[10px] text-slate-500 truncate">
-                        <span className="text-blue-700 font-bold">Kls {s.santriClass}</span> &bull; Keluar: {s.exitTime} &bull; Batas: {s.deadline}
-                      </p>
+                stillOut.map(s => {
+                  const now = new Date();
+                  const curH = now.getHours();
+                  const curM = now.getMinutes();
+                  const curTotalMin = (curH * 60) + curM;
+                  const [dlH, dlM] = (s.deadline || "17:00").split(":").map(Number);
+                  const deadlineMin = (dlH * 60) + (dlM || 0);
+                  const isLateNow = curTotalMin > deadlineMin;
+
+                  return (
+                    <div
+                      key={s.id}
+                      data-name={s.santriName.toLowerCase()}
+                      className={`santri-outside-item p-3 rounded-xl border flex items-center justify-between gap-2.5 transition-all ${
+                        isLateNow 
+                          ? "bg-rose-50/80 border-rose-300 shadow-xs" 
+                          : "bg-slate-50/90 border-slate-200/90 hover:bg-slate-100/90"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-xs font-bold text-slate-900 truncate max-w-[160px] sm:max-w-[200px]">{s.santriName}</p>
+                          {isLateNow && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-600 text-white animate-pulse">
+                              LEWAT WAKTU
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          <span className="px-1.5 py-0.2 rounded bg-white text-blue-700 font-bold border border-blue-200/70 text-[10px]">
+                            Kls {s.santriClass}
+                          </span>
+                          <span>Keluar: <strong className="text-slate-700">{s.exitTime}</strong></span>
+                          <span>&bull;</span>
+                          <span>Batas: <strong className={isLateNow ? "text-rose-600 font-bold" : "text-slate-700"}>{s.deadline} WIB</strong></span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleProcessScan(s.santriName)}
+                        className="px-3 py-2 bg-primary hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all btn-press flex-shrink-0 shadow-xs flex items-center gap-1.5"
+                      >
+                        <Check className="w-3.5 h-3.5"/> Scan Masuk
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleProcessScan(s.santriName)}
-                      className="px-3 py-1.5 bg-primary hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition-colors btn-press flex-shrink-0 shadow-xs">
-                      Scan Masuk
-                    </button>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -3853,14 +4057,45 @@ function getStudentCardDetails(santriClass: string) {
     pamong = pamongList[3]; // Ustadz Muh. Ahnaf Lubab, M.Pd. (6285779006160)
   }
 
-  // 3. Nama Gedung Asrama
-  let asramaName = "Asrama Sedayu";
-  if (cls.startsWith("1")) asramaName = "Asrama 1 (KH. Ahmad Dahlan)";
-  else if (cls.startsWith("2")) asramaName = "Asrama 2 (KH. AR Fachruddin)";
-  else if (cls.startsWith("3")) asramaName = "Asrama 3 (Buya Syafii Maarif)";
-  else if (cls.startsWith("4")) asramaName = "Asrama 4 (KH. Mas Mansur)";
-  else if (cls.startsWith("5")) asramaName = "Asrama 5 (Ki Bagus Hadikusumo)";
-  else if (cls.startsWith("6")) asramaName = "Asrama 6 (H. M. Yunus Anis)";
+  // 3. Nama Gedung Asrama Resmi (Database Distribusi Kamar/Gedung Mu'allimin)
+  let asramaName = "Asrama Sedayu Gedung A/B/C/D";
+  
+  // 1) Asrama 1 Abu Bakar Ash - Shiddiq: Kelas 5 dan 6 Internasional
+  if (cls === "6INTERNASIONAL" || cls.startsWith("5UPPER")) {
+    asramaName = "Asrama 1 Abu Bakar Ash - Shiddiq";
+  }
+  // 2) Asrama 8A: 6B, 6C, 6D, 6E
+  else if (["6B", "6C", "6D", "6E"].includes(cls)) {
+    asramaName = "Asrama 8A Muadz bin Jabal";
+  }
+  // 3) Asrama 8B: 5C, 5B, 5D
+  else if (["5B", "5C", "5D"].includes(cls)) {
+    asramaName = "Asrama 8B Muadz bin Jabal";
+  }
+  // 4) Asrama 8C: 5A dan 6A
+  else if (["5A", "6A"].includes(cls)) {
+    asramaName = "Asrama 8C Muadz bin Jabal";
+  }
+  // 5) Asrama 10: 6F, 6G, 5E, 5F
+  else if (["6F", "6G", "5E", "5F"].includes(cls)) {
+    asramaName = "Asrama 10 Abu Dzar Al - Ghifari";
+  }
+  // 6) Sedayu Gedung A: 1, 2, 3, 4 Internasional / Lower / Upper
+  else if (cls.includes("LOWER") || cls.startsWith("3UPPER") || cls.startsWith("4UPPER")) {
+    asramaName = "Asrama Sedayu Gedung A";
+  }
+  // 7) Sedayu Gedung B: Kelas 3 reguler dan 4B
+  else if (cls.startsWith("3") || cls === "4B") {
+    asramaName = "Asrama Sedayu Gedung B";
+  }
+  // 8) Sedayu Gedung C: Kelas 2 reguler dan 4C, 4D, 4F
+  else if (cls.startsWith("2") || ["4C", "4D", "4F"].includes(cls)) {
+    asramaName = "Asrama Sedayu Gedung C";
+  }
+  // 9) Sedayu Gedung D: Kelas 1 reguler dan 4A, 4E
+  else if (cls.startsWith("1") || ["4A", "4E"].includes(cls)) {
+    asramaName = "Asrama Sedayu Gedung D";
+  }
 
   return { musyrif, pamong, asramaName };
 }
@@ -3873,8 +4108,16 @@ function formatCardPhone(num?: string) {
 }
 
 function PageCards({ setPage }: { setPage: (p: PageId) => void }) {
+  const [viewMode, setViewMode] = useState<"single" | "grid">("single");
   const [selectedClass, setSelectedClass] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeSantriId, setActiveSantriId] = useState<string>("");
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRotated, setIsRotated] = useState(false);
+  const singleCardRef = useRef<HTMLDivElement>(null);
+  const fullscreenCardRef = useRef<HTMLDivElement>(null);
 
   const classList = useMemo(() => {
     const s = new Set<string>();
@@ -3890,52 +4133,806 @@ function PageCards({ setPage }: { setPage: (p: PageId) => void }) {
     });
   }, [selectedClass, searchQuery]);
 
+  // Set default active santri
+  useEffect(() => {
+    if (!activeSantriId && santriData.length > 0) {
+      setActiveSantriId(santriData[0].name);
+    }
+  }, [activeSantriId]);
+
+  const activeSantriObj = useMemo(() => {
+    if (!activeSantriId && santriData.length > 0) {
+      return { santri: santriData[0], index: 0 };
+    }
+    const idx = santriData.findIndex(s => s.name === activeSantriId);
+    if (idx >= 0) {
+      return { santri: santriData[idx], index: idx };
+    }
+    return { santri: santriData[0], index: 0 };
+  }, [activeSantriId]);
+
+  const handleNextSantri = () => {
+    if (!activeSantriObj) return;
+    const nextIdx = (activeSantriObj.index + 1) % santriData.length;
+    setActiveSantriId(santriData[nextIdx].name);
+  };
+
+  const handlePrevSantri = () => {
+    if (!activeSantriObj) return;
+    const prevIdx = (activeSantriObj.index - 1 + santriData.length) % santriData.length;
+    setActiveSantriId(santriData[prevIdx].name);
+  };
+
+  const handleDownloadCard = async () => {
+    if (!singleCardRef.current || !activeSantriObj) return;
+    try {
+      setIsDownloading(true);
+      const dataUrl = await toPng(singleCardRef.current, {
+        pixelRatio: 4,
+        cacheBust: true,
+      });
+      const link = document.createElement("a");
+      const cleanName = activeSantriObj.santri.name.replace(/[^a-zA-Z0-9]/g, "_");
+      link.download = `Kartu_Santri_${cleanName}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success(`Kartu ${activeSantriObj.santri.name} berhasil diunduh (HD PNG)!`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mengunduh kartu. Silakan coba lagi.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-5">
-      {/* Top Filter Bar (No Print) */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-sm no-print">
-        <div className="flex items-center gap-2.5 flex-wrap">
+    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+      {/* Top Navigation & UX Bar (No Print) */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm no-print space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+          {/* Mode Switcher */}
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+            <button
+              onClick={() => setViewMode("single")}
+              className={`text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                viewMode === "single"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <CreditCard className="w-3.5 h-3.5"/> Kartu Tunggal
+            </button>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                viewMode === "grid"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Printer className="w-3.5 h-3.5"/> Cetak Massal ({filteredStudents.length})
+            </button>
+          </div>
+
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-700">Kelas:</label>
+            <button onClick={() => setPage("scanner")} className="text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 transition-colors btn-press flex items-center gap-1.5">
+              <ScanLine className="w-3.5 h-3.5 text-primary"/> Scanner Satpam
+            </button>
+            {viewMode === "grid" ? (
+              <button onClick={() => window.print()} className="text-xs font-bold px-4 py-2 rounded-xl bg-primary hover:bg-blue-700 text-white transition-all btn-press shadow-sm flex items-center gap-1.5">
+                <Printer className="w-4 h-4"/> Cetak {filteredStudents.length} Kartu
+              </button>
+            ) : (
+              <button
+                onClick={handleDownloadCard}
+                disabled={isDownloading}
+                className="text-xs font-bold px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all btn-press shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Download className="w-4 h-4"/> {isDownloading ? "Menyimpan HD..." : "Unduh Gambar HD"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Enhanced Smart Search & Filter UX */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Class Filter Badges / Dropdown */}
+          <div className="flex items-center gap-2 flex-wrap flex-1">
+            <span className="text-xs font-bold text-slate-500 whitespace-nowrap">Filter Kelas:</span>
             <select
               value={selectedClass}
               onChange={e => setSelectedClass(e.target.value)}
-              className="text-xs px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary">
-              <option value="ALL">Semua Kelas</option>
+              className="text-xs px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary cursor-pointer"
+            >
+              <option value="ALL">Semua Kelas ({santriData.length})</option>
               {classList.map(cls => (
                 <option key={cls} value={cls}>Kelas {cls}</option>
               ))}
             </select>
+
+            {/* Smart Search Auto-suggest Input */}
+            <div className="relative flex-1 min-w-[220px] max-w-md">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onFocus={() => setShowSearchResults(true)}
+                  onChange={e => {
+                    setSearchQuery(e.target.value);
+                    setShowSearchResults(true);
+                  }}
+                  placeholder="Cari santri cepat (nama / kelas)..."
+                  className="w-full text-xs pl-8 pr-8 py-2 border border-slate-200 rounded-xl bg-slate-50 font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                  >
+                    <X className="w-3 h-3"/>
+                  </button>
+                )}
+              </div>
+
+              {/* Instant Search Dropdown Results for Single Mode */}
+              {showSearchResults && searchQuery && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto p-1.5 space-y-1">
+                  {filteredStudents.length === 0 ? (
+                    <div className="p-3 text-center text-xs text-slate-500 font-medium">Santri tidak ditemukan</div>
+                  ) : (
+                    filteredStudents.slice(0, 15).map((s, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setActiveSantriId(s.name);
+                          setShowSearchResults(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors ${
+                          activeSantriObj?.santri.name === s.name
+                            ? "bg-blue-50 text-primary font-bold"
+                            : "hover:bg-slate-50 text-slate-700"
+                        }`}
+                      >
+                        <span className="truncate">{s.name}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 ml-2">
+                          Kelas {s.class}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-700">Cari:</label>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Ketik nama santri..."
-              className="text-xs px-3.5 py-2 border border-slate-200 rounded-xl bg-slate-50 font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary"
-            />
-          </div>
-
-          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-            {filteredStudents.length} Santri
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button onClick={() => setPage("scanner")} className="text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors btn-press">
-            📷 Scanner Satpam
-          </button>
-          <button onClick={() => window.print()} className="text-xs font-bold px-4 py-2 rounded-xl bg-primary hover:bg-blue-700 text-white transition-all btn-press shadow-sm flex items-center gap-1.5">
-            <Printer className="w-4 h-4"/> Cetak Kartu (A4 / PDF)
-          </button>
+          {/* Single Mode: Quick Prev / Next Navigator */}
+          {viewMode === "single" && (
+            <div className="flex items-center gap-1.5 no-print">
+              <button
+                onClick={handlePrevSantri}
+                title="Santri Sebelumnya"
+                className="text-xs font-bold px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-1 transition-all btn-press shadow-xs"
+              >
+                <ArrowLeft className="w-3.5 h-3.5"/> Prev
+              </button>
+              <span className="text-xs font-bold text-slate-500 px-1">
+                {(activeSantriObj?.index || 0) + 1} / {santriData.length}
+              </span>
+              <button
+                onClick={handleNextSantri}
+                title="Santri Berikutnya"
+                className="text-xs font-bold px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-1 transition-all btn-press shadow-xs"
+              >
+                Next <ChevronRight className="w-3.5 h-3.5"/>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Cards Grid */}
-      <div className="cards-print-grid flex flex-wrap gap-4 justify-center">
+      {/* SINGLE DIGITAL CARD VIEW */}
+      {viewMode === "single" && activeSantriObj && (() => {
+        const s = activeSantriObj.santri;
+        const cleanClass = (s.class || "XX").replace(/[^a-zA-Z0-9]/g, "");
+        const paddedIdx = String(activeSantriObj.index + 1).padStart(4, "0");
+        const santriId = `STD-${cleanClass}-${paddedIdx}`;
+        const qrPayload = `IZIN|${santriId}|${s.name}|${s.class}`;
+        const { musyrif, pamong, asramaName } = getStudentCardDetails(s.class);
+
+        return (
+          <div className="flex flex-col items-center justify-center space-y-4 py-2">
+            {/* Card Info Pill Banner */}
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 no-print">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"/>
+              <span>Pratinjau Digital <strong>{s.name}</strong> (Kelas {s.class})</span>
+            </div>
+
+            {/* High-definition Card Container with Elevation */}
+            <div className="p-4 sm:p-5 bg-gradient-to-b from-slate-100 to-slate-200/70 rounded-3xl border border-slate-200/80 shadow-md inline-block transition-transform hover:scale-[1.01]">
+              <div
+                ref={singleCardRef}
+                className="id-card"
+                style={{
+                  width: "85.6mm",
+                  height: "54mm",
+                  background: "#ffffff",
+                  borderRadius: "3.5mm",
+                  position: "relative",
+                  overflow: "hidden",
+                  boxShadow: "0 8px 24px rgba(0, 34, 102, 0.15), 0 2px 6px rgba(0,0,0,0.06)",
+                  border: "0.35mm solid #cbd5e1",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+                }}
+              >
+                {/* Background Template: Header & Footer Resmi */}
+                <img
+                  src={templateHeaderFooterKartu}
+                  alt="Template Kartu Mu'allimin"
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "fill",
+                    pointerEvents: "none",
+                    zIndex: 1
+                  }}
+                />
+
+                {/* Top Padding Area corresponding to Template Header */}
+                <div style={{ height: "13.5mm", position: "relative", zIndex: 2 }} />
+
+                {/* Middle Body Content: Overlaid cleanly on white area */}
+                <div style={{
+                  padding: "0.5mm 3.2mm 0.5mm 3.2mm",
+                  display: "grid",
+                  gridTemplateColumns: "15mm 1fr 20mm",
+                  alignItems: "center",
+                  gap: "2.2mm",
+                  flex: 1,
+                  position: "relative",
+                  zIndex: 2,
+                  fontFamily: "'LT Internet', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                }}>
+                  {/* 1. Left: Photo Box (14.5mm x 19mm) */}
+                  <div style={{
+                    width: "14.5mm",
+                    height: "19mm",
+                    borderRadius: "1.8mm",
+                    background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+                    border: "0.35mm solid #cbd5e1",
+                    boxShadow: "0 0.4mm 1.2mm rgba(0,0,0,0.06)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    position: "relative"
+                  }}>
+                    <div style={{
+                      width: "8mm",
+                      height: "8mm",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "white",
+                      fontWeight: 900,
+                      fontSize: "3.2mm",
+                      boxShadow: "0 0.2mm 0.5mm rgba(0,0,0,0.15)",
+                      fontFamily: "'El Messiri', 'LT Internet', sans-serif"
+                    }}>
+                      {s.name ? s.name.substring(0, 1).toUpperCase() : "S"}
+                    </div>
+                    <span style={{
+                      fontSize: "0.85mm",
+                      fontWeight: 800,
+                      color: "#64748b",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                      marginTop: "1mm",
+                      fontFamily: "'LT Internet', sans-serif"
+                    }}>
+                      FOTO 3X4
+                    </span>
+                  </div>
+
+                  {/* 2. Middle: Full Data with El Messiri & LT Internet Typography */}
+                  <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "0.8mm" }}>
+                    {/* Card Type Label: Kartu Santri / Student ID Card */}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{
+                        fontSize: "1.45mm",
+                        fontWeight: 900,
+                        color: "#0369a1",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                        lineHeight: 1.1,
+                        fontFamily: "'LT Internet', sans-serif"
+                      }}>
+                        KARTU SANTRI <span style={{ color: "#64748b", fontWeight: 800 }}>/ STUDENT ID CARD</span>
+                      </div>
+                      <div style={{
+                        fontSize: "3.6mm",
+                        fontWeight: 700,
+                        color: "#0f172a",
+                        lineHeight: 1.15,
+                        letterSpacing: "0.01em",
+                        marginTop: "0.8mm",
+                        fontFamily: "'El Messiri', 'LT Internet', sans-serif"
+                      }}>
+                        {s.name}
+                      </div>
+                    </div>
+
+                    {/* Key-Value Details Rows (Larger Fonts & WhatsApp on new line under name) */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.55mm", fontFamily: "'LT Internet', sans-serif" }}>
+                      {/* Row 0: TTL */}
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                        <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0 }}>TTL</span>
+                        <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm" }}>:</span>
+                        <span style={{ fontWeight: 700, color: "#0f172a", flex: 1, minWidth: 0 }}>
+                          Yogyakarta, 15 Januari 2011
+                        </span>
+                      </div>
+
+                      {/* Row 1: Asrama */}
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                        <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0 }}>ASRAMA</span>
+                        <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm" }}>:</span>
+                        <span style={{ fontWeight: 700, color: "#0f172a", flex: 1, minWidth: 0 }}>
+                          {asramaName}
+                        </span>
+                      </div>
+
+                      {/* Row 2: Musyrif (Phone placed cleanly underneath name) */}
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                        <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0, marginTop: "0.2mm" }}>MUSYRIF</span>
+                        <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm", marginTop: "0.2mm" }}>:</span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.2mm", flex: 1, minWidth: 0 }}>
+                          <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "1.55mm" }}>
+                            {musyrif.name}
+                          </span>
+                          {musyrif.number && (
+                            <a
+                              href={`https://wa.me/${musyrif.number}?text=Assalamu'alaikum%20Ustadz%20${encodeURIComponent(musyrif.name)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ color: "#0284c7", fontWeight: 800, fontSize: "1.25mm", display: "inline-flex", alignItems: "center", gap: "0.3mm", textDecoration: "none" }}
+                              title="Hubungi Musyrif via WhatsApp"
+                            >
+                              <svg width="1.6mm" height="1.6mm" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                              </svg>
+                              {formatCardPhone(musyrif.number)}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Row 3: Pamong (Phone placed cleanly underneath name) */}
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                        <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0, marginTop: "0.2mm" }}>PAMONG</span>
+                        <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm", marginTop: "0.2mm" }}>:</span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.2mm", flex: 1, minWidth: 0 }}>
+                          <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "1.55mm" }}>
+                            {pamong.name}
+                          </span>
+                          {pamong.number && (
+                            <a
+                              href={`https://wa.me/${pamong.number}?text=Assalamu'alaikum%20Ustadz%20${encodeURIComponent(pamong.name)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ color: "#0284c7", fontWeight: 800, fontSize: "1.25mm", display: "inline-flex", alignItems: "center", gap: "0.3mm", textDecoration: "none" }}
+                              title="Hubungi Pamong via WhatsApp"
+                            >
+                              <svg width="1.6mm" height="1.6mm" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                              </svg>
+                              {formatCardPhone(pamong.number)}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Right: QR Code Box */}
+                  <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    fontFamily: "'LT Internet', sans-serif"
+                  }}>
+                    <div style={{
+                      width: "19.5mm",
+                      height: "19.5mm",
+                      background: "#ffffff",
+                      border: "0.35mm solid #e2e8f0",
+                      borderRadius: "1.6mm",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0.5mm",
+                      boxShadow: "0 0.3mm 1mm rgba(0,0,0,0.06)",
+                      position: "relative"
+                    }}>
+                      <QRCodeSVG
+                        value={qrPayload}
+                        size={66}
+                        level="H"
+                        fgColor="#0f172a"
+                        imageSettings={{
+                          src: logoMualliminResmi,
+                          x: undefined,
+                          y: undefined,
+                          height: 13,
+                          width: 13,
+                          excavate: true,
+                        }}
+                      />
+                    </div>
+                    <span style={{
+                      fontSize: "1.15mm",
+                      fontWeight: 800,
+                      color: "#475569",
+                      letterSpacing: "0.04em",
+                      marginTop: "0.6mm",
+                      fontFamily: "'LT Internet', monospace"
+                    }}>
+                      {santriId}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom Padding Area */}
+                <div style={{ height: "16.5mm", position: "relative", zIndex: 2 }} />
+              </div>
+            </div>
+
+            {/* Direct Quick Action Toolbar */}
+            <div className="flex flex-wrap items-center justify-center gap-3 no-print pt-2">
+              <button
+                onClick={() => setIsFullscreen(true)}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all btn-press"
+              >
+                <Maximize2 className="w-4 h-4"/> Full Screen (Mode HP)
+              </button>
+              <button
+                onClick={handleDownloadCard}
+                disabled={isDownloading}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all btn-press disabled:opacity-50"
+              >
+                <Download className="w-4 h-4"/> {isDownloading ? "Sedang Mengunduh..." : "Unduh Gambar HD (PNG)"}
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all btn-press"
+              >
+                <Printer className="w-4 h-4"/> Cetak Kartu Ini
+              </button>
+            </div>
+
+            {/* FULLSCREEN IMMERSIVE MOBILE OVERLAY */}
+            {isFullscreen && (
+              <div className="fixed inset-0 z-[9999] bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6 select-none animate-in fade-in duration-200">
+                {/* Fullscreen Top Floating Bar */}
+                <div className="w-full max-w-4xl flex items-center justify-between gap-2 text-white pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/10 text-white border border-white/20">
+                      {s.name} ({s.class})
+                    </span>
+                    <button
+                      onClick={() => setIsRotated(!isRotated)}
+                      className="text-xs font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 shadow-sm transition-all btn-press"
+                      title="Putar Orientasi Kartu"
+                    >
+                      <RotateCw className="w-3.5 h-3.5"/> {isRotated ? "Posisi Tegak" : "Putar Layar HP"}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handlePrevSantri}
+                      className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors btn-press"
+                      title="Santri Sebelumnya"
+                    >
+                      <ArrowLeft className="w-4 h-4"/>
+                    </button>
+                    <button
+                      onClick={handleNextSantri}
+                      className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors btn-press"
+                      title="Santri Berikutnya"
+                    >
+                      <ChevronRight className="w-4 h-4"/>
+                    </button>
+                    <button
+                      onClick={handleDownloadCard}
+                      disabled={isDownloading}
+                      className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors btn-press"
+                      title="Unduh HD PNG"
+                    >
+                      <Download className="w-4 h-4"/>
+                    </button>
+                    <button
+                      onClick={() => setIsFullscreen(false)}
+                      className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors btn-press ml-1"
+                      title="Tutup Full Screen"
+                    >
+                      <X className="w-4 h-4"/>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Scaled & Rotatable Card Container */}
+                <div className="flex-1 w-full flex items-center justify-center overflow-hidden py-2">
+                  <div
+                    style={{
+                      transform: isRotated
+                        ? "rotate(90deg) scale(1.18)"
+                        : "scale(1.15)",
+                      transformOrigin: "center center",
+                      transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    }}
+                    className="shadow-2xl rounded-3xl"
+                  >
+                    <div
+                      className="id-card"
+                      style={{
+                        width: "85.6mm",
+                        height: "54mm",
+                        background: "#ffffff",
+                        borderRadius: "3.5mm",
+                        position: "relative",
+                        overflow: "hidden",
+                        boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)",
+                        border: "0.35mm solid #cbd5e1",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+                      }}
+                    >
+                      {/* Background Template: Header & Footer Resmi */}
+                      <img
+                        src={templateHeaderFooterKartu}
+                        alt="Template Kartu Mu'allimin"
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: 0,
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "fill",
+                          pointerEvents: "none",
+                          zIndex: 1
+                        }}
+                      />
+
+                      {/* Top Padding Area corresponding to Template Header */}
+                      <div style={{ height: "13.5mm", position: "relative", zIndex: 2 }} />
+
+                      {/* Middle Body Content: Overlaid cleanly on white area */}
+                      <div style={{
+                        padding: "0.5mm 3.2mm 0.5mm 3.2mm",
+                        display: "grid",
+                        gridTemplateColumns: "15mm 1fr 20mm",
+                        alignItems: "center",
+                        gap: "2.2mm",
+                        flex: 1,
+                        position: "relative",
+                        zIndex: 2,
+                        fontFamily: "'LT Internet', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                      }}>
+                        {/* 1. Left: Photo Box (14.5mm x 19mm) */}
+                        <div style={{
+                          width: "14.5mm",
+                          height: "19mm",
+                          borderRadius: "1.8mm",
+                          background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+                          border: "0.35mm solid #cbd5e1",
+                          boxShadow: "0 0.4mm 1.2mm rgba(0,0,0,0.06)",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          position: "relative"
+                        }}>
+                          <div style={{
+                            width: "8mm",
+                            height: "8mm",
+                            borderRadius: "50%",
+                            background: "linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                            fontWeight: 900,
+                            fontSize: "3.2mm",
+                            boxShadow: "0 0.2mm 0.5mm rgba(0,0,0,0.15)",
+                            fontFamily: "'El Messiri', 'LT Internet', sans-serif"
+                          }}>
+                            {s.name ? s.name.substring(0, 1).toUpperCase() : "S"}
+                          </div>
+                          <span style={{
+                            fontSize: "0.85mm",
+                            fontWeight: 800,
+                            color: "#64748b",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.04em",
+                            marginTop: "1mm",
+                            fontFamily: "'LT Internet', sans-serif"
+                          }}>
+                            FOTO 3X4
+                          </span>
+                        </div>
+
+                        {/* 2. Middle: Full Data with El Messiri & LT Internet Typography */}
+                        <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "0.8mm" }}>
+                          {/* Card Type Label */}
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{
+                              fontSize: "1.45mm",
+                              fontWeight: 900,
+                              color: "#0369a1",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.04em",
+                              lineHeight: 1.1,
+                              fontFamily: "'LT Internet', sans-serif"
+                            }}>
+                              KARTU SANTRI <span style={{ color: "#64748b", fontWeight: 800 }}>/ STUDENT ID CARD</span>
+                            </div>
+                            <div style={{
+                              fontSize: "3.6mm",
+                              fontWeight: 700,
+                              color: "#0f172a",
+                              lineHeight: 1.15,
+                              letterSpacing: "0.01em",
+                              marginTop: "0.8mm",
+                              fontFamily: "'El Messiri', 'LT Internet', sans-serif"
+                            }}>
+                              {s.name}
+                            </div>
+                          </div>
+
+                          {/* Key-Value Details Rows (Larger Fonts & WhatsApp on new line under name) */}
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.55mm", fontFamily: "'LT Internet', sans-serif" }}>
+                            {/* Row 0: TTL */}
+                            <div style={{ display: "flex", alignItems: "baseline", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                              <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0 }}>TTL</span>
+                              <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm" }}>:</span>
+                              <span style={{ fontWeight: 700, color: "#0f172a", flex: 1, minWidth: 0 }}>
+                                Yogyakarta, 15 Januari 2011
+                              </span>
+                            </div>
+
+                            {/* Row 1: Asrama */}
+                            <div style={{ display: "flex", alignItems: "baseline", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                              <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0 }}>ASRAMA</span>
+                              <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm" }}>:</span>
+                              <span style={{ fontWeight: 700, color: "#0f172a", flex: 1, minWidth: 0 }}>
+                                {asramaName}
+                              </span>
+                            </div>
+
+                            {/* Row 2: Musyrif */}
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                              <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0, marginTop: "0.2mm" }}>MUSYRIF</span>
+                              <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm", marginTop: "0.2mm" }}>:</span>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "0.2mm", flex: 1, minWidth: 0 }}>
+                                <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "1.55mm" }}>
+                                  {musyrif.name}
+                                </span>
+                                {musyrif.number && (
+                                  <span style={{ color: "#0284c7", fontWeight: 800, fontSize: "1.25mm", display: "inline-flex", alignItems: "center", gap: "0.3mm" }}>
+                                    <svg width="1.6mm" height="1.6mm" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                    </svg>
+                                    {formatCardPhone(musyrif.number)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Row 3: Pamong */}
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                              <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0, marginTop: "0.2mm" }}>PAMONG</span>
+                              <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm", marginTop: "0.2mm" }}>:</span>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "0.2mm", flex: 1, minWidth: 0 }}>
+                                <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "1.55mm" }}>
+                                  {pamong.name}
+                                </span>
+                                {pamong.number && (
+                                  <span style={{ color: "#0284c7", fontWeight: 800, fontSize: "1.25mm", display: "inline-flex", alignItems: "center", gap: "0.3mm" }}>
+                                    <svg width="1.6mm" height="1.6mm" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                    </svg>
+                                    {formatCardPhone(pamong.number)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 3. Right: QR Code Box */}
+                        <div style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          fontFamily: "'LT Internet', sans-serif"
+                        }}>
+                          <div style={{
+                            width: "19.5mm",
+                            height: "19.5mm",
+                            background: "#ffffff",
+                            border: "0.35mm solid #e2e8f0",
+                            borderRadius: "1.6mm",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "0.5mm",
+                            boxShadow: "0 0.3mm 1mm rgba(0,0,0,0.06)",
+                            position: "relative"
+                          }}>
+                            <QRCodeSVG
+                              value={qrPayload}
+                              size={66}
+                              level="H"
+                              fgColor="#0f172a"
+                              imageSettings={{
+                                src: logoMualliminResmi,
+                                x: undefined,
+                                y: undefined,
+                                height: 13,
+                                width: 13,
+                                excavate: true,
+                              }}
+                            />
+                          </div>
+                          <span style={{
+                            fontSize: "1.15mm",
+                            fontWeight: 800,
+                            color: "#475569",
+                            letterSpacing: "0.04em",
+                            marginTop: "0.6mm",
+                            fontFamily: "'LT Internet', monospace"
+                          }}>
+                            {santriId}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Bottom Padding Area */}
+                      <div style={{ height: "16.5mm", position: "relative", zIndex: 2 }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Quick Bar in Fullscreen */}
+                <div className="w-full max-w-sm flex items-center justify-center gap-3 pt-2 text-white/70 text-xs font-semibold">
+                  <span>Ketuk <strong>Putar Layar HP</strong> untuk mode kartu layar penuh vertikal/horizontal</span>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* GRID VIEW MODE (CETAK MASSAL) */}
+      {viewMode === "grid" && (
+        <div className="cards-print-grid flex flex-wrap gap-5 justify-center">
         {filteredStudents.map((s, idx) => {
           const cleanClass = (s.class || "XX").replace(/[^a-zA-Z0-9]/g, "");
           const paddedIdx = String(idx + 1).padStart(4, "0");
@@ -3944,93 +4941,246 @@ function PageCards({ setPage }: { setPage: (p: PageId) => void }) {
           const { musyrif, pamong, asramaName } = getStudentCardDetails(s.class);
 
           return (
-            <div key={santriId} className="id-card">
-              {/* Header */}
-              <div className="card-header" style={{
-                background: "linear-gradient(135deg, #064e3b 0%, #047857 65%, #059669 100%)",
-                color: "white",
-                padding: "1.8mm 3mm",
-                display: "flex",
-                alignItems: "center",
-                gap: "2mm",
-                borderBottom: "0.8mm solid #f59e0b"
-              }}>
-                <div style={{ width: "7.5mm", height: "7.5mm", borderRadius: "50%", background: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: "#047857", fontSize: "2.8mm", flexShrink: 0, boxShadow: "0 0.2mm 0.5mm rgba(0,0,0,0.2)" }}>
-                  M
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "2.1mm", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.1 }}>
-                    Madrasah Mu'allimin
-                  </div>
-                  <div style={{ fontSize: "1.5mm", fontWeight: 700, color: "#a7f3d0", letterSpacing: "0.03em", lineHeight: 1.1 }}>
-                    KARTU IZIN ASRAMA SEDAYU
-                  </div>
-                </div>
-                <div style={{ background: "#f59e0b", color: "#78350f", fontSize: "1.5mm", fontWeight: 900, padding: "0.6mm 1.6mm", borderRadius: "0.8mm", flexShrink: 0, letterSpacing: "0.02em" }}>
-                  SABTU-AHAD
-                </div>
-              </div>
+            <div key={santriId} className="id-card" style={{
+              width: "85.6mm",
+              height: "54mm",
+              background: "#ffffff",
+              borderRadius: "3.5mm",
+              position: "relative",
+              overflow: "hidden",
+              boxShadow: "0 3px 14px rgba(0, 34, 102, 0.12), 0 1px 3px rgba(0,0,0,0.05)",
+              border: "0.35mm solid #cbd5e1",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              pageBreakInside: "avoid",
+              breakInside: "avoid",
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+            }}>
+              {/* Background Template: Header & Footer Resmi */}
+              <img
+                src={templateHeaderFooterKartu}
+                alt="Template Kartu Mu'allimin"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "fill",
+                  pointerEvents: "none",
+                  zIndex: 1
+                }}
+              />
 
-              {/* Body */}
-              <div style={{ padding: "1.8mm 3mm", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "2.5mm", flex: 1, background: "linear-gradient(to bottom, #ffffff, #fcfdfd)" }}>
-                {/* Left Data Details */}
-                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "0.6mm" }}>
-                  {/* Student Name */}
-                  <div>
-                    <div style={{ fontSize: "1.3mm", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.03em" }}>NAMA SANTRI</div>
-                    <div style={{ fontSize: "2.3mm", fontWeight: 900, color: "#064e3b", lineHeight: 1.15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {/* Top Padding Area corresponding to Template Header */}
+              <div style={{ height: "13.5mm", position: "relative", zIndex: 2 }} />
+
+              {/* Middle Body Content: Overlaid cleanly on white area */}
+              <div style={{
+                padding: "0.5mm 3.2mm 0.5mm 3.2mm",
+                display: "grid",
+                gridTemplateColumns: "15mm 1fr 20mm",
+                alignItems: "center",
+                gap: "2.2mm",
+                flex: 1,
+                position: "relative",
+                zIndex: 2,
+                fontFamily: "'LT Internet', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              }}>
+                {/* 1. Left: Photo Box (14.5mm x 19mm) */}
+                <div style={{
+                  width: "14.5mm",
+                  height: "19mm",
+                  borderRadius: "1.8mm",
+                  background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+                  border: "0.35mm solid #cbd5e1",
+                  boxShadow: "0 0.4mm 1.2mm rgba(0,0,0,0.06)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  position: "relative"
+                }}>
+                  <div style={{
+                    width: "8mm",
+                    height: "8mm",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                    fontWeight: 900,
+                    fontSize: "3.2mm",
+                    boxShadow: "0 0.2mm 0.5mm rgba(0,0,0,0.15)",
+                    fontFamily: "'El Messiri', 'LT Internet', sans-serif"
+                  }}>
+                    {s.name ? s.name.substring(0, 1).toUpperCase() : "S"}
+                  </div>
+                  <span style={{
+                    fontSize: "0.85mm",
+                    fontWeight: 800,
+                    color: "#64748b",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                    marginTop: "1mm",
+                    fontFamily: "'LT Internet', sans-serif"
+                  }}>
+                    FOTO 3X4
+                  </span>
+                </div>
+
+                {/* 2. Middle: Full Data with El Messiri & LT Internet Typography */}
+                <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "0.8mm" }}>
+                  
+                  {/* Card Type Label: Kartu Santri / Student ID Card (Larger & More Prominent) */}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{
+                      fontSize: "1.45mm",
+                      fontWeight: 900,
+                      color: "#0369a1",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                      lineHeight: 1.1,
+                      fontFamily: "'LT Internet', sans-serif"
+                    }}>
+                      KARTU SANTRI <span style={{ color: "#64748b", fontWeight: 800 }}>/ STUDENT ID CARD</span>
+                    </div>
+                    {/* Large Prominent Student Name in El Messiri */}
+                    <div style={{
+                      fontSize: "3.6mm",
+                      fontWeight: 700,
+                      color: "#0f172a",
+                      lineHeight: 1.15,
+                      letterSpacing: "0.01em",
+                      marginTop: "0.8mm",
+                      fontFamily: "'El Messiri', 'LT Internet', sans-serif"
+                    }}>
                       {s.name}
                     </div>
                   </div>
 
-                  {/* Class, NIS & Dorm */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "1.5mm", flexWrap: "wrap", marginTop: "0.1mm" }}>
-                    <span style={{ background: "#047857", color: "white", fontSize: "1.7mm", fontWeight: 900, padding: "0.3mm 1.4mm", borderRadius: "0.6mm" }}>
-                      KELAS {s.class || "-"}
-                    </span>
-                    <span style={{ fontSize: "1.6mm", fontWeight: 700, color: "#334155", fontFamily: "monospace" }}>
-                      {santriId}
-                    </span>
-                  </div>
+                  {/* Key-Value Details Rows in LT Internet (Tight & Precision Aligned) */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.55mm", fontFamily: "'LT Internet', sans-serif" }}>
+                    
+                    {/* Row 0: Tempat Tanggal Lahir (Diatas Asrama) */}
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                      <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0 }}>TTL</span>
+                      <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm" }}>:</span>
+                      <span style={{ fontWeight: 700, color: "#0f172a", flex: 1, minWidth: 0 }}>
+                        Yogyakarta, 15 Januari 2011
+                      </span>
+                    </div>
 
-                  {/* Asrama */}
-                  <div style={{ fontSize: "1.45mm", color: "#475569", lineHeight: 1.15, marginTop: "0.3mm", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <strong style={{ color: "#0f172a" }}>Asrama:</strong> {asramaName}
-                  </div>
+                    {/* Row 1: Asrama */}
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                      <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0 }}>ASRAMA</span>
+                      <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm" }}>:</span>
+                      <span style={{ fontWeight: 700, color: "#0f172a", flex: 1, minWidth: 0 }}>
+                        {asramaName}
+                      </span>
+                    </div>
 
-                  {/* Musyrif Info */}
-                  <div style={{ fontSize: "1.4mm", color: "#475569", lineHeight: 1.15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <strong style={{ color: "#0f172a" }}>Musyrif:</strong> {musyrif.name}
-                    {musyrif.number && <span style={{ color: "#047857", fontWeight: 700, marginLeft: "1mm" }}>({formatCardPhone(musyrif.number)})</span>}
-                  </div>
+                    {/* Row 2: Musyrif */}
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                      <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0, marginTop: "0.2mm" }}>MUSYRIF</span>
+                      <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm", marginTop: "0.2mm" }}>:</span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.2mm", flex: 1, minWidth: 0 }}>
+                        <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "1.55mm" }}>
+                          {musyrif.name}
+                        </span>
+                        {musyrif.number && (
+                          <span style={{ color: "#0284c7", fontWeight: 800, fontSize: "1.25mm", display: "inline-flex", alignItems: "center", gap: "0.3mm" }}>
+                            <svg width="1.6mm" height="1.6mm" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                            </svg>
+                            {formatCardPhone(musyrif.number)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-                  {/* Pamong Info */}
-                  <div style={{ fontSize: "1.4mm", color: "#475569", lineHeight: 1.15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    <strong style={{ color: "#0f172a" }}>Pamong:</strong> {pamong.name}
-                    {pamong.number && <span style={{ color: "#0284c7", fontWeight: 700, marginLeft: "1mm" }}>({formatCardPhone(pamong.number)})</span>}
+                    {/* Row 3: Pamong */}
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "1mm", fontSize: "1.55mm", color: "#334155", lineHeight: 1.15 }}>
+                      <span style={{ width: "8.6mm", fontWeight: 800, color: "#1e293b", textTransform: "uppercase", fontSize: "1.35mm", flexShrink: 0, marginTop: "0.2mm" }}>PAMONG</span>
+                      <span style={{ color: "#94a3b8", fontWeight: 700, margin: "0 0.2mm", marginTop: "0.2mm" }}>:</span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.2mm", flex: 1, minWidth: 0 }}>
+                        <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "1.55mm" }}>
+                          {pamong.name}
+                        </span>
+                        {pamong.number && (
+                          <span style={{ color: "#0284c7", fontWeight: 800, fontSize: "1.25mm", display: "inline-flex", alignItems: "center", gap: "0.3mm" }}>
+                            <svg width="1.6mm" height="1.6mm" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                            </svg>
+                            {formatCardPhone(pamong.number)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
-                {/* Right QR Code Box */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, gap: "0.8mm" }}>
-                  <div style={{ width: "21mm", height: "21mm", background: "white", border: "0.5mm solid #cbd5e1", borderRadius: "1.5mm", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.6mm", boxShadow: "0 0.2mm 0.5mm rgba(0,0,0,0.06)" }}>
-                    <QRCodeSVG value={qrPayload} size={74} fgColor="#064e3b" />
+                {/* 3. Right: QR Code Box (20mm) with Student ID (santriId) underneath */}
+                <div style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  fontFamily: "'LT Internet', sans-serif"
+                }}>
+                  <div style={{
+                    width: "19.5mm",
+                    height: "19.5mm",
+                    background: "#ffffff",
+                    border: "0.35mm solid #e2e8f0",
+                    borderRadius: "1.6mm",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0.5mm",
+                    boxShadow: "0 0.3mm 1mm rgba(0,0,0,0.06)",
+                    position: "relative"
+                  }}>
+                    <QRCodeSVG
+                      value={qrPayload}
+                      size={66}
+                      level="H"
+                      fgColor="#0f172a"
+                      imageSettings={{
+                        src: logoMualliminResmi,
+                        x: undefined,
+                        y: undefined,
+                        height: 13,
+                        width: 13,
+                        excavate: true,
+                      }}
+                    />
                   </div>
-                  <span style={{ fontSize: "1.2mm", fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.02em" }}>
-                    Scan Pos Satpam
+                  <span style={{
+                    fontSize: "1.15mm",
+                    fontWeight: 800,
+                    color: "#475569",
+                    letterSpacing: "0.04em",
+                    marginTop: "0.6mm",
+                    fontFamily: "'LT Internet', monospace"
+                  }}>
+                    {santriId}
                   </span>
                 </div>
               </div>
 
-              {/* Footer */}
-              <div style={{ background: "#f1f5f9", borderTop: "0.4mm solid #e2e8f0", padding: "1mm 3mm", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "1.3mm", color: "#475569", fontWeight: 700 }}>
-                <span style={{ color: "#047857" }}>⏰ Sabtu 15-17 • Ahad 07-11 WIB</span>
-                <span style={{ color: "#b45309" }}>Wajib Scan Keluar/Masuk</span>
-              </div>
+              {/* Bottom Padding Area corresponding to Template Footer */}
+              <div style={{ height: "16.5mm", position: "relative", zIndex: 2 }} />
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
